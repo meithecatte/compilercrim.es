@@ -5,11 +5,13 @@ date = 2021-06-10
 
 Software is full of circular dependencies if you look deep enough. Compilers
 written in the language they compile are the most obvious example, but not the
-only one. To compile a kernel, you need a running kernel.  How do you break
-this cycle?  Since the [bootstrapping problem][bootstrappable] has first come
-to my attention, I've been drawn to this unique area of software engineering.
-Not out of fear that someone would try to implement a [trusting trust] attack,
-but simply as an interesting challenge.  <!-- more -->
+only one. To compile a kernel, you need a running kernel. Linkers, build
+systems, shells.  Even text editors, if you want to write the code instead of
+just downloading it. How do you break this cycle?[^cycle] Since the [bootstrapping
+problem][bootstrappable] has first come to my attention, I've been drawn to
+this unique area of software engineering.  Not out of fear that someone would
+try to implement a [trusting trust] attack, but simply as an interesting
+challenge.  <!-- more -->
 
 11 years ago, [*vanjos72* described on Reddit][thought-experiment] what he
 calls a thought experiment: what if you were locked in a room with an IBM PC,
@@ -1344,6 +1346,9 @@ read this far), consider subscribing to the RSS feed or [following me on
 Twitter][twitter-me] to get notified about new posts.
 
 ---
+
+[^cycle]: A graph theorist would have many strong words to describe this,
+  rather than just *cycle*.
 
 [^ascii-x86]: And even if that wasn't the case, there are [many][printable1],
   [many][printable2]
