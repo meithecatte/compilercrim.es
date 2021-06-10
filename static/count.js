@@ -170,32 +170,6 @@
 				return s[i].substr(name.length + 1)
 	}
 
-	// Track click events.
-	window.goatcounter.bind_events = function() {
-		if (!document.querySelectorAll)  // Just in case someone uses an ancient browser.
-			return
-
-		var send = function(elem) {
-			return function() {
-				goatcounter.count({
-					event:    true,
-					path:     (elem.dataset.goatcounterClick || elem.name || elem.id || ''),
-					title:    (elem.dataset.goatcounterTitle || elem.title || (elem.innerHTML || '').substr(0, 200) || ''),
-					referrer: (elem.dataset.goatcounterReferrer || elem.dataset.goatcounterReferral || ''),
-				})
-			}
-		}
-
-		Array.prototype.slice.call(document.querySelectorAll("*[data-goatcounter-click]")).forEach(function(elem) {
-			if (elem.dataset.goatcounterBound)
-				return
-			var f = send(elem)
-			elem.addEventListener('click', f, false)
-			elem.addEventListener('auxclick', f, false)  // Middle click.
-			elem.dataset.goatcounterBound = 'true'
-		})
-	}
-
 	// Add a "visitor counter" frame or image.
 	window.goatcounter.visit_count = function(opt) {
 		on_load(function() {
@@ -246,7 +220,5 @@
 	if (!goatcounter.no_onload)
 		on_load(function() {
 			goatcounter.count()
-			if (!goatcounter.no_events)
-				goatcounter.bind_events()
 		})
 })();

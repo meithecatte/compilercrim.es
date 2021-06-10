@@ -611,10 +611,10 @@ set through the stack. This is a byte-saving trick I've picked up from
 8ec0    mov es, ax
 8ed0    mov ss, ax
 
-0E      push cs     ; through the stack - 6 bytes
-0E      push cs
-0E      push cs
-1F      pop ds
+0e      push cs     ; through the stack - 6 bytes
+0e      push cs
+0e      push cs
+1f      pop ds
 07      pop es
 17      pop ss
 ```
