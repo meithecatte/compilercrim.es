@@ -1,6 +1,6 @@
 +++
 title = "Bootstrapping on Bare Metal: Fitting a FORTH in 510 bytes"
-date = 2021-06-04
+date = 2021-06-10
 +++
 
 Software is full of circular dependencies if you look deep
