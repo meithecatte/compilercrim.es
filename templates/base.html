@@ -17,7 +17,9 @@
         <link rel="stylesheet" href="{{ get_url(path="/style.css") }}"/>
         <link rel="icon" href="{{ get_url(path="/icon.png") }}"/>
         <link rel="canonical" href="{{ canonical_url }}"/>
-        <link rel="alternate" type="application/rss+xml" title="{{ config.title }}" href="/rss.xml">
+        <!-- NOTE: Make sure the title goes last. Otherwise, an interaction between the
+            minifier and Feedbro's not-sure-if-compliant custom parser will break. -->
+        <link rel="alternate" type="application/rss+xml" href="/rss.xml" title="{{ config.title }}">
         {% block meta %} {% endblock %}
         {% if page.title %}
             <meta property="og:title" content="{{ page.title }}">
