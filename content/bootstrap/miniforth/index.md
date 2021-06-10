@@ -3,15 +3,13 @@ title = "Fitting a FORTH in 512 bytes"
 date = 2021-06-10
 +++
 
-Software is full of circular dependencies if you look deep
-enough. Compilers written in the language they compile are the most obvious
-example, but not the only one. To compile a kernel, you need a running kernel.
-How do you break this cycle?
-Since the [bootstrapping problem][bootstrappable] has first come to my
-attention, I've been drawn to this unique area of software engineering. Not out
-of fear that someone would try to implement a [trusting trust] attack, but
-simply as an interesting challenge.
-<!-- more -->
+Software is full of circular dependencies if you look deep enough. Compilers
+written in the language they compile are the most obvious example, but not the
+only one. To compile a kernel, you need a running kernel.  How do you break
+this cycle?  Since the [bootstrapping problem][bootstrappable] has first come
+to my attention, I've been drawn to this unique area of software engineering.
+Not out of fear that someone would try to implement a [trusting trust] attack,
+but simply as an interesting challenge.  <!-- more -->
 
 11 years ago, [*vanjos72* described on Reddit][thought-experiment] what he
 calls a thought experiment: what if you were locked in a room with an IBM PC,
@@ -837,7 +835,8 @@ we need to compare the length of the name, and if it matches, the name itself.
 By including `F_HIDDEN` in the mask, we automatically handle hidden entries,
 too. The way we're comparing the length might look a bit weird. The goal is to
 keep the `F_IMMEDIATE` bit in AL, so that we don't have to keep around the
-pointer to the header of this word.
+pointer to the header of this word. This is one of Ilya Kurdyukov's clever
+optimizations.
 
 ```asm
 InterpreterLoop:

@@ -12,15 +12,13 @@
 		<updated>2021-06-10T00:00:00+00:00</updated>
 		<link href="https://niedzejkob.p4.team/bootstrap/miniforth/" type="text/html"/>
 		<id>https://niedzejkob.p4.team/bootstrap/miniforth/</id>
-		<content type="html">&lt;p&gt;Software is full of circular dependencies if you look deep
-enough. Compilers written in the language they compile are the most obvious
-example, but not the only one. To compile a kernel, you need a running kernel.
-How do you break this cycle?
-Since the &lt;a href=&quot;http:&#x2F;&#x2F;bootstrappable.org&#x2F;&quot;&gt;bootstrapping problem&lt;&#x2F;a&gt; has first come to my
-attention, I&#x27;ve been drawn to this unique area of software engineering. Not out
-of fear that someone would try to implement a &lt;a href=&quot;http:&#x2F;&#x2F;users.ece.cmu.edu&#x2F;%7Eganger&#x2F;712.fall02&#x2F;papers&#x2F;p761-thompson.pdf&quot;&gt;trusting trust&lt;&#x2F;a&gt; attack, but
-simply as an interesting challenge.&lt;&#x2F;p&gt;
-&lt;span id=&quot;continue-reading&quot;&gt;&lt;&#x2F;span&gt;
+		<content type="html">&lt;p&gt;Software is full of circular dependencies if you look deep enough. Compilers
+written in the language they compile are the most obvious example, but not the
+only one. To compile a kernel, you need a running kernel.  How do you break
+this cycle?  Since the &lt;a href=&quot;http:&#x2F;&#x2F;bootstrappable.org&#x2F;&quot;&gt;bootstrapping problem&lt;&#x2F;a&gt; has first come
+to my attention, I&#x27;ve been drawn to this unique area of software engineering.
+Not out of fear that someone would try to implement a &lt;a href=&quot;http:&#x2F;&#x2F;users.ece.cmu.edu&#x2F;%7Eganger&#x2F;712.fall02&#x2F;papers&#x2F;p761-thompson.pdf&quot;&gt;trusting trust&lt;&#x2F;a&gt; attack,
+but simply as an interesting challenge.  &lt;span id=&quot;continue-reading&quot;&gt;&lt;&#x2F;span&gt;&lt;&#x2F;p&gt;
 &lt;p&gt;11 years ago, &lt;a href=&quot;https:&#x2F;&#x2F;www.reddit.com&#x2F;r&#x2F;programming&#x2F;comments&#x2F;9x15g&#x2F;programming_thought_experiment_stuck_in_a_room&#x2F;&quot;&gt;&lt;em&gt;vanjos72&lt;&#x2F;em&gt; described on Reddit&lt;&#x2F;a&gt; what he
 calls a thought experiment: what if you were locked in a room with an IBM PC,
 with no operating system on it? What would be the minimum amount of software
@@ -725,7 +723,8 @@ we need to compare the length of the name, and if it matches, the name itself.
 By including &lt;code&gt;F_HIDDEN&lt;&#x2F;code&gt; in the mask, we automatically handle hidden entries,
 too. The way we&#x27;re comparing the length might look a bit weird. The goal is to
 keep the &lt;code&gt;F_IMMEDIATE&lt;&#x2F;code&gt; bit in AL, so that we don&#x27;t have to keep around the
-pointer to the header of this word.&lt;&#x2F;p&gt;
+pointer to the header of this word. This is one of Ilya Kurdyukov&#x27;s clever
+optimizations.&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
 &lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;InterpreterLoop:
     &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;call &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;ParseWord
