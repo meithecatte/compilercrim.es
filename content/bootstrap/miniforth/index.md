@@ -16,7 +16,7 @@ simply as an interesting challenge.
 11 years ago, [*vanjos72* described on Reddit][thought-experiment] what he
 calls a thought experiment: what if you were locked in a room with an IBM PC,
 with no operating system on it? What would be the minimum amount of software
-you'd need to bootstrap back into comfort?
+you'd need to start out with to bootstrap back into comfort?
 
 As it happens, I've recently found myself with an abundance of free time on my
 hands, so I've decided to make this more than a thought experiment. Alas, my
@@ -1342,7 +1342,7 @@ I've found an old PC I can use for my experiments. It boots Miniforth just fine:
 I will be documenting my journey of building upon Miniforth in future posts on
 this blog. If that sounds like your cup of tea (and it probably does if you've
 read this far), consider subscribing to the Atom feed or [following me on
-Twitter][twitter-me].
+Twitter][twitter-me] to get notified about new posts.
 
 ---
 

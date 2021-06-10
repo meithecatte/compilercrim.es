@@ -8,7 +8,7 @@
 {% block content %}
 {% for page in section.pages %}
 <div class="article-preview">
-<p class="title"><a href="{{ page.permalink }}">{{ page.title }}</a></p>
+<h1 class="title"><a href="{{ page.permalink }}">{{ page.title }}</a></h1>
 {{ macros::post_metadata(page=page) }}
 {{ page.summary | safe }}
 <a class="read-more button" href="{{ page.permalink }}#continue-reading">Read more</a>

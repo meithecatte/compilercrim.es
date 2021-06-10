@@ -6,9 +6,9 @@
 {% endblock meta %}
 
 {% block content %}
-<p class="title is-2">
+<h1 class="title">
   {{ page.title }}
-</p>
+</h1>
 {{ macros::post_metadata(page=page) }}
 {{ page.content | safe }}
 {% endblock content %}
