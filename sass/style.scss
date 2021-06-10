@@ -265,6 +265,10 @@ code {
         color: #fff;
         border-color: transparent;
     }
+
+    img[src*="svg"] {
+        filter: invert(83.6%) hue-rotate(180deg);
+    }
 }
 
 // borrowed from poligon
