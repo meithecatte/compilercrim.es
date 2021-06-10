@@ -1,5 +1,5 @@
 +++
-title = "Bootstrapping on Bare Metal: FORTH in 510 bytes"
+title = "Fitting a FORTH in 512 bytes"
 date = 2021-06-10
 +++
 
