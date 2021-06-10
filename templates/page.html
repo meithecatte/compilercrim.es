@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% import "macros.html" as macros %}
+
+{% block meta %}
+<meta property="og:type" content="website">
+{% endblock meta %}
+
+{% block content %}
+<p class="title is-2">
+  {{ page.title }}
+</p>
+{{ macros::post_metadata(page=page) }}
+{{ page.content | safe }}
+{% endblock content %}

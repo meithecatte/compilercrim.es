@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% import "macros.html" as macros %}
+
+{% block meta %}
+<meta property="og:type" content="website">
+{% endblock meta %}
+
+{% block content %}
+{% for page in section.pages %}
+<div class="article-preview">
+<p class="title"><a href="{{ page.permalink }}">{{ page.title }}</a></p>
+{{ macros::post_metadata(page=page) }}
+{{ page.summary | safe }}
+<a class="read-more button" href="{{ page.permalink }}#continue-reading">Read more</a>
+</div>
+{% endfor %}
+{% endblock content %}

@@ -1,0 +1,9 @@
+<div class="inset">
+{% for category in categories %}
+<span class="badge tag-category category-{{category}}">{{ category }}</span>
+{% endfor %}
+<p class="title is-4">{{ name }}</p>
+<p class="subtitle is-6">Points: {{ points }}</p>
+<p class="subtitle is-6">Solves: {{ solves }}</p>
+<blockquote class="task-description">{{ body | markdown | safe }}</blockquote>
+</div>

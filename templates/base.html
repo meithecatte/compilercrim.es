@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% set site_name = "NieDżejkob's ramblings" %}
+    {% if page.title %}
+        {% set title = page.title ~ " — " ~ site_name %}
+    {% else %}
+        {% set title = site_name %}
+    {% endif %}
+    {% if page.permalink %}
+        {% set canonical_url = page.permalink %}
+    {% else %}
+        {% set canonical_url = section.permalink %}
+    {% endif %}
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>{{ title }}</title>
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.8.0/css/bulma.min.css">
+        <link rel="stylesheet" href="{{ get_url(path="/style.css") }}">
+        <link rel="icon" href="{{ get_url(path="/icon.png") }}">
+        <link rel="canonical" href="{{ canonical_url }}">
+        <link rel="alternate" type="application/atom+xml" href="/atom.xml">
+        {% block meta %} {% endblock %}
+        {% if page.title %}
+            <meta property="og:title" content="{{ page.title }}">
+        {% else %}
+            <meta property="og:title" content="{{ site_name }}">
+        {% endif %}
+        <meta property="og:url" content="{{ canonical_url }}">
+        <meta property="og:image" content="{{ get_url(path="/icon.png") }}">
+    </head>
+    <body class="theme-default">
+        <header>
+            <div class="main-column">
+                <a href="/">
+                    <img id="icon" src="/icon.png">
+                    <span><b>NieDżejkob</b>'s ramblings</span>
+                </a>
+            </div>
+        </header>
+        <main>
+            {% block content %} {% endblock %}
+        </main>
+        <footer>
+            <div class="main-column">
+                <span class="social-links" data-license="CC-BY 4.0 https://fontawesome.com/license">
+                    <a href="https://twitter.com/NieDzejkob" target="_blank">{% include "twitter.svg.html" %}</a>
+                    <a href="https://github.com/NieDzejkob" target="_blank">{% include "github.svg.html" %}</a>
+                    <a href="https://keybase.io/niedzejkob" target="_blank">{% include "keybase.svg.html" %}</a>
+                </span>
+            </div>
+        </footer>
+    </body>
+    <script data-goatcounter="https://niedzejkob.goatcounter.com/count" async src="//gc.zgo.at/count.js"></script>
+</html>

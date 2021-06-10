@@ -1,0 +1,8 @@
+{% macro post_metadata(page) %}
+
+<p class="subtitle page-metadata">
+{{ page.date | date(format="%B %e, %Y") }}
+&middot; {{ page.reading_time }} minute read
+</p>
+
+{% endmacro post_metadata %}
