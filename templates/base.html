@@ -15,10 +15,10 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ title }}</title>
-        <link rel="stylesheet" href="{{ get_url(path="/style.css") }}">
-        <link rel="icon" href="{{ get_url(path="/icon.png") }}">
-        <link rel="canonical" href="{{ canonical_url }}">
-        <link rel="alternate" type="application/atom+xml" href="/atom.xml">
+        <link rel="stylesheet" href="{{ get_url(path="/style.css") }}"/>
+        <link rel="icon" href="{{ get_url(path="/icon.png") }}"/>
+        <link rel="canonical" href="{{ canonical_url }}"/>
+        <link rel="alternate" type="application/atom+xml" title="Sitewide Atom feed" href="/atom.xml">
         {% block meta %} {% endblock %}
         {% if page.title %}
             <meta property="og:title" content="{{ page.title }}">

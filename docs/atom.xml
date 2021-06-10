@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <feed xmlns="http://www.w3.org/2005/Atom" xml:lang="en">
-	<title></title>
+	<title>NieDżejkob&#x27;s ramblings</title>
 	<link href="https://niedzejkob.p4.team/atom.xml" rel="self" type="application/atom+xml"/>
   <link href="https://niedzejkob.p4.team/"/>
 	<generator uri="https://www.getzola.org/">Zola</generator>
