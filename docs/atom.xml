@@ -112,10 +112,10 @@ those one&#x27;d see in a typical programming language, there is a much simpler
 strategy. After all, everything a FORTH word can do is execute other words, so a
 sequence of &lt;code&gt;call&lt;&#x2F;code&gt; instructions gets us very close:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;DOUBLE:
-    call DUP
-    call PLUS
-    ret
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;DOUBLE:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;call &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;DUP
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;call &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;PLUS
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;ret
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;However, this ties up the hardware &lt;code&gt;x86&lt;&#x2F;code&gt; stack for the return stack, making us
 handroll a separate stack for the actual user-level stack (known as the
@@ -124,39 +124,39 @@ like to use the &lt;code&gt;push&lt;&#x2F;code&gt; and &lt;code&gt;pop&lt;&#x2F;
 mechanism similar to &lt;code&gt;call&lt;&#x2F;code&gt;. Firstly, let&#x27;s simply store a list of pointers to
 words:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;DOUBLE:
-    dw DUP
-    dw PLUS
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;DOUBLE:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;DUP
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;PLUS
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;The way this comes to life is that each primitive word fetches the address of
 the next word from memory, and jumps to it. A pointer to this sequence of
 pointers is kept in &lt;code&gt;SI&lt;&#x2F;code&gt;, so that the &lt;code&gt;lodsw&lt;&#x2F;code&gt; instruction allows for easy
 processing of this list:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;DUP:
-    pop ax
-    push ax
-    push ax
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;DUP:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
 
-    lodsw
-    jmp ax
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;lodsw
+    jmp &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
 
-PLUS:
-    pop ax
-    pop bx
-    add ax, bx
-    push ax
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;PLUS:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;add &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
 
-    lodsw
-    jmp ax
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;lodsw
+    jmp &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;This common code can be abstracted away into a macro, which is traditionally
 called &lt;code&gt;NEXT&lt;&#x2F;code&gt;:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;%macro NEXT 0
-    lodsw
-    jmp ax
-%endmacro
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;%macro &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;NEXT &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;lodsw
+    jmp &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;%endmacro
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;This mechanism, by the way, is known as &lt;em&gt;threaded code&lt;&#x2F;em&gt;. No relation to the concurrency
 primitive.&lt;&#x2F;p&gt;
@@ -171,57 +171,57 @@ saves 4 bytes.&lt;&#x2F;p&gt;
 other. Pushing onto the return stack is particularily nice, since it&#x27;s just the
 &lt;code&gt;stosw&lt;&#x2F;code&gt; instruction.&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;DOUBLE:
-    call DOCOL
-    dw DUP
-    dw PLUS
-    dw EXIT
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;DOUBLE:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;call &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;DOCOL
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;DUP
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;PLUS
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;EXIT
 
-DOCOL:   ; short for &amp;quot;do colon word&amp;quot;
-    xchg ax, si ; used here as `mov ax, si`, but swaps with
+DOCOL:&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;   ; short for &amp;quot;do colon word&amp;quot;
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;xchg &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; used here as `mov ax, si`, but swaps with
                 ; ax are only one byte, while `mov`s are two bytes
-    stosw
-    pop si ; grab the pointer pushed by `call`
-    NEXT
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;stosw
+    pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; grab the pointer pushed by `call`
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;NEXT
 
 EXIT:
-    dec di
-    dec di
-    mov si, [di]
-    NEXT
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;dec &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;dec &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, [&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;]
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;NEXT
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;This is pretty much the execution strategy used by Miniforth, with one simple,
 but significant improvement — the value on top of the stack is stored in the
 &lt;code&gt;BX&lt;&#x2F;code&gt; register. This allows skipping a &lt;code&gt;push&lt;&#x2F;code&gt; and &lt;code&gt;pop&lt;&#x2F;code&gt; in many primitives:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;PLUS:
-    pop ax
-    add bx, ax
-    NEXT
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;PLUS:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;add &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;NEXT
 
 DROP:
-    pop bx
-    NEXT
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;NEXT
 
 DUP:
-    push bx
-    NEXT
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;NEXT
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;One case is still unresolved, though.  What happens if a word contains a number,
 such as &lt;code&gt;: DOUBLE 2 * ;&lt;&#x2F;code&gt;? This is handled by &lt;code&gt;LIT&lt;&#x2F;code&gt;, which will fetch the literal
 that follows out of the pointer stream:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;DOUBLE:
-    call DOCOL
-    dw LIT, 2
-    dw MULT
-    dw EXIT
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;DOUBLE:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;call &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;DOCOL
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;LIT&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;2
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;MULT
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;EXIT
 
 LIT:
-    push bx
-    lodsw
-    xchg bx, ax
-    NEXT
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;lodsw
+    xchg &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;NEXT
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;&lt;h2 id=&quot;the-dictionary&quot;&gt;The Dictionary&lt;&#x2F;h2&gt;
 &lt;p&gt;FORTH needs a way to locate the implementation of the words the user types in.
 This is the role of the &lt;em&gt;dictionary&lt;&#x2F;em&gt;. I use a structure similar to many other
@@ -231,9 +231,9 @@ in a variable called &lt;code&gt;LATEST&lt;&#x2F;code&gt;.&lt;&#x2F;p&gt;
 &lt;p&gt;&lt;img src=&quot;https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;dictionary.svg&quot; alt=&quot;&quot; &#x2F;&gt;&lt;&#x2F;p&gt;
 &lt;p&gt;The most significant bits of the name length field also store some flags:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;F_IMMEDIATE equ 0x80
-F_HIDDEN    equ 0x40
-F_LENMASK   equ 0x1f
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;F_IMMEDIATE &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;equ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0x80
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;F_HIDDEN    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;equ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0x40
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;F_LENMASK   &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;equ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0x1f
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;If a word is marked as &lt;code&gt;IMMEDIATE&lt;&#x2F;code&gt;, it will be executed immediately, even if
 we&#x27;re currently compiling a definition. For example, this is used to implement
@@ -273,28 +273,28 @@ very compact sequence of instructions, but it still takes enough bytes that it
 is worthy it to factor it out as a subroutine — it is also used by the
 implementation of &lt;code&gt;:&lt;&#x2F;code&gt;, which creates dictionary entries at runtime.&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;; Creates a dictionary linked list link at DI.
-MakeLink:
-    mov ax, di
-    xchg [LATEST], ax  ; AX now points at the old entry, while
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;; Creates a dictionary linked list link at DI.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;MakeLink:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;xchg &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;LATEST&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;], &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;  ; AX now points at the old entry, while
                        ; LATEST and DI point at the new one.
-    stosw
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;stosw
     ret
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;The decompressor used to make use of an interesting trick, where instead of a
 short forward jump, an opcode is placed so the immediate argument it requires
 eats the instructions we want to jump over. That is, instead of&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;    jmp short .after
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jmp &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short .after
 .write:
-    stosb
-.after:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;stosb
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.after:
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;you write&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;3c      db 0x3c ; skip the stosb below by comparing its opcode with AL
-    .write:
-aa      stosb
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;3c      &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;db &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0x3c&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; skip the stosb below by comparing its opcode with AL
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.write:
+aa      &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;stosb
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;Thus, if some other code jumps to &lt;code&gt;.write&lt;&#x2F;code&gt;, the &lt;code&gt;stosb&lt;&#x2F;code&gt; executes, but this
 codepath just does &lt;code&gt;cmp al, 0xaa&lt;&#x2F;code&gt;. At first, I didn&#x27;t think of the &lt;code&gt;cmp al&lt;&#x2F;code&gt;
@@ -307,24 +307,24 @@ me to remove the other occurence of this trick too. The essence is that instead
 of trying to skip over the &lt;code&gt;stosb&lt;&#x2F;code&gt;, we execute it unconditionally before the
 codepaths branch, and then essentially undo it with &lt;code&gt;dec di&lt;&#x2F;code&gt; if necessary:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;SPECIAL_BYTE equ 0xff
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;SPECIAL_BYTE &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;equ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0xff
 
-    mov si, CompressedData
-    mov di, CompressedBegin
-    mov cx, COMPRESSED_SIZE
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;CompressedData
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;CompressedBegin
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;cx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;COMPRESSED_SIZE
 .decompress:
-    lodsb
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;lodsb
     stosb
-    cmp al, SPECIAL_BYTE
-    jnz short .not_special
-    dec di
-    mov ax, 0xffad ; lodsw &#x2F; jmp ax
-    stosw
-    mov al, 0xe0
-    stosb
-    call MakeLink
+    cmp &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;SPECIAL_BYTE
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jnz &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short .not_special
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;dec &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0xffad&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; lodsw &#x2F; jmp ax
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;stosw
+    mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0xe0
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;stosb
+    call &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;MakeLink
 .not_special:
-    loop .decompress
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;loop &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.decompress
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;Actually generating the compressed stream is more involved. Because I want jumps
 between the compressed and uncompressed portions to work, the assembler needs to
@@ -337,10 +337,10 @@ unfortunately, yasm didn&#x27;t like that.&lt;&#x2F;p&gt;
 &lt;p&gt;Clearly, a separate post-processing step is necessary. I wrote a macro to shim
 the bytes the decompressor will insert:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;%macro compression_sentinel 0
-    db SPECIAL_BYTE
-    dd 0xdeadbeef
-%endmacro
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;%macro &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;compression_sentinel &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;db &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;SPECIAL_BYTE
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dd &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0xdeadbeef
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;%endmacro
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;This has the added benefit of allowing a simple automated way to verify that no
 &lt;code&gt;SPECIAL_BYTE&lt;&#x2F;code&gt;s slipped in by accident.&lt;&#x2F;p&gt;
@@ -357,66 +357,66 @@ before &lt;code&gt;7E00&lt;&#x2F;code&gt;.&lt;&#x2F;li&gt;
 for the compressed data. First, I calculate the exact number of bytes saved by
 incrementing a counter in the &lt;code&gt;compression_sentinel&lt;&#x2F;code&gt; macro:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;%assign savings 0
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;%assign &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;savings &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0
 
-%macro compression_sentinel 0
-%assign savings savings+4
-    db SPECIAL_BYTE
-    dd 0xdeadbeef
-%endmacro
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;%macro &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;compression_sentinel &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;%assign &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;savings savings&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;4
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;db &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;SPECIAL_BYTE
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dd &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0xdeadbeef
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;%endmacro
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;Then, I simply subtract this from the size of the uncompressed segment:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;CompressedData:
-    times COMPRESSED_SIZE db 0xcc
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;CompressedData:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;times &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;COMPRESSED_SIZE &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;db &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0xcc
 
-CompressedBegin:
-; ...
-CompressedEnd:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;CompressedBegin:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;; ...
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;CompressedEnd:
 
-COMPRESSED_SIZE equ CompressedEnd - CompressedBegin - savings
+COMPRESSED_SIZE &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;equ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;CompressedEnd &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;- &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;CompressedBegin &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;- &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;savings
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;The post-processing is done by a simple Python script:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;SPECIAL_BYTE = b&amp;#39;\xff&amp;#39;
-SENTINEL = SPECIAL_BYTE + b&amp;#39;\xef\xbe\xad\xde&amp;#39;
+&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;SPECIAL_BYTE &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#66d9ef;&quot;&gt;b&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;\xff&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;SENTINEL &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;SPECIAL_BYTE &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;+ &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#66d9ef;&quot;&gt;b&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;\xef\xbe\xad\xde&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;
 
-with open(&amp;#39;raw.bin&amp;#39;, &amp;#39;rb&amp;#39;) as f:
-    data = f.read()
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;with &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;open&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;raw.bin&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;rb&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;as &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;f:
+    data &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;f.read()
 
-output_offset = data.index(b&amp;#39;\xcc&amp;#39; * 20)
-chunks = data[output_offset:].lstrip(b&amp;#39;\xcc&amp;#39;).split(SENTINEL)
+output_offset &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;data.index(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#66d9ef;&quot;&gt;b&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;\xcc&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;* &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;20&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;)
+chunks &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;data[output_offset:].lstrip(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#66d9ef;&quot;&gt;b&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;\xcc&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;).split(SENTINEL)
 
-assert SPECIAL_BYTE not in chunks[0]
-compressed = bytearray(chunks[0])
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;assert &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;SPECIAL_BYTE &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;not in &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;chunks[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;]
+compressed &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#66d9ef;&quot;&gt;bytearray&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;(chunks[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;])
 
-for chunk in chunks[1:]:
-    assert SPECIAL_BYTE not in chunk
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;for &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;chunk &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;in &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;chunks[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;:]:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;assert &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;SPECIAL_BYTE &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;not in &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;chunk
     compressed.extend(SPECIAL_BYTE)
     compressed.extend(chunk)
 
-# Make sure that exactly the right amount of space is allocated
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;# Make sure that exactly the right amount of space is allocated
 # for the compressed data.
-assert b&amp;#39;\xcc&amp;#39; * len(compressed) in data
-assert b&amp;#39;\xcc&amp;#39; * (len(compressed) + 1) not in data
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;assert &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#66d9ef;&quot;&gt;b&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;\xcc&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;* &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;len&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;(compressed) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;in &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;data
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;assert &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#66d9ef;&quot;&gt;b&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;\xcc&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;* &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;len&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;(compressed) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;+ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;not in &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;data
 
-output = data[:output_offset] + compressed
+output &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;data[:output_offset] &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;+ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;compressed
 
-print(len(output), &amp;#39;bytes used&amp;#39;)
-output += b&amp;#39;\x00&amp;#39; * (510 - len(output))
-output += b&amp;#39;\x55\xaa&amp;#39;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;print&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;len&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;(output), &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;bytes used&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;)
+output &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;+= &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#66d9ef;&quot;&gt;b&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;\x00&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;* &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;510 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;- &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;len&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;(output))
+output &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;+= &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#66d9ef;&quot;&gt;b&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;\x55\xaa&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;
 
-with open(&amp;#39;boot.bin&amp;#39;, &amp;#39;wb&amp;#39;) as f:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;with &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;open&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;boot.bin&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;wb&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;as &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;f:
     f.write(output)
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;The same script also generates an extended disk image, which contains some
 smoke-testing code in block 1:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;output += b&amp;#39;\x00&amp;#39; * 512
-output += open(&amp;#39;test.fth&amp;#39;, &amp;#39;rb&amp;#39;).read().replace(b&amp;#39;\n&amp;#39;, b&amp;#39; &amp;#39;)
-output += b&amp;#39; &amp;#39; * (2048 - len(output))
+&lt;code class=&quot;language-python&quot; data-lang=&quot;python&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;output &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;+= &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#66d9ef;&quot;&gt;b&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;\x00&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;* &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;512
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;output &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;+= &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;open&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;test.fth&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;rb&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;).read().replace(&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#66d9ef;&quot;&gt;b&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;\n&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#66d9ef;&quot;&gt;b&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39; &amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;)
+output &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;+= &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#66d9ef;&quot;&gt;b&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39; &amp;#39; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;* &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;2048 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;- &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;len&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;(output))
 
-with open(&amp;#39;test.img&amp;#39;, &amp;#39;wb&amp;#39;) as f:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;with &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;open&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;test.img&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;#39;wb&amp;#39;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;as &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;f:
     f.write(output)
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;&lt;code&gt;compression_sentinel&lt;&#x2F;code&gt; is most often used by the &lt;code&gt;defcode&lt;&#x2F;code&gt; macro, which creates
@@ -424,56 +424,56 @@ the dictionary entry for a primitive word. It takes a label (which can then be
 used to jump to the implementation of some word), the name of the word as a string,
 and optionally, some flags to be ORed into the length field:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;; defcode PLUS, &amp;quot;+&amp;quot;
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;; defcode PLUS, &amp;quot;+&amp;quot;
 ; defcode SEMI, &amp;quot;;&amp;quot;, F_IMMEDIATE
-%macro defcode 2-3 0
-    compression_sentinel
-%strlen namelength %2
-    db %3 | namelength, %2
-%1:
-%endmacro
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;%macro &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;2&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;-&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;3 0
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;compression_sentinel
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;%strlen &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;namelength %&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;2
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;db &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;%&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;3 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;| namelength&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;%&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;2
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;%&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;%endmacro
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;This is then used to define the primitives. The code essentially falls-through
 into a &lt;code&gt;defcode&lt;&#x2F;code&gt;:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;defcode PLUS, &amp;quot;+&amp;quot;
-    pop ax
-    add bx, ax
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode PLUS&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;+&amp;quot;
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;add &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
 
-defcode MINUS, &amp;quot;-&amp;quot;
-    pop ax
-    sub ax, bx
-    xchg bx, ax
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode MINUS&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;-&amp;quot;
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;sub &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;xchg &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
 
-defcode PEEK, &amp;quot;@&amp;quot;
-    ; ...
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode PEEK&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;@&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;    ; ...
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;However, &lt;code&gt;DOCOL&lt;&#x2F;code&gt;, &lt;code&gt;EXIT&lt;&#x2F;code&gt; and &lt;code&gt;LIT&lt;&#x2F;code&gt; also use the compression mechanism for their
 &lt;code&gt;NEXT&lt;&#x2F;code&gt;s. Since the link field is still written out, this essentially creates
 bogus dictionary entries. Fortunately, the first opcode of &lt;code&gt;EXIT&lt;&#x2F;code&gt; and &lt;code&gt;LIT&lt;&#x2F;code&gt; has
 the &lt;code&gt;F_HIDDEN&lt;&#x2F;code&gt; bit set, so this is not a problem:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;CompressedBegin:
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;CompressedBegin:
 
 DOCOL:
-    xchg ax, si
-    stosw
-    pop si ; grab the pointer pushed by `call`
-    compression_sentinel
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;xchg &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;stosw
+    pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; grab the pointer pushed by `call`
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;compression_sentinel
 
 LIT:
-    push bx
-    lodsw
-    xchg bx, ax
-    compression_sentinel
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;lodsw
+    xchg &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;compression_sentinel
 
 EXIT:
-    dec di
-    dec di
-    mov si, [di]
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;dec &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;dec &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, [&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;]
 
-defcode PLUS, &amp;quot;+&amp;quot;
-    ; ...
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode PLUS&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;+&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;    ; ...
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;&lt;h2 id=&quot;variables&quot;&gt;Variables?&lt;&#x2F;h2&gt;
 &lt;p&gt;Immediate load instructions tend to have shorter encodings than loads from
 memory:&lt;&#x2F;p&gt;
@@ -490,17 +490,17 @@ with our constraints. What I settled on is pushing the addresses onto the stack
 at startup. This can be done with only 2 bytes for each address, by simply
 defining the initial contents of the stack as data:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;    org 0x7c00
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;    org &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0x7c00
 
-    jmp 0:start
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jmp &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;:start
 stack:
-    dw HERE
-    dw BASE
-    dw STATE
-    dw LATEST
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;HERE
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;BASE
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;STATE
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;LATEST
 start:
-    ; ...
-    mov sp, stack
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;    ; ...
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;sp&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;stack
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;Even when a variable&#x27;s address needs to be pushed onto the stack, this
 self-modifying code strategy saves bytes if a variable needs to be initialized —
@@ -512,17 +512,17 @@ data, and keeps the advantage of the shorter instruction encoding.&lt;&#x2F;p&gt
 stack. The direction flag is also cleared, so that the string instructions work
 in the right direction.&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;    jmp 0:start
-    ; ...
-start:
-    push cs
-    push cs
-    push cs
-    pop ds
-    pop es
-    pop ss
-    mov sp, stack
-    cld
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jmp &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;:start
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;    ; ...
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;start:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;cs
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;cs
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;cs
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ds
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;es
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ss
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;sp&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;stack
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;cld
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;There are a two notable things about this code. Firstly, segment registers are
 set through the stack. This is a byte-saving trick I&#x27;ve picked up from
@@ -556,8 +556,8 @@ number from which we were booted. It is then poked into the implementation of
 &lt;code&gt;load&lt;&#x2F;code&gt; (which is in the compressed segment), and pushed onto the stack for later
 use by user code:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;    mov [DRIVE_NUMBER], dl
-    push dx ; for FORTH code
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;DRIVE_NUMBER&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;], &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dl
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; for FORTH code
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;&lt;h2 id=&quot;the-outer-interpreter&quot;&gt;The Outer Interpreter&lt;&#x2F;h2&gt;
 &lt;p&gt;At this point, we reach the &lt;em&gt;outer interpreter&lt;&#x2F;em&gt; - the part of a FORTH system
 that processes user input. The name &amp;quot;&lt;em&gt;outer&lt;&#x2F;em&gt; interpreter&amp;quot; distinguishes it from
@@ -591,36 +591,36 @@ stored in &lt;code&gt;InputPtr&lt;&#x2F;code&gt;, which is the only variable whi
 self-modification technique, as it does not need to be explicitly initialized —
 it naturally gets written to before it is read.&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;InputBuf equ 0x500
-InputPtr equ 0xa02 ; dw
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;InputBuf &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;equ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0x500
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;InputPtr &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;equ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0xa02&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; dw
 
-ReadLine:
-    mov di, InputBuf
-    mov [InputPtr], di
-.loop:
-    mov ah, 0
-    int 0x16
-    cmp al, 0x0d
-    je short .enter
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;ReadLine:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;InputBuf
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;InputPtr&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;], &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;loop&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ah&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;int &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0x16
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;cmp &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0x0d
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;je &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short .&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;enter
     stosb
-    cmp al, 0x08
-    jne short .write
-    dec di
-    cmp di, InputBuf ; underflow check
-    je short .loop
-    dec di
-.write:
-    call PutChar
-    jmp short .loop
-.enter:
-    call PutChar
-    mov al, 0x0a
-    int 0x10
-    xchg ax, bx ; write the null terminator by using the BX = 0 from PutChar
-    stosb
-InterpreterLoop:
-    call ParseWord ; returns length in CX. Zero implies no more input.
-    jcxz short ReadLine
+    cmp &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0x08
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jne &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short .write
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;dec &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;cmp &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;InputBuf&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; underflow check
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;je &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short .&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;loop
+    dec &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.write:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;call &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;PutChar
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jmp &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short .&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;loop
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;enter&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;call &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;PutChar
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0x0a
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;int &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0x10
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;xchg &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; write the null terminator by using the BX = 0 from PutChar
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;stosb
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;InterpreterLoop:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;call &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;ParseWord&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; returns length in CX. Zero implies no more input.
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;jcxz short ReadLine
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;The BIOS interrupt for getting a character from the keyboard does not print the
 key — we have to do that ourselves. This is done with the &amp;quot;TELETYPE OUTPUT&amp;quot;
@@ -652,21 +652,21 @@ if a word is not found in the dictionary, its numeric value is pushed, which is
 probably nonsense if this wasn&#x27;t intended.&lt;&#x2F;p&gt;
 &lt;p&gt;We start out by skipping any whitespace in the input buffer:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;; returns
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;; returns
 ; DX = pointer to string
 ; CX = string length
 ; BX = numeric value
 ; clobbers SI and BP
-ParseWord:
-    mov si, [InputPtr]
-    ; repe scasb would probably save some bytes here if the registers worked out - scasb
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;ParseWord:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, [&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;InputPtr&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;    ; repe scasb would probably save some bytes here if the registers worked out - scasb
     ; uses DI instead of SI :(
-.skiploop:
-    mov dx, si ; if we exit the loop in this iteration, dx will point to the first letter
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.skiploop:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; if we exit the loop in this iteration, dx will point to the first letter
                ; of the word
-    lodsb
-    cmp al, &amp;quot; &amp;quot;
-    je short .skiploop
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;lodsb
+    cmp &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot; &amp;quot;
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;je &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short .skiploop
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;Note the way the pointer to the beginning of the string is saved. The loop will
 go one byte past the whitespace, so storing it after the loop would require a
@@ -675,11 +675,11 @@ loop, but before the pointer is incremented by &lt;code&gt;lodsb&lt;&#x2F;code&g
 &lt;p&gt;At this point, the &lt;code&gt;AL&lt;&#x2F;code&gt; register is loaded with the first character of the word.
 Thus our next loop will need to do &lt;code&gt;lodsb&lt;&#x2F;code&gt; at its &lt;em&gt;end&lt;&#x2F;em&gt;.&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;    xor cx, cx
-    xor bx, bx
-.takeloop:
-    and al, ~0x20
-    jz short Return ; jump to a borrowed `ret` from some other routine
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;xor &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;cx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;cx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;xor &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.takeloop:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;and &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;~&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0x20
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jz &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short Return&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; jump to a borrowed `ret` from some other routine
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;This &lt;code&gt;and&lt;&#x2F;code&gt; instruction is interesting, as it does three things at once. It
 detects both spaces and null bytes in one fell swoop, but also also turns off
@@ -688,13 +688,13 @@ handling both cases of hexadecimal numbers at no extra cost.&lt;&#x2F;p&gt;
 &lt;p&gt;If we haven&#x27;t detected the end of the word, we increment the length counter
 and convert the digit to its numeric value:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;    inc cx
-    sub al, &amp;quot;0&amp;quot; &amp;amp;~0x20
-    cmp al, 9
-    jbe .digit_ok
-    sub al, &amp;quot;A&amp;quot; - (&amp;quot;0&amp;quot; &amp;amp;~0x20) - 10
-.digit_ok
-    cbw
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;inc &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;cx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;sub &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;0&amp;quot; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;&amp;amp;~&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0x20
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;cmp &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;9
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jbe &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.digit_ok
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;sub &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;A&amp;quot; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;- &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;0&amp;quot; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;&amp;amp;~&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0x20&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;) &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;- &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;10
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.digit_ok
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;cbw
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;&lt;code&gt;cbw&lt;&#x2F;code&gt; is a little-known instruction that converts a signed number from &lt;code&gt;b&lt;&#x2F;code&gt;yte to
 &lt;code&gt;w&lt;&#x2F;code&gt;ord, but for us it&#x27;s just a shorter &lt;code&gt;mov ah, 0&lt;&#x2F;code&gt;. In a perhaps similar vein,
@@ -705,20 +705,20 @@ the product.&lt;sup class=&quot;footnote-reference&quot;&gt;&lt;a href=&quot;#im
 &lt;p&gt;This particular instruction needs to be encoded manually to force the literal
 width to be 2 bytes wide.&lt;sup class=&quot;footnote-reference&quot;&gt;&lt;a href=&quot;#base-dw&quot;&gt;7&lt;&#x2F;a&gt;&lt;&#x2F;sup&gt;&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;    ; imul bx, bx, &amp;lt;BASE&amp;gt; but yasm insists on encoding the immediate in just one byte...
-    db 0x69, 0xdb
-BASE equ $
-    dw 16
-    add bx, ax ; add the new digit
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;    ; imul bx, bx, &amp;lt;BASE&amp;gt; but yasm insists on encoding the immediate in just one byte...
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;db &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0x69&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0xdb
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;BASE &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;equ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;$
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;16
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;add &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; add the new digit
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;Finally, we set up for the next iteration of the loop. We use a similar trick as
 before, where a pointer result is updated in each iteration to avoid a separate
 decrement at the end — we need to make sure that the input pointer doesn&#x27;t point
 after the terminator.&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;    mov [InputPtr], si
-    lodsb
-    jmp short .takeloop
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;InputPtr&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;], &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;lodsb
+    jmp &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short .takeloop
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;&lt;h2 id=&quot;dictionary-lookup&quot;&gt;Dictionary Lookup&lt;&#x2F;h2&gt;
 &lt;p&gt;After a word is parsed, we try to look it up in the dictionary. For each entry,
 we need to compare the length of the name, and if it matches, the name itself.
@@ -727,40 +727,40 @@ too. The way we&#x27;re comparing the length might look a bit weird. The goal is
 keep the &lt;code&gt;F_IMMEDIATE&lt;&#x2F;code&gt; bit in AL, so that we don&#x27;t have to keep around the
 pointer to the header of this word.&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;InterpreterLoop:
-    call ParseWord
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;InterpreterLoop:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;call &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;ParseWord
     jcxz short ReadLine
 
-; Try to find the word in the dictionary.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;; Try to find the word in the dictionary.
 ; SI = dictionary pointer
 ; DX = string pointer
 ; CX = string length
 ; Take care to preserve BX, which holds the numeric value.
-LATEST equ $+1
-    mov si, 0
-.find:
-    lodsw
-    push ax ; save pointer to next entry
-    lodsb
-    xor al, cl ; if the length matches, then AL contains only the flags
-    test al, F_HIDDEN | F_LENMASK
-    jnz short .next
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;LATEST &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;equ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;1
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.find:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;lodsw
+    push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; save pointer to next entry
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;lodsb
+    xor &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;cl&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; if the length matches, then AL contains only the flags
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;test &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;F_HIDDEN | F_LENMASK
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jnz &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short .next
 
-    mov di, dx
-    push cx
-    repe cmpsb
-    pop cx
-    je short .found
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;cx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;repe &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;cmpsb
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;cx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;je &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short .found
 .next:
-    pop si
-    or si, si
-    jnz short .find
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;or &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jnz &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short .find
 
-    ; If we reach this point, it&amp;#39;s a number.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;    ; If we reach this point, it&amp;#39;s a number.
     ; ...
 
-.found:
-    pop bx ; discard pointer to next entry
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.found:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; discard pointer to next entry
     ; When we get here, SI points to the code of the word, and AL contains
     ; the F_IMMEDIATE flag
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
@@ -777,14 +777,14 @@ the lookup.&lt;&#x2F;p&gt;
 interpreting. We store this flag in the immediate field of an &lt;code&gt;or&lt;&#x2F;code&gt; instruction —
 it will be set to 0 when compiling:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;    ; When we get here, SI points to the code of the word, and AL contains
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;    ; When we get here, SI points to the code of the word, and AL contains
     ; the F_IMMEDIATE flag
-STATE equ $+1
-    or al, 1
-    xchg ax, si ; both codepaths need the pointer to be in AX
-    jz short .compile
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;STATE &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;equ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;1
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;or &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;1
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;xchg &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; both codepaths need the pointer to be in AX
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jz &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short .compile
 
-    ; Execute the word
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;    ; Execute the word
     ; ...
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;The most important words that need to change the state are &lt;code&gt;:&lt;&#x2F;code&gt; and &lt;code&gt;;&lt;&#x2F;code&gt;, but they
@@ -798,87 +798,87 @@ calculate the value of a constant expression:&lt;&#x2F;p&gt;
 with &lt;code&gt;inc&lt;&#x2F;code&gt; and &lt;code&gt;dec&lt;&#x2F;code&gt;. This has the disadvantage that they are no longer
 idempotent, but this shouldn&#x27;t matter to well-written code:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;defcode LBRACK, &amp;quot;[&amp;quot;, F_IMMEDIATE
-    inc byte[STATE]
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode LBRACK&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;[&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;F_IMMEDIATE
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;inc &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;byte&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;STATE&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;]
 
-defcode RBRACK, &amp;quot;]&amp;quot;
-    dec byte[STATE]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode RBRACK&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;]&amp;quot;
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;dec &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;byte&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;STATE&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;]
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;&lt;h2 id=&quot;executing-the-word&quot;&gt;Executing the word&lt;&#x2F;h2&gt;
 &lt;p&gt;If we decided to execute the word, we retrieve &lt;code&gt;BX&lt;&#x2F;code&gt; and &lt;code&gt;DI&lt;&#x2F;code&gt;, and set up &lt;code&gt;SI&lt;&#x2F;code&gt;
 so that &lt;code&gt;NEXT&lt;&#x2F;code&gt; will jump back to &lt;code&gt;.executed&lt;&#x2F;code&gt;:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;    ; Execute the word
-RetSP equ $+1
-    mov di, RS0
-    pop bx
-    mov si, .return
-    jmp ax
-.return:
-    dw .executed
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;    ; Execute the word
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;RetSP &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;equ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;1
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;RS0
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.return
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jmp &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.return:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.executed
 .executed:
-    mov [RetSP], di
-    push bx
-    jmp short InterpreterLoop
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;RetSP&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;], &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jmp &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short InterpreterLoop
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;&lt;h2 id=&quot;handling-numbers&quot;&gt;Handling numbers&lt;&#x2F;h2&gt;
 &lt;p&gt;There is no &lt;code&gt;F_IMMEDIATE&lt;&#x2F;code&gt; flag for numbers, so we just need to check the state
 to decide.  It&#x27;s a simple comparison, but if we&#x27;re clever enough, you can save a
 byte here. Let&#x27;s look again at the code that searches the dictionary. What value
 will &lt;code&gt;AH&lt;&#x2F;code&gt; have when we reach the number case?&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;.find:
-    lodsw
-    push ax ; save pointer to next entry
-    lodsb
-    xor al, cl ; if the length matches, then AL contains only the flags
-    test al, F_HIDDEN | F_LENMASK
-    jnz short .next
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.find:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;lodsw
+    push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; save pointer to next entry
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;lodsb
+    xor &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;cl&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; if the length matches, then AL contains only the flags
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;test &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;F_HIDDEN | F_LENMASK
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jnz &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short .next
 
-    mov di, dx
-    push cx
-    repe cmpsb
-    pop cx
-    je short .found
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;cx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;repe &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;cmpsb
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;cx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;je &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short .found
 .next:
-    pop si
-    or si, si
-    jnz short .find
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;or &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jnz &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short .find
 
-    ; AH = ?
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;    ; AH = ?
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;Do you see it? At this point, AH is zero, since it contains the higher half of the pointer
 to the next word, which we know is NULL, as we just got to the end of the list.
 This allows us to check the value of &lt;code&gt;STATE&lt;&#x2F;code&gt; without loading it into a register
 or any immediate bytes:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;    ; It&amp;#39;s a number. Push its value - we&amp;#39;ll pop it later if it turns out we need to compile
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;    ; It&amp;#39;s a number. Push its value - we&amp;#39;ll pop it later if it turns out we need to compile
     ; it instead.
-    push bx
-    cmp byte[STATE], ah
-    jnz short InterpreterLoop
-    ; Otherwise, compile the literal.
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;cmp &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;byte&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;STATE&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;], &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ah
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jnz &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short InterpreterLoop
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;    ; Otherwise, compile the literal.
     ; ...
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;&lt;h2 id=&quot;compiling-things&quot;&gt;Compiling things&lt;&#x2F;h2&gt;
 &lt;p&gt;The output pointer for the compilation process is called &lt;code&gt;HERE&lt;&#x2F;code&gt;. It starts out
 just after the decompressed data. The function that writes out a word into this
 area is called &lt;code&gt;COMMA&lt;&#x2F;code&gt;, since the FORTH word that does this is &lt;code&gt;,&lt;&#x2F;code&gt;.&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;COMMA:
-HERE equ $+1
-    mov [CompressedEnd], ax
-    add word[HERE], 2
-    ret
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;COMMA:
+HERE &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;equ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;1
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;CompressedEnd&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;], &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;add &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;word&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;HERE&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;], &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;2
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;ret
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;It is used in a straight-forward way to compile both numbers and words. We can
 share the tail, though — compiling a word will jump into the middle of compiling
 a number:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;    ; Otherwise, compile the literal.
-    mov ax, LIT
-    call COMMA
-    pop ax
-.compile:
-    call COMMA
-    jmp short InterpreterLoop
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;    ; Otherwise, compile the literal.
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;LIT
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;call &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;COMMA
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.compile:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;call &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;COMMA
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jmp &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short InterpreterLoop
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;The last piece of the puzzle are &lt;code&gt;:&lt;&#x2F;code&gt; and &lt;code&gt;;&lt;&#x2F;code&gt;. Let&#x27;s look at &lt;code&gt;:&lt;&#x2F;code&gt; first. Since
 &lt;code&gt;ParseWord&lt;&#x2F;code&gt; makes use of &lt;code&gt;BX&lt;&#x2F;code&gt; and &lt;code&gt;SI&lt;&#x2F;code&gt;, we need to save these registers.
@@ -887,34 +887,34 @@ Moreover, since we&#x27;re writing the many parts of a dictionary header, we&#x2
 push. However, we don&#x27;t actually need to modify any register, so we can just
 save &lt;em&gt;all&lt;&#x2F;em&gt; the registers with &lt;code&gt;pusha&lt;&#x2F;code&gt;.&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;defcode COLON, &amp;quot;:&amp;quot;
-    pusha
-    mov di, [HERE]
-    call MakeLink    ; link field
-    call ParseWord
-    mov ax, cx
-    stosb            ; length field
-    mov si, dx
-    rep movsb        ; name field
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode COLON&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;:&amp;quot;
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pusha
+    mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, [&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;HERE&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;]
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;call &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;MakeLink&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;    ; link field
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;call &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;ParseWord
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;cx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;stosb&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;            ; length field
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;rep movsb&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;        ; name field
 
-    mov al, 0xe8     ; call
-    stosb
-    ; The offset is defined as (call target) - (ip after the call instruction)
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0xe8&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;     ; call
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;stosb
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;    ; The offset is defined as (call target) - (ip after the call instruction)
     ; That works out to DOCOL - (di + 2) = DOCOL - 2 - di
-    mov ax, DOCOL - 2
-    sub ax, di
-    stosw
-    mov [HERE], di
-    popa
-    jmp short RBRACK ; enter compilation mode
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;DOCOL &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;- &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;2
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;sub &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;stosw
+    mov &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;HERE&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;], &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;popa
+    jmp &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short RBRACK&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; enter compilation mode
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;&lt;code&gt;;&lt;&#x2F;code&gt; is much shorter. We merely need to compile &lt;code&gt;EXIT&lt;&#x2F;code&gt; and go back to
 interpretation mode:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;defcode SEMI, &amp;quot;;&amp;quot;, F_IMMEDIATE
-    mov ax, EXIT
-    call COMMA
-    jmp short LBRACK
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode SEMI&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;;&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;F_IMMEDIATE
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;EXIT
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;call &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;COMMA
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jmp &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short LBRACK
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;The way these words jump to another word at the end is quite convenient.
 Remember how the &lt;code&gt;NEXT&lt;&#x2F;code&gt;s are written out as part of the &lt;code&gt;defcode&lt;&#x2F;code&gt; of the next
@@ -937,27 +937,27 @@ mean that floppies are not supported, but I wasn&#x27;t planning on using any an
 &lt;p&gt;To use the EDD interface, we need to build a &lt;em&gt;disk address packet&lt;&#x2F;em&gt;, which looks
 like this:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;    db 0x10 ; size of packet
-    db 0    ; reserved
-    dw sector_count
-    dw buffer_offset, buffer_segment
-    dq LBA
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;db &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0x10&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; size of packet
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;db &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;    ; reserved
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;sector_count
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;buffer_offset&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;buffer_segment
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dq &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;LBA
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;We use a hybrid strategy to create this packet. The first part is kept as data
 in the bootsector, but the rest is written at runtime, even if it doesn&#x27;t
 change. The &amp;quot;template&amp;quot; needs to be in a place where we can write after it, so
 the perfect place is just before the compressed data:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;DiskPacket:
-    db 0x10, 0
-.count:
-    dw 2
-.buffer:
-    ; rest is filled out at runtime, overwriting the compressed data,
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;DiskPacket:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;db &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0x10&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.count:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;2
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.buffer:
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;    ; rest is filled out at runtime, overwriting the compressed data,
     ; which isn&amp;#39;t necessary anymore
 
-CompressedData:
-    times COMPRESSED_SIZE db 0xcc
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;CompressedData:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;times &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;COMPRESSED_SIZE &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;db &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0xcc
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;The first four bytes of the packet are random enough to be hardcoded. However,
 when it comes to the address of the buffer, we can do better. We will need to
@@ -973,25 +973,25 @@ six bytes:&lt;&#x2F;p&gt;
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;Thus, we can write these two bytes of the disk packet with only 1 byte of code:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;defcode LOAD, &amp;quot;load&amp;quot;
-    pusha
-    mov di, DiskPacket.buffer
-    mov ax, BlockBuf
-    mov word[InputPtr], ax
-    stosw
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode LOAD&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;load&amp;quot;
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pusha
+    mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;DiskPacket.buffer
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;BlockBuf
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;word&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;InputPtr&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;], &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;stosw
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;Next, we need to write the segment (&lt;code&gt;0000&lt;&#x2F;code&gt;) and the LBA (which ends in six &lt;code&gt;00&lt;&#x2F;code&gt;
 bytes). I like to think of the instructions corresponding to these like so:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;31c0    xor ax, ax    ; LBA zeroes
-ab      stosw         ; segment
-d1e3    shl bx, 1     ; LBA data
-93      xchg ax, bx   ; LBA data
-ab      stosw         ; LBA data
-93      xchg ax, bx   ; segment
-ab      stosw         ; LBA zeroes
-ab      stosw         ; LBA zeroes
-ab      stosw         ; LBA zeroes
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;31c0    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;xor &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;    ; LBA zeroes
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;ab      &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;stosw&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;         ; segment
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;d1e3    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;shl &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;1&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;     ; LBA data
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;93      &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;xchg &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;   ; LBA data
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;ab      &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;stosw&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;         ; LBA data
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;93      &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;xchg &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;   ; segment
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;ab      &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;stosw&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;         ; LBA zeroes
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;ab      &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;stosw&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;         ; LBA zeroes
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;ab      &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;stosw&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;         ; LBA zeroes
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;That is, we write the six LBA zeroes in 5 bytes of code. Writing out the segment
 only took moving the &lt;code&gt;xor ax, ax&lt;&#x2F;code&gt; earlier, and an additional &lt;code&gt;stosw&lt;&#x2F;code&gt; and &lt;code&gt;xchg ax, bx&lt;&#x2F;code&gt;. Thus, it is neutral at 2 bytes (but we need to write it out in code so
@@ -1000,21 +1000,21 @@ have the actual LBA data, which changes.&lt;&#x2F;p&gt;
 &lt;p&gt;While &lt;code&gt;AX&lt;&#x2F;code&gt; is zero, let&#x27;s take this opportunity to poke in a null terminator
 after the buffer:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;    mov [BlockBuf.end], al
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;BlockBuf.end&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;], &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;Now we&#x27;re ready to call the BIOS function. If it errors out, we just loop, as
 recovering is complicated — the most annoying complication is that the sector
 count in the packet is overwritten by the number of sectors &lt;em&gt;successfully read&lt;&#x2F;em&gt;,
 which breaks our template.&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;DRIVE_NUMBER equ $+1
-    mov dl, 0
-    mov ah, 0x42
-    mov si, DiskPacket
-    int 0x13
-    jc short $
-    popa
-    pop bx
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;DRIVE_NUMBER &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;equ &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;$&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;1
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dl&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ah&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0x42
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;DiskPacket
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;int &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;0x13
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jc &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short $
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;popa
+    pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;&lt;h2 id=&quot;printing-numbers&quot;&gt;Printing numbers&lt;&#x2F;h2&gt;
 &lt;p&gt;&lt;code&gt;u.&lt;&#x2F;code&gt; prints an unsigned number, followed by a space. Since splitting the number
 into digits with division yields the least-significant digit first, we push the
@@ -1023,26 +1023,26 @@ printed by pushing a fake &amp;quot;digit&amp;quot; that will get converted into
 also lets us detect when we popped all the digits — the printing loop stops when
 it just printed a space.&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;defcode UDOT, &amp;quot;u.&amp;quot;
-    xchg ax, bx
-    push &amp;quot; &amp;quot; - &amp;quot;0&amp;quot;
-.split:
-    xor dx, dx
-    div word[BASE]
-    push dx
-    or ax, ax
-    jnz .split
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode UDOT&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;u.&amp;quot;
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;xchg &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;push &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot; &amp;quot; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;- &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;0&amp;quot;
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.split:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;xor &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;div &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;word&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;BASE&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;]
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;or &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jnz &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.split
 .print:
-    pop ax
-    add al, &amp;quot;0&amp;quot;
-    cmp al, &amp;quot;9&amp;quot;
-    jbe .got_digit
-    add al, &amp;quot;A&amp;quot; - &amp;quot;0&amp;quot; - 10
-.got_digit:
-    call PutChar
-    cmp al, &amp;quot; &amp;quot;
-    jne short .print
-    pop bx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;add &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;0&amp;quot;
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;cmp &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;9&amp;quot;
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jbe &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.got_digit
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;add &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;A&amp;quot; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;- &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;0&amp;quot; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;- &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;10
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.got_digit:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;call &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;PutChar
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;cmp &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot; &amp;quot;
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jne &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short .print
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;&lt;h2 id=&quot;s-string-poke&quot;&gt;&lt;code&gt;s:&lt;&#x2F;code&gt; — string poke&lt;&#x2F;h2&gt;
 &lt;p&gt;&lt;code&gt;s:&lt;&#x2F;code&gt; is a feature which is, I believe, uniquely relevant to bootstrapping. This
 word takes the address of a buffer, and copies the rest of the current input
@@ -1054,19 +1054,19 @@ again to actually save it on disk.&lt;&#x2F;p&gt;
 so that we can return properly. By using &lt;code&gt;xchg&lt;&#x2F;code&gt;, we can preserve it in
 &lt;code&gt;[InputPtr]&lt;&#x2F;code&gt; for the duration of the copy, at no extra cost:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;;; Copies the rest of the line to buf.
-defcode LINE, &amp;quot;s:&amp;quot; ; ( buf -- buf+len )
-    xchg si, [InputPtr]
-.copy:
-    lodsb
-    mov [bx], al
-    inc bx
-    or al, al
-    jnz short .copy
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#75715e;&quot;&gt;;; Copies the rest of the line to buf.
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode LINE&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;s:&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; ( buf -- buf+len )
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;xchg &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, [&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;InputPtr&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;.copy:
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;lodsb
+    mov &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;], &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;inc &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;or &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;jnz &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;short .copy
 .done:
-    dec bx
-    dec si
-    xchg si, [InputPtr]
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;dec &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;dec &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;xchg &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;si&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, [&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;InputPtr&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;]
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;The destination pointer is kept in &lt;code&gt;BX&lt;&#x2F;code&gt;. While writing at &lt;code&gt;DI&lt;&#x2F;code&gt; would only take a
 &lt;code&gt;stosb&lt;&#x2F;code&gt;, getting the pointer in and out of &lt;code&gt;DI&lt;&#x2F;code&gt; outweights this benefit. At the
@@ -1085,60 +1085,60 @@ and later define &lt;code&gt;: negate 0 swap - ;&lt;&#x2F;code&gt; and &lt;code&
 into memory. The implementation of &lt;code&gt;!&lt;&#x2F;code&gt; is particularily nice, since we can just
 pop directly into &lt;code&gt;[bx]&lt;&#x2F;code&gt;:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;defcode PEEK, &amp;quot;@&amp;quot; ; ( addr -- val )
-    mov bx, [bx]
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode PEEK&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;@&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; ( addr -- val )
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, [&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;]
 
-defcode POKE, &amp;quot;!&amp;quot; ; ( val addr -- )
-    pop word [bx]
-    pop bx
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode POKE&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;!&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; ( val addr -- )
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;word &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;]
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;There also are variants that read and write only a single byte:&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;defcode CPEEK, &amp;quot;c@&amp;quot; ; ( addr -- ch )
-    movzx bx, byte[bx]
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode CPEEK&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;c@&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; ( addr -- ch )
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;movzx &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;byte&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;]
 
-defcode CPOKE, &amp;quot;c!&amp;quot; ; ( ch addr -- )
-    pop ax
-    mov [bx], al
-    pop bx
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode CPOKE&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;c!&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; ( ch addr -- )
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;[&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;], &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;al
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;We certainly need some stack manipulation words. &lt;code&gt;dup&lt;&#x2F;code&gt; and &lt;code&gt;drop&lt;&#x2F;code&gt; have
 dead simple implementations, and &lt;code&gt;swap&lt;&#x2F;code&gt; is definitely too useful to skip it.&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;defcode DUP, &amp;quot;dup&amp;quot; ; ( a -- a a )
-    push bx
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode DUP&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;dup&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; ( a -- a a )
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
 
-defcode DROP, &amp;quot;drop&amp;quot; ; ( a -- )
-    pop bx
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode DROP&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;drop&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; ( a -- )
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
 
-defcode SWAP, &amp;quot;swap&amp;quot; ; ( a b -- b a )
-    pop ax
-    push bx
-    xchg ax, bx
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode SWAP&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;swap&amp;quot;&lt;&#x2F;span&gt;&lt;span style=&quot;color:#75715e;&quot;&gt; ; ( a b -- b a )
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;xchg &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;I chose to also include &lt;code&gt;&amp;gt;r&lt;&#x2F;code&gt; and &lt;code&gt;r&amp;gt;&lt;&#x2F;code&gt;, which allow using the return stack as
 a second stack for values (but, obviously, only within a single word). This is
 quite powerful. In fact, combined with &lt;code&gt;dup&lt;&#x2F;code&gt;, &lt;code&gt;drop&lt;&#x2F;code&gt; and &lt;code&gt;swap&lt;&#x2F;code&gt;, they allow you
 to implement any stack manipulation word you can imagine.&lt;sup class=&quot;footnote-reference&quot;&gt;&lt;a href=&quot;#stack-complete&quot;&gt;8&lt;&#x2F;a&gt;&lt;&#x2F;sup&gt;&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;defcode TO_R, &amp;quot;&amp;gt;r&amp;quot;
-    xchg ax, bx
-    stosw
-    pop bx
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode TO_R&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;&amp;gt;r&amp;quot;
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;xchg &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;stosw
+    pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
 
-defcode FROM_R, &amp;quot;r&amp;gt;&amp;quot;
-    dec di
-    dec di
-    push bx
-    mov bx, [di]
+&lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode FROM_R&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;r&amp;gt;&amp;quot;
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;dec &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;dec &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;push &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;mov &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, [&lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;di&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;]
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
 &lt;p&gt;Finally, &lt;code&gt;emit&lt;&#x2F;code&gt; prints a character. This is far enough from the critical path
 of the bootstrap, that I would be comfortable with removing this one if need be.&lt;&#x2F;p&gt;
 &lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;defcode EMIT, &amp;quot;emit&amp;quot;
-    xchg bx, ax
-    call PutChar
-    pop bx
+&lt;code class=&quot;language-asm&quot; data-lang=&quot;asm&quot;&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;defcode EMIT&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;&amp;quot;emit&amp;quot;
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;xchg &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f8f8f2;&quot;&gt;, &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;ax
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;call &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;PutChar
+    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;pop &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;bx
 &lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;&lt;h2 id=&quot;conclusion&quot;&gt;Conclusion&lt;&#x2F;h2&gt;
 &lt;p&gt;I am pleased with how this turned out. For a system constrained to the boot
 sector, I can pretty much call it feature-complete — I can&#x27;t think of anything
