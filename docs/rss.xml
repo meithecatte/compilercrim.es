@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
+    <channel>
+      <title>NieDżejkob&#x27;s ramblings</title>
+        <link>https://niedzejkob.p4.team/</link>
+        <description></description>
+        <generator>Zola</generator>
+        <language>en</language>
+        <atom:link href="https://niedzejkob.p4.team/rss.xml" rel="self" type="application/rss+xml"/>
+        <lastBuildDate>Thu, 10 Jun 2021 00:00:00 +0000</lastBuildDate>
+        <item>
+            <title>Fitting a FORTH in 512 bytes</title>
+            <pubDate>Thu, 10 Jun 2021 00:00:00 +0000</pubDate>
+            <link>https://niedzejkob.p4.team/bootstrap/miniforth/</link>
+            <guid>https://niedzejkob.p4.team/bootstrap/miniforth/</guid>
+            <description>&lt;p&gt;Software is full of circular dependencies if you look deep enough. Compilers
+written in the language they compile are the most obvious example, but not the
+only one. To compile a kernel, you need a running kernel.  How do you break
+this cycle?  Since the &lt;a href=&quot;http:&#x2F;&#x2F;bootstrappable.org&#x2F;&quot;&gt;bootstrapping problem&lt;&#x2F;a&gt; has first come
+to my attention, I&#x27;ve been drawn to this unique area of software engineering.
+Not out of fear that someone would try to implement a &lt;a href=&quot;http:&#x2F;&#x2F;users.ece.cmu.edu&#x2F;%7Eganger&#x2F;712.fall02&#x2F;papers&#x2F;p761-thompson.pdf&quot;&gt;trusting trust&lt;&#x2F;a&gt; attack,
+but simply as an interesting challenge.  </description>
+        </item>
+    </channel>
+</rss>

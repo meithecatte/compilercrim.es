@@ -1340,7 +1340,7 @@ I've found an old PC I can use for my experiments. It boots Miniforth just fine:
 
 I will be documenting my journey of building upon Miniforth in future posts on
 this blog. If that sounds like your cup of tea (and it probably does if you've
-read this far), consider subscribing to the Atom feed or [following me on
+read this far), consider subscribing to the RSS feed or [following me on
 Twitter][twitter-me] to get notified about new posts.
 
 ---

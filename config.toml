@@ -3,14 +3,14 @@ base_url = "https://niedzejkob.p4.team/"
 output_dir = "docs"
 title = "NieDżejkob's ramblings"
 
-# Whether to automatically compile all Sass files in the sass directory
 compile_sass = true
+minify_html = true
 
 # Whether to build a search index to be used later on by a JavaScript library
 #build_search_index = true
 
-minify_html = true
 generate_feed = true
+feed_filename = "rss.xml"
 
 [markdown]
 highlight_code = true

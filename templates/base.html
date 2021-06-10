@@ -1,10 +1,9 @@
 <!DOCTYPE html>
 <html lang="en">
-    {% set site_name = "NieDżejkob's ramblings" %}
     {% if page.title %}
-        {% set title = page.title ~ " — " ~ site_name %}
+        {% set title = page.title ~ " — " ~ config.title %}
     {% else %}
-        {% set title = site_name %}
+        {% set title = config.title %}
     {% endif %}
     {% if page.permalink %}
         {% set canonical_url = page.permalink %}
@@ -18,12 +17,12 @@
         <link rel="stylesheet" href="{{ get_url(path="/style.css") }}"/>
         <link rel="icon" href="{{ get_url(path="/icon.png") }}"/>
         <link rel="canonical" href="{{ canonical_url }}"/>
-        <link rel="alternate" type="application/atom+xml" title="Sitewide Atom feed" href="/atom.xml">
+        <link rel="alternate" type="application/rss+xml" title="{{ config.title }}" href="/rss.xml">
         {% block meta %} {% endblock %}
         {% if page.title %}
             <meta property="og:title" content="{{ page.title }}">
         {% else %}
-            <meta property="og:title" content="{{ site_name }}">
+            <meta property="og:title" content="{{ config.title }}">
         {% endif %}
         {% if page.summary %}
             <meta property="og:description" content="{{ page.summary | striptags }}">
