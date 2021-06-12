@@ -13,8 +13,9 @@ feed_filename = "rss.xml"
 
 [markdown]
 highlight_code = true
-highlight_theme = "monokai"
+highlight_theme = "monokaiak"
 extra_syntaxes = ["syntaxes"]
+extra_highlight_themes = ["syntaxes"]
 
 [extra]
 # Put all your custom variables here

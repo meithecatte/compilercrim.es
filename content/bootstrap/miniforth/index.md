@@ -60,12 +60,14 @@ the most perhaps the most relevant one for our usecase is [bootOS]:
 It exposes its filesystem routines with an interrupt interface, and includes a
 builtin command that allows creating a file by typing in its hexdump. Very neat,
 but clearly mostly intended as a multiplexer between other sector-sized
-programs. What I would seek is a solution that minimizes typing in
-hand-assembled machine code. Ideally, it would be a programming language, but
-one that, unlike BASIC, can be extended at runtime. If you've read the title of
-this post, you already know what I settled on — as it turns out, it's possible
-to fit a barebones FORTH in a bootsector. You can see the code in the [Miniforth
-repository on GitHub][miniforth], but I will include most of it here.
+programs.
+
+What I would seek is a solution that minimizes typing in hand-assembled machine
+code. Ideally, it would be a programming language, but one that, unlike BASIC,
+can be extended at runtime. If you've read the title of this post, you already
+know what I settled on — as it turns out, it's possible to fit a barebones FORTH
+in a bootsector. You can see the code in the [Miniforth repository on
+GitHub][miniforth], but I will include most of it here.
 
 The entire FORTH takes, at this moment, 504 bytes. As you might expect, the
 development process involved being on a perpetual lookout for byte-saving
@@ -716,7 +718,7 @@ The BIOS interrupt for getting a character from the keyboard does not print the
 key — we have to do that ourselves. This is done with the "TELETYPE OUTPUT"
 function, which already handles special characters like backspace or newline.
 
-```
+```asm
 PutChar:
     xor bx, bx
     mov ah, 0x0e

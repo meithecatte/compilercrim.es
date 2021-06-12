@@ -1,5 +1,6 @@
 * {
     --line-color: #ebedef;
+    --shaded: #f8f8f8;
 }
 
 *, ::before, ::after {
@@ -94,10 +95,11 @@ footer {
 }
 
 .article-preview {
-    background: #f8f8f8;
+    background: var(--shaded);
     padding: 1.4rem;
     position: relative;
-    padding-bottom: 2.5rem;
+    padding-bottom: 2.8rem;
+    margin-bottom: 1rem;
 
     & .title {
         font-size: 1.6rem;
@@ -117,15 +119,30 @@ footer {
     }
 }
 
-pre {
+#previous-article, #next-article {
+    background: var(--shaded);
     padding: 1rem;
+    display: block;
+    margin: 0.5rem;
+}
+
+#previous-article {
+    float: left;
+}
+
+#next-article {
+    float: right;
+}
+
+pre {
+    padding: 0.7rem;
     margin: 1rem 0;
     background-color: #272822;
-    color: #f8f8f2;
+    color: #c9d1d9;
 }
 
 pre b {
-    color: #fff;
+    color: #f8f8f8;
 }
 
 ul, ol {
@@ -145,6 +162,7 @@ ul {
 h2 {
     font-size: 1.8rem;
     font-weight: 400;
+    padding-bottom: 0.5rem;
 }
 
 blockquote {
@@ -171,16 +189,19 @@ hr {
 pre code {
     background: none !important;
     padding: 0;
+    white-space: inherit;
+}
+
+pre, pre code {
+    font-size: .85rem;
 }
 
 code {
     padding: .2em .4em;
     border-radius: 6px;
     background-color: rgba(27,31,35,0.05);
-}
-
-pre, code {
-    font-size: .85rem;
+    white-space: nowrap;
+    font-size: .85em;
 }
 
 .title {
@@ -257,10 +278,7 @@ pre, code {
 
     * {
         --line-color: #21262d;
-    }
-
-    .article-preview {
-        background: #222;
+        --shaded: #222;
     }
 
     .button {
