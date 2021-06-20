@@ -1,0 +1,1037 @@
+<!DOCTYPE html>
+<html lang="en">
+    
+        
+    
+    
+        
+    
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <title>No branches? No problem — a Forth assembler — NieDżejkob&#x27;s ramblings</title>
+        <link rel="stylesheet" href="https://niedzejkob.p4.team/style.css"/>
+        <link rel="icon" href="https://niedzejkob.p4.team/icon.png"/>
+        <link rel="canonical" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;"/>
+        <link rel="alternate" type="application/rss+xml" title="NieDżejkob&#x27;s ramblings" href="/rss.xml">
+        
+<meta property="og:type" content="article">
+
+        
+            <meta property="og:title" content="No branches? No problem — a Forth assembler">
+        
+        
+            <meta property="og:description" content="The set of words available after Miniforth boots is quite bare-bones. One
+reader even claimed that, since there&#x27;s no branches, it is not
+Turing-complete, and therefore not worthy of being called a Forth! Today is the
+day we prove them wrong. ">
+        
+        <meta property="og:url" content="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;">
+        <meta property="og:image" content="https://niedzejkob.p4.team/icon.png">
+    </head>
+    <body class="theme-default">
+        <header>
+            <div class="main-column">
+                <a href="/">
+                    <img id="icon" src="/icon.png">
+                    <span><b>NieDżejkob</b>'s ramblings</span>
+                </a>
+            </div>
+        </header>
+        <main>
+            
+<h1 class="title">
+  No branches? No problem — a Forth assembler
+</h1>
+
+<p class="page-metadata">
+June 22, 2021
+&middot; 36 minute read
+</p>
+
+
+
+<div class="series-info">
+  This article is part of the <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;">Bootstrapping</a>
+  
+    series, in which I start from a 512-byte seed and try to bootstrap back
+into comfortable environment.
+  
+</div>
+
+
+<p>The set of words available after Miniforth boots is quite bare-bones. One
+reader even <a href="https://www.reddit.com/r/Forth/comments/nxgg20/fitting_a_forth_in_512_bytes/h1eq4ok">claimed</a> that, since there's no branches, it is not
+Turing-complete, and therefore not worthy of being called a Forth! Today is the
+day we prove them wrong. <span id="continue-reading"></span></p>
+<p>In the <a href="https://niedzejkob.p4.team/bootstrap/miniforth/">previous post</a>, I described the bootsector-sized core of Miniforth, with
+all the clever optimizations I've had to use to fit it in. To recap, the
+following words are available:</p>
+<pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">+ - ! @ c! c@ dup drop swap emit u. &gt;r r&gt; [ ] : ; load s:
+</span></code></pre>
+<p>Most of those will be familiar to Forth programmers, but <code>load</code> and <code>s:</code> might
+need some comment. <code>load ( u -- )</code> is <a href="https://forth-standard.org/standard/block/LOAD">a standard word</a> from the
+optional Block word set — it loads block <code>u</code> and executes it as Forth source
+code.<sup class="footnote-reference"><a href="#load-difference">1</a></sup> This word is crucial for practical use of such a small
+Forth, as once you bootstrap far enough, you can save your code to disk, and
+after a reboot, resume with just <code>1 load</code>.</p>
+<p>To get to that point, however, you need to write quite a bit of code. To make
+the source code available in memory once you can save it, I included
+<code>s: ( buf -- buf+len )</code>, which is essentially a string poke — the rest of the
+input buffer is copied to <code>buf</code>. The address of the end of the buffer is
+left on the stack, such that you can use <code>s:</code> on the next line, and the result
+will be concatenated.</p>
+<p>In this post, we will start from the state Miniforth boots up in, and:</p>
+<ul>
+<li><a href="https://niedzejkob.p4.team/bootstrap/branches/#forth-style-assemblers">write a Forth-style assembler,</a></li>
+<li><a href="https://niedzejkob.p4.team/bootstrap/branches/#disk-i-o">bootstrap the ability of writing to disk,</a> and</li>
+<li><a href="https://niedzejkob.p4.team/bootstrap/branches/#branches">use our assembler to implement branches.</a></li>
+</ul>
+<p>This is not to say that this is the only way. I do have a pure-Forth
+implementation of branches on top of Miniforth, and I intend to talk about it
+more in about a week — meanwhile, I encourage you to try figuring it out on your
+own. I'm really curious how many different approaches there are.</p>
+<p>Meanwhile, let's explore the approach that <em>doesn't</em> discard most of the
+performance in the name of purity. For reference and easy experimentation, the
+code from this post is <a href="https://github.com/NieDzejkob/miniforth/tree/post2">available on GitHub</a>. When explaining the code,
+I'll sometimes add comments, but since we didn't implement any comment
+handling yet, they aren't actually there in the code.</p>
+<h2 id="s-the-workflow"><code>s:</code> — the workflow</h2>
+<p>I've decided to keep my source code at address <code>1000</code>, in the space between the
+parameter and return stacks. The first thing we'll need is a way of running the
+code we put there. The <code>InputPtr</code> is defined to be at <code>A02</code>, so let's define
+<code>run</code>, which pokes a value of our choice at that address:</p>
+<pre style="background-color:#272822;">
+<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">&gt;in </span><span style="color:#ae81ff;">A02 </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">run </span><span style="color:#c9d1d9;">&gt;in ! </span><span style="color:#f92672;">;
+</span></code></pre>
+<p><code>&gt;in</code> is a traditional name for the input buffer pointer, so I went with
+that.<sup class="footnote-reference"><a href="#to-in">2</a></sup> To make sure it is also available on subsequent boots, I save this
+piece of code in memory:</p>
+<pre style="background-color:#272822;">
+<code class="language-forth" data-lang="forth"><span style="color:#ae81ff;">1000 </span><span style="color:#c9d1d9;">s: </span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">&gt;in </span><span style="color:#ae81ff;">A02 </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">run </span><span style="color:#c9d1d9;">&gt;in ! </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>This is a good time to peek at the current pointer to the source buffer, with
+<code>dup u.</code>. Unless you added some writespace, the answer will be <code>101A</code>, and this
+is the address we will want to pass to <code>run</code> later on, to avoid redefining <code>&gt;in</code>
+and <code>run</code>.<sup class="footnote-reference"><a href="#redefine">3</a></sup></p>
+<p>After writing enough code to want to test it, I would print the current address
+of the buffer with <code>u.</code>, and then <code>run</code> the new code from the previous printed
+buffer address. At first, it's important that the buffer address is not left at
+the top of the stack, as Miniforth boots up <a href="https://niedzejkob.p4.team/bootstrap/miniforth/#variables">with the addresses of the built-in
+system variables on the stack</a>, and we will want to access those.</p>
+<h2 id="system-variables">System variables</h2>
+<p>In fact, almost everything we want to do requires these variables, so let's take
+care of that first — having to dig into the stack every time you need one of
+these variables is unworkable. The stack starts out like this:</p>
+<pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">latest st base dp disk#
+</span></code></pre>
+<p>Normally, we would just do <code>constant disk#</code>, <code>constant here</code>, and so on.
+However, we do not have <code>constant</code>, or any way of defining it (yet).
+<a href="https://forth-standard.org/standard/core/LITERAL"><code>literal</code></a> is closer, but we'd need at least <code>here</code> to implement it
+and <code>latest</code> to mark it as immediate. We can work around the immediate issue
+with <code>[</code> and <code>]</code>, which suggests the following course of action:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#c9d1d9;">swap </span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">dp </span><span style="color:#ae81ff;">0 </span><span style="color:#f92672;">[ </span><span style="color:#c9d1d9;">dup @ </span><span style="color:#ae81ff;">2 </span><span style="color:#c9d1d9;">- ! </span><span style="color:#f92672;">] ;
+</span></code></pre>
+<p>Let's go through this step by step, as the way this works is somewhat intricate.
+<code>dp</code> stands for <em>data pointer</em>. It is the variable backing <code>here</code>, the
+compilation pointer, meaning <code>here</code> is simply defined as</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">here </span><span style="color:#c9d1d9;">dp @ </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>When the code inside square brackets executes, our memory looks like this:</p>
+<p><img src="https://niedzejkob.p4.team/bootstrap/branches/dp.svg" alt="First comes the dictionary header, holding the link field and name. Then, a call to DOCOL, and LIT and 0. HERE points at the very end, after the 0." /></p>
+<p>What we wish to do is put <code>dp</code> where the <code>0</code> currently is. Since we ran a <code>swap</code>
+before defining our word, the address of <code>dp</code> is at the top of the stack. After
+<code>dup @ 2 -</code>, we will have a pointer to the cell containing the <code>0</code>, and <code>!</code> will
+overwrite it. As you can see, the <code>0</code> doesn't have any particular significance,
+we could've used any literal.</p>
+<p>Next up, we define <code>cell+</code> and <code>cells</code>. The reason I do it this early is that
+one of the things I would eventually like to do is switch to 32-bit Protected
+Mode, so as much code as possible should be cell-width agnostic.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">cell+ </span><span style="color:#ae81ff;">2 </span><span style="color:#c9d1d9;">+ </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">cells </span><span style="color:#c9d1d9;">dup + </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>Also, since we now have <code>dp</code>, let's write <code>allot</code>. The functionality of
+incrementing a variable can be factored out into <code>+!</code>:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">+! </span><span style="color:#85817e;">( u addr -- ) </span><span style="color:#c9d1d9;">dup &gt;r @ + r&gt; ! </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">allot </span><span style="color:#85817e;">( len -- ) </span><span style="color:#c9d1d9;">dp +! </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>This allows defining <code>c,</code> and <code>,</code>, which write a byte or cell, respectively,
+to the compilation area:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">c, </span><span style="color:#c9d1d9;">here c! </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">allot </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">, </span><span style="color:#c9d1d9;">here ! </span><span style="color:#ae81ff;">2 </span><span style="color:#c9d1d9;">allot </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>Next, we will write <code>lit,</code>, which appends a literal to the current definition.
+To do this, we need the address of <code>LIT</code>, the assembly routine that handles a
+literal. We store it in the <code>'lit</code> &quot;constant&quot;, with a similar trick to what we
+did for <code>dp</code>:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">&#39;lit </span><span style="color:#ae81ff;">0 </span><span style="color:#f92672;">[ </span><span style="color:#c9d1d9;">here </span><span style="color:#ae81ff;">4 </span><span style="color:#c9d1d9;">- @ here </span><span style="color:#ae81ff;">2 </span><span style="color:#c9d1d9;">- ! </span><span style="color:#f92672;">] ;
+: </span><span style="color:#a6e22e;">lit, </span><span style="color:#c9d1d9;">&#39;lit , , </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>This lets us easily handle the rest of the variables on the stack:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">disk# </span><span style="color:#f92672;">[ </span><span style="color:#c9d1d9;">lit, </span><span style="color:#f92672;">] ;
+: </span><span style="color:#a6e22e;">base </span><span style="color:#f92672;">[ </span><span style="color:#c9d1d9;">lit, </span><span style="color:#f92672;">] ;
+: </span><span style="color:#a6e22e;">st </span><span style="color:#f92672;">[ </span><span style="color:#c9d1d9;">lit, </span><span style="color:#f92672;">] ;
+: </span><span style="color:#a6e22e;">latest </span><span style="color:#f92672;">[ </span><span style="color:#c9d1d9;">lit, </span><span style="color:#f92672;">] ;
+</span></code></pre>
+<p>I'm calling it <code>st</code> instead of <code>state</code>, because <code>state</code> should be a cell-sized
+variable where true means compiling, and <code>st</code> is a byte-sized variable where
+true means interpreting.</p>
+<h2 id="custom-variables">Custom variables</h2>
+<p>If you're in the mood for mischief, you can create variables out of thin air by
+simply mentioning them. The lack of error checking will turn them into a number,
+essentially giving you a random address. For example, <code>srcpos u.</code> outputs
+<code>DA9C</code>. Of course, you're risking that these addresses will collide, either with
+one another, or with something else, such as the stack or the dictionary space.</p>
+<p>I <em>wasn't</em> in the mood for mischief, so we'll do this properly. The core of any
+defining word will be based on <code>:</code>, as that already parses a word and creates a
+dictionary entry. We just need to go back to interpretation mode. <code>[</code> does that,
+but it's an immediate word, and we can't define <code>postpone</code> yet, so let's define
+our own variant that isn't immediate:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">[[ </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">st c! </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>We will also need a non-immediate variant of <code>;</code>. The only thing it needs to do
+compile <code>exit</code>. We don't know the address of <code>exit</code>, but we can read it out of
+the most recently compiled word:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#c9d1d9;">here </span><span style="color:#ae81ff;">2 </span><span style="color:#c9d1d9;">- @ </span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">&#39;exit </span><span style="color:#f92672;">[ </span><span style="color:#c9d1d9;">lit, </span><span style="color:#f92672;">] ;
+</span></code></pre>
+<p>For example, here's how we'd use it for <code>constant</code>:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">constant </span><span style="color:#85817e;">\ example: 42 constant the-answer
+  </span><span style="color:#c9d1d9;">: [[ lit, &#39;exit ,
+</span><span style="color:#f92672;">;
+</span></code></pre>
+<p><code>create</code> defines a word that pushes the address directly afterwards. The typical
+use is</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">create </span><span style="color:#a6e22e;">some-array </span><span style="color:#ae81ff;">10 </span><span style="color:#c9d1d9;">cells allot
+</span></code></pre>
+<p>To calculate the address we should compile, we need to add <code>3 cells</code> — one for
+each of <code>LIT</code>, the actual value, and <code>EXIT</code>.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">create </span><span style="color:#c9d1d9;">: [[ here </span><span style="color:#ae81ff;">3 </span><span style="color:#c9d1d9;">cells + lit, &#39;exit , </span><span style="color:#f92672;">;
+</span></code></pre>
+<p><code>variable</code>, then, simply <code>allot</code>s one cell:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">variable </span><span style="color:#c9d1d9;">create </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">cells allot </span><span style="color:#f92672;">;
+</span></code></pre><h2 id="improving-on-s">Improving on <code>s:</code></h2>
+<p>So far, the pointers passed to <code>s:</code> and <code>run</code> have had to be managed manually. It's
+a simple process, though, so let's automate it. <code>srcpos</code> will contain the
+current end of the buffer, and <code>checkpoint</code> will point at the part that hasn't
+been ran yet.</p>
+<p><img src="https://niedzejkob.p4.team/bootstrap/branches/splus.svg" alt="That is, in a typical situation, the source code would start at 1000, end at srcpos, with checkpoint somewhere in the middle." /></p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">variable </span><span style="color:#a6e22e;">checkpoint
+</span><span style="color:#f92672;">variable </span><span style="color:#a6e22e;">srcpos
+</span></code></pre>
+<p>The automatic variant of <code>s:</code> is called <code>s+</code>:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">s+ </span><span style="color:#85817e;">( -- ) </span><span style="color:#c9d1d9;">srcpos @ s: dup u. srcpos ! </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>We also print the new pointer. This has two uses:</p>
+<ul>
+<li>if you make a typo and want to correct, you can just read the approximate
+address where you need to poke around;</li>
+<li>we need to make sure that no definition straddles a kilobyte boundary, so that
+our buffer can be directly written into blocks.</li>
+</ul>
+<p>The pending portion of the buffer can be executed with <code>doit</code>:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">move-checkpoint </span><span style="color:#85817e;">( -- ) </span><span style="color:#c9d1d9;">srcpos @ checkpoint ! </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">doit </span><span style="color:#85817e;">( -- ) </span><span style="color:#c9d1d9;">checkpoint @ run move-checkpoint </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>Setting this up amounts to something like</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#ae81ff;">1234 </span><span style="color:#c9d1d9;">srcpos ! move-checkpoint
+</span></code></pre>
+<p>This line is not written to disk, as the exact address is not going to be useful
+after a reboot.</p>
+<h2 id="forth-style-assemblers">Forth-style assemblers</h2>
+<p>The usual syntax of assembly looks like this:</p>
+<pre style="background-color:#272822;">
+<code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">    </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">bx
+</span></code></pre>
+<p>If we wanted to handle <em>that</em>, we'd need to write a fancy parser, and there's no
+way we're going to be able to do that without branches. Let's adjust the syntax
+for our uses instead — if AT&amp;T is allowed to do that, so can we. To be specific,
+let's make each instruction a Forth word, passing the arguments through the
+stack:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#c9d1d9;">    bx ax movw-rr,
+</span></code></pre>
+<p>I chose to order the arguments as <code>src dst instr,</code>, with the data flowing
+left-to-right. This is consistent with how data flows in normal Forth code, and
+is an exact mirror of Intel's syntax.  After a dash, I include the types of the
+arguments, in the same order — register (<code>r</code>), memory (<code>m</code>), or immediate (<code>i</code>).
+Finally, instructions that can be both byte and word-sized have a <code>b</code> or <code>w</code>
+suffix, like in AT&amp;T syntax.</p>
+<p>Note that having to specify the operand types manually isn't a fundamental
+limitation of Forth assemblers. Usually, nothing prevents building in more
+smarts into these words to pick the right variant based on the operands
+automatically. However, in this particular case, we don't have any branching
+words (as they are our goal 😄).</p>
+<h2 id="x86-instruction-encoding">x86 instruction encoding</h2>
+<p>The simplest to encode are the instructions that don't take any arguments. For
+example,</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">stosb, </span><span style="color:#ae81ff;">AA </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">;  : </span><span style="color:#a6e22e;">stosw, </span><span style="color:#ae81ff;">AB </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">;  : </span><span style="color:#a6e22e;">lodsb, </span><span style="color:#ae81ff;">AC </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">;  : </span><span style="color:#a6e22e;">lodsw, </span><span style="color:#ae81ff;">AD </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>Next simplest are instructions that include <em>immediates</em> — numeric arguments
+that come <em>immediately</em> after the opcode:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">int, </span><span style="color:#ae81ff;">CD </span><span style="color:#c9d1d9;">c, c, </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>Some instructions use a bitfield in their opcode byte. For example, an immediate
+load such as mov cx, 0x1234` encodes the register in the lower 3 bits of the
+opcode:</p>
+<p><img src="https://niedzejkob.p4.team/bootstrap/branches/x86-movi.svg" alt="The lowest 3 bits of the opcode of a &quot;mov r16, imm16&quot; instruction contain the register number, while the rest is constant." /></p>
+<p>The registers map to the following numeric values:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">ax </span><span style="color:#ae81ff;">0 </span><span style="color:#f92672;">;  : </span><span style="color:#a6e22e;">cx </span><span style="color:#ae81ff;">1 </span><span style="color:#f92672;">;  : </span><span style="color:#a6e22e;">dx </span><span style="color:#ae81ff;">2 </span><span style="color:#f92672;">;  : </span><span style="color:#a6e22e;">bx </span><span style="color:#ae81ff;">3 </span><span style="color:#f92672;">;  : </span><span style="color:#a6e22e;">sp </span><span style="color:#ae81ff;">4 </span><span style="color:#f92672;">;  : </span><span style="color:#a6e22e;">bp </span><span style="color:#ae81ff;">5 </span><span style="color:#f92672;">;  : </span><span style="color:#a6e22e;">si </span><span style="color:#ae81ff;">6 </span><span style="color:#f92672;">;  : </span><span style="color:#a6e22e;">di </span><span style="color:#ae81ff;">7 </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>You read that right, it goes <code>AX CX DX BX</code>. As far as I know, this is not
+because somebody at Intel forgot their ABC's, but because the etymology of these
+register names goes something like &quot;<strong>A</strong>ccumulator, <strong>C</strong>ounter, <strong>D</strong>ata,
+<strong>B</strong>ase&quot;, and the fact that they're the first four letter is just a
+coincidence. Or that's the jist of it, anyway. <a href="https://retrocomputing.stackexchange.com/questions/5121/why-are-first-four-x86-gprs-named-in-such-unintuitive-order">This retrocomputing.SE
+post</a> includes some speculations on how it could be beneficial to the
+hardware design, but no hard facts.</p>
+<p>The corresponding numbering for byte-sized registers looks like this:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">al </span><span style="color:#ae81ff;">0 </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">cl </span><span style="color:#ae81ff;">1 </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">dl </span><span style="color:#ae81ff;">2 </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">bl </span><span style="color:#ae81ff;">3 </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">ah </span><span style="color:#ae81ff;">4 </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">ch </span><span style="color:#ae81ff;">5 </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">dh </span><span style="color:#ae81ff;">6 </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">bh </span><span style="color:#ae81ff;">7 </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>Thus, we can encode some <code>mov</code>s:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">movw-ir, </span><span style="color:#ae81ff;">B8 </span><span style="color:#c9d1d9;">+ c, , </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">movb-ir, </span><span style="color:#ae81ff;">B0 </span><span style="color:#c9d1d9;">+ c, c, </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>These can be used like so:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#ae81ff;">ACAB </span><span style="color:#c9d1d9;">bx movw-ir,
+</span><span style="color:#ae81ff;">42 </span><span style="color:#c9d1d9;">al movb-ir,
+</span></code></pre>
+<p>Note that it is the responsibility of the user to use an 8-bit register with
+<code>movb</code>, and a 16-bit register with <code>movw</code>.</p>
+<p>Some other instructions that are encoded in this way are <code>incw/decw</code> and
+<code>push/pop</code>:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">incw, </span><span style="color:#ae81ff;">40 </span><span style="color:#c9d1d9;">+ c, </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">decw, </span><span style="color:#ae81ff;">48 </span><span style="color:#c9d1d9;">+ c, </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">push, </span><span style="color:#ae81ff;">50 </span><span style="color:#c9d1d9;">+ c, </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">pop,  </span><span style="color:#ae81ff;">58 </span><span style="color:#c9d1d9;">+ c, </span><span style="color:#f92672;">;
+</span></code></pre><h2 id="modr-m">ModR/M</h2>
+<p>The most complex instructions we'll have to deal with make use of the <em>ModR/M</em>
+byte. This is the encoding mechanism responsible for instructions like <code>add ax, [bx+si+16]</code>, but also ones as simple as <code>mov ax, bx</code>.</p>
+<p>The opcode itself specifies a pattern, such as <code>mov r16, r/m16</code>. In this case,
+it means that the destination is a register and the source is either a register
+or the memory. The ModR/M byte, which comes after the opcode, specifies the
+details of the operands:</p>
+<p><img src="https://niedzejkob.p4.team/bootstrap/branches/x86-modrm.svg" alt="The ModR/M byte comes directly after the opcode. It is a bitfield with three fields. The most-significant bits 7 and 6 form the mod field, Together with the lowest three bits, it specifies the addressing mode for the r/m operand. The three bits in the middle specify the other operand, which is always a register." /></p>
+<p>The three bits in the middle specify the <code>r16</code> part, while the rest specifies
+the <code>r/m16</code> part, according to this table:</p>
+<div style="font-family: monospace; font-size: 85%;">
+<table><thead><tr><th align="right">reg/[regs] field</th><th>mod: 00</th><th>mod: 01</th><th>mod: 10</th><th>mod: 11</th></tr></thead><tbody>
+<tr><td align="right">0</td><td>[BX+SI]</td><td>[BX+SI+d8]</td><td>[BX+SI+d16]</td><td>AL/AX</td></tr>
+<tr><td align="right">1</td><td>[BX+DI]</td><td>[BX+DI+d8]</td><td>[BX+DI+d16]</td><td>CL/CX</td></tr>
+<tr><td align="right">2</td><td>[BP+SI]</td><td>[BP+SI+d8]</td><td>[BP+SI+d16]</td><td>DL/DX</td></tr>
+<tr><td align="right">3</td><td>[BP+DI]</td><td>[BP+DI+d8]</td><td>[BP+DI+d16]</td><td>BL/BX</td></tr>
+<tr><td align="right">4</td><td>[SI]</td><td>[SI+d8]</td><td>[SI+d16]</td><td>AH/SP</td></tr>
+<tr><td align="right">5</td><td>[DI]</td><td>[DI+d8]</td><td>[DI+d16]</td><td>CH/BP</td></tr>
+<tr><td align="right">6</td><td>[d16]</td><td>[BP+d8]</td><td>[BP+d16]</td><td>DH/SI</td></tr>
+<tr><td align="right">7</td><td>[BX]</td><td>[BX+d8]</td><td>[BX+d16]</td><td>BH/DI</td></tr>
+</tbody></table>
+</div>
+<p>As you can see, if the <em>mod</em> field is set to <code>3</code>, then the lower 3 bits just
+encode another register, in the same order as before. Otherwise, we choose one
+of the eight possibilities for address calculation, with an optional offset
+that can be either 8 or 16 bit. Said offset comes directly after the ModR/M
+byte, and is sign-extended to 16 bits if necessary.</p>
+<p>There is one irregularity, in that if we try to encode a <code>[BP]</code> without any
+offset, what we get instead is a hardcoded address, such as <code>mov bx, [0x1234]</code>,
+which should come after the immediate byte.<sup class="footnote-reference"><a href="#modrm-order">4</a></sup> If you recall, the
+lack of <code>[BP]</code> is why switching the return stack to use <code>DI</code> instead was
+beneficial.</p>
+<p>A peculiar aspect of this encoding is that register-to-register operations can
+be encoded in two different ways. Let's take <code>xor cx, dx</code>, for example:</p>
+<p><img src="https://niedzejkob.p4.team/bootstrap/branches/x86-twoways.svg" alt="On one hand, you could use the &quot;xor r/m16, r16&quot; opcode, and put DX in the register field and CX in the r/m field. This yields the bytes 31 D1. On the other hand, you could use the &quot;xor r16, r/m16&quot; opcode, and an appropriately rearranged ModR/M byte to encode the same instruction as 33 CA." /></p>
+<p>Anyway, let's implement this. First, the register-to-register variant. I chose
+to name the word for compiling such a ModR/M byte <code>rm-r,</code>, meaning that there is
+a <code>r</code>egister in the field that could also be <code>m</code>emory, followed by another
+<code>r</code>egister. We don't have any bitshifts, but we can work around that with
+repeated addition:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">2* </span><span style="color:#c9d1d9;">dup + </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">3shl </span><span style="color:#c9d1d9;">2* 2* 2* </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">rm-r, </span><span style="color:#85817e;">( reg-as-r/m reg -- ) </span><span style="color:#c9d1d9;">3shl + </span><span style="color:#ae81ff;">C0 </span><span style="color:#c9d1d9;">+ c, </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>When using <code>rm-r,</code>, we need to make sure that the opcode used is the one with
+the <code>r/m16, r16</code> template — we would need to <code>swap</code> the two registers otherwise:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">movw-rr, </span><span style="color:#ae81ff;">8B </span><span style="color:#c9d1d9;">c, rm-r, </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">addw-rr, </span><span style="color:#ae81ff;">03 </span><span style="color:#c9d1d9;">c, rm-r, </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">orw-rr, </span><span style="color:#ae81ff;">0B </span><span style="color:#c9d1d9;">c, rm-r, </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">andw-rr, </span><span style="color:#ae81ff;">23 </span><span style="color:#c9d1d9;">c, rm-r, </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">subw-rr, </span><span style="color:#ae81ff;">2B </span><span style="color:#c9d1d9;">c, rm-r, </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">xorw-rr, </span><span style="color:#ae81ff;">33 </span><span style="color:#c9d1d9;">c, rm-r, </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">cmpw-rr, </span><span style="color:#ae81ff;">3B </span><span style="color:#c9d1d9;">c, rm-r, </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>Memory-to-register variants aren't much harder. We define the addressing modes,
+just like we did for registers.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">[bx+si] </span><span style="color:#ae81ff;">0 </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">[bx+di] </span><span style="color:#ae81ff;">1 </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">[bp+si] </span><span style="color:#ae81ff;">2 </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">[bp+di] </span><span style="color:#ae81ff;">3 </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">[si] </span><span style="color:#ae81ff;">4 </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">[di] </span><span style="color:#ae81ff;">5 </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">[#] </span><span style="color:#ae81ff;">6 </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">[bp] </span><span style="color:#ae81ff;">6 </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">[bx] </span><span style="color:#ae81ff;">7 </span><span style="color:#f92672;">;
+</span></code></pre>
+<p><code>[#]</code> is the absolute address mode, which should be used by assembling the
+address manually after the instruction, for example</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#c9d1d9;">[#] ax movw-mr, some-addr ,
+</span></code></pre>
+<p>I also include <code>[bp]</code>, which collides with <code>[#]</code>, as the address mode words can
+be shared with the <code>[??+d8]</code> and <code>[??+d16]</code> modes.</p>
+<p>Analogously to <code>rm-r,</code> we have <code>m-r,</code>:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">m-r, </span><span style="color:#85817e;">( mem reg -- ) </span><span style="color:#c9d1d9;">3shl + c, </span><span style="color:#f92672;">;
+</span></code></pre>
+<p><code>r-m,</code> is the same, just swap the operands:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">r-m, </span><span style="color:#85817e;">( reg mem -- ) </span><span style="color:#c9d1d9;">swap m-r, </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>There is no need to define every instruction with memory operands, just <code>mov</code>s
+are enough:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">movw-mr, </span><span style="color:#ae81ff;">8B </span><span style="color:#c9d1d9;">c, m-r, </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">movw-rm, </span><span style="color:#ae81ff;">89 </span><span style="color:#c9d1d9;">c, r-m, </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>There is also one slightly different use of the ModR/M byte. Namely, if an
+instruction only needs one operand (such as <code>not bx</code> or <code>jmp ax</code>), only the
+<code>r/m</code> one is actually used. In that case, the register field is instead reused
+as more bits for the opcode itself.</p>
+<p>The notation used by Intel's manual for this is <code>opcode /regbits</code>. For example,
+an indirect jump is <code>FF /4</code>, while an indirect call is <code>FF /2</code>, sharing the
+main opcode byte. We can encode instructions like these by simply pushing the right
+value before calling <code>rm-r,</code>.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">jmp-r, </span><span style="color:#ae81ff;">FF </span><span style="color:#c9d1d9;">c, </span><span style="color:#ae81ff;">4 </span><span style="color:#c9d1d9;">rm-r, </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">notw-r, </span><span style="color:#ae81ff;">F7 </span><span style="color:#c9d1d9;">c, </span><span style="color:#ae81ff;">2 </span><span style="color:#c9d1d9;">rm-r, </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>To actually assemble a primitive word, we'll also need a way of creating its
+header.  The simplest way to do that is to call the normal <code>:</code>, and then rewind
+<code>dp</code> by three bytes, to remove the call to <code>DOCOL</code>:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">:code </span><span style="color:#c9d1d9;">: [[ here </span><span style="color:#ae81ff;">3 </span><span style="color:#c9d1d9;">- dp ! </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>To finish such a definition, we compile a <code>NEXT</code>:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">next, </span><span style="color:#c9d1d9;">lodsw, ax jmp-r, </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>Note that <code>next,</code> is not defined with <code>:code</code> — it is the equivalent of an
+assembler macro.</p>
+<p>As an example of a simple assembled primitive, let's look at the implementation
+of <code>1+</code>:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">1+ </span><span style="color:#c9d1d9;">bx incw, next,
+</span></code></pre><h2 id="disk-i-o">Disk I/O</h2>
+<p>This is actually enough to write our work to disk. Just like the implementation
+of <code>load</code>, we'll need to create a disk address packet, and then call <code>int 0x13</code>.
+One primitive word can serve for both reading and writing, as the only
+difference is the value of <code>AX</code> you need. It is crucial to preserve <code>SI</code> — I've
+had the <a href="https://twitter.com/NieDzejkob/status/1403443794842882055">displeasure of learning this empirically</a>.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">create </span><span style="color:#a6e22e;">packet </span><span style="color:#ae81ff;">10 </span><span style="color:#c9d1d9;">allot
+</span><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">int13
+  </span><span style="color:#c9d1d9;">si push,              </span><span style="color:#85817e;">\ push si
+  </span><span style="color:#c9d1d9;">packet si movw-ir,    </span><span style="color:#85817e;">\ mov si, packet
+  </span><span style="color:#c9d1d9;">bx ax movw-rr,        </span><span style="color:#85817e;">\ mov ax, bx
+  </span><span style="color:#c9d1d9;">disk# dl movb-ir,     </span><span style="color:#85817e;">\ mov dl, disk#
+  </span><span style="color:#ae81ff;">13 </span><span style="color:#c9d1d9;">int,               </span><span style="color:#85817e;">\ int 0x13
+  </span><span style="color:#c9d1d9;">ax bx movw-rr,        </span><span style="color:#85817e;">\ mov bx, ax
+  </span><span style="color:#c9d1d9;">si pop,               </span><span style="color:#85817e;">\ pop si
+</span><span style="color:#c9d1d9;">next,
+</span></code></pre>
+<p>Note that we're saving the returned value of <code>AX</code> back on the stack. This is
+because a non-zero <code>AH</code> value signals an error.</p>
+<p>To fill the <code>packet</code> with data, I'm using a variant of <code>,</code> that writes to a
+controlled location instead of <code>here</code>:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">variable </span><span style="color:#a6e22e;">pos
+</span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">pos, </span><span style="color:#85817e;">( val -- ) </span><span style="color:#c9d1d9;">pos @ ! </span><span style="color:#ae81ff;">2 </span><span style="color:#c9d1d9;">pos +! </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">make-packet </span><span style="color:#85817e;">( block buffer -- )
+  </span><span style="color:#c9d1d9;">packet pos !
+  </span><span style="color:#ae81ff;">10 </span><span style="color:#c9d1d9;">pos, </span><span style="color:#85817e;">\ size of packet
+  </span><span style="color:#ae81ff;">2 </span><span style="color:#c9d1d9;">pos,  </span><span style="color:#85817e;">\ sector count
+  </span><span style="color:#c9d1d9;">pos, </span><span style="color:#ae81ff;">0 </span><span style="color:#c9d1d9;">pos, </span><span style="color:#85817e;">\ buffer address
+  </span><span style="color:#c9d1d9;">2* pos, </span><span style="color:#ae81ff;">0 </span><span style="color:#c9d1d9;">pos, </span><span style="color:#ae81ff;">0 </span><span style="color:#c9d1d9;">pos, </span><span style="color:#ae81ff;">0 </span><span style="color:#c9d1d9;">pos, </span><span style="color:#85817e;">\ LBA
+</span><span style="color:#f92672;">;
+</span></code></pre>
+<p>For reading, we use <code>AH = 0x42</code>, as before. Writing uses <code>AH = 0x43</code>, but in
+that case the value of <code>AL</code> controls whether we want the BIOS to verify the
+write — we do, so I've set it to <code>0x02</code>.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">read-block </span><span style="color:#c9d1d9;">make-packet </span><span style="color:#ae81ff;">4200 </span><span style="color:#c9d1d9;">int13 </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">write-block </span><span style="color:#c9d1d9;">make-packet </span><span style="color:#ae81ff;">4302 </span><span style="color:#c9d1d9;">int13 </span><span style="color:#f92672;">;
+</span></code></pre><h2 id="precautions">Precautions</h2>
+<p>It would be nice to verify that our new code was assembled correctly before
+running it. Ideally, we'd write a little hexdump utility, but we still don't
+have any way to loop. There is a way around that, though — just type in the word
+you need many times in a row:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">p </span><span style="color:#85817e;">( buf -- buf+1 ) </span><span style="color:#c9d1d9;">dup c@ u. </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">+ </span><span style="color:#f92672;">;
+</span><span style="color:#85817e;">\ later...
+</span><span style="color:#c9d1d9;">here </span><span style="color:#ae81ff;">10 </span><span style="color:#c9d1d9;">- p p p p p p p p p p p p p p p p drop
+</span></code></pre>
+<p>Another good sanity check is to make sure that nothing we weren't expecting has
+been pushed onto the stack — those are usually caused by undefined words being
+badly turned into numbers. The way to do this is <code>dup u.</code> — an empty stack will
+result in a response of <code>E0E</code>, stemming from a benign stack underflow we've just
+caused. One example of a bug this has once caught is a typo, where I had typed
+<code>movb-it,</code> instead of <code>movb-ir,</code>.</p>
+<p><img src="https://niedzejkob.p4.team/bootstrap/branches/typo.jpg" alt="A screenshot of me fixing said typo with character-wide peeks and pokes." /></p>
+<p>The first disk access I tried was <code>0 4000 read-block u. 41fe @ u.</code>. This shows the
+<code>AA55</code> magic number at the end of the bootsector. I then wrote my source code to
+blocks 1 and 2, and read them into a separate buffer to make sure it worked. In
+hindsight, it might've been a good idea to read a block other than 0 before
+attempting a write, to make sure that providing the LBA is working properly.
+Thankfully, this particular bug was purely hypothetical.</p>
+<p>I also wrote the same data to blocks 0x101 and 0x102. That way, I can recover if I
+ever break booting from the usual block numbers.</p>
+<h2 id="jumps">Jumps</h2>
+<p>Before we tackle implementing branches, we'll need one more instruction — the
+conditional jump. On x86, the jump offsets are encoded as a signed value
+relative to the current instruction pointer. There are different encodings for
+different bit widths of this value, but we'll only need the shorter 8-bit one.</p>
+<p>To be specific, the value is relative to the <em>end</em> of the jump instruction, so
+that it matches the number of skipped bytes in the case of forward jumps:</p>
+<p><img src="https://niedzejkob.p4.team/bootstrap/branches/x86-jumps.svg" alt="74 02 encodes a conditional jump that will skip the next 2 bytes of instructions. 74 FD, which is -3 in two's complement, would create a loop with one other byte in it, as well as the two bytes of the jump." /></p>
+<p>To assemble the jump distances, I use two pairs of words — one for forward
+jumps, and one for backward ones:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#c9d1d9;">jnz, j&gt; ... &gt;j </span><span style="color:#85817e;">\ forward jump
+</span><span style="color:#c9d1d9;">j&lt; ... jnz, &lt;j </span><span style="color:#85817e;">\ backward jump
+</span></code></pre>
+<p>The rule is that the arrows show the direction of the jump, and the arrows must
+be &quot;inside&quot; — in other words, if you got the two words next to each other, these
+arrows should fit like a glove. The two words simply communicate through the
+stack. For example, <code>j&lt;</code> will simply remember the current location:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">j&lt; </span><span style="color:#c9d1d9;">here </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>This is then consumed by <code>&lt;j</code>, which subtracts the current position and compiles
+the offset:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">&lt;j </span><span style="color:#c9d1d9;">here </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">+ - c, </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>For forward jumps, we compile a dummy offset, to rewrite it later:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">j&gt; </span><span style="color:#c9d1d9;">here </span><span style="color:#ae81ff;">0 </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">&gt;j </span><span style="color:#c9d1d9;">dup &gt;r </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">+ here swap - r&gt; c! </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>Finally, the jump instructions themselves. Some of the jumps have multiple
+names. For example, since the carry flag gets set when a subtraction needs to
+borrow, a <code>jc</code> has exactly the same behavior as the unsigned comparison <code>j</code>ump
+if <code>b</code>elow. The same applies to <code>je</code> and <code>jz</code>, but that's intuitive enough for
+me, so I didn't feel the need to define both names.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">jb, </span><span style="color:#ae81ff;">72 </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">jc, </span><span style="color:#ae81ff;">72 </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">jae, </span><span style="color:#ae81ff;">73 </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">jnc, </span><span style="color:#ae81ff;">73 </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">jz, </span><span style="color:#ae81ff;">74 </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">jnz, </span><span style="color:#ae81ff;">75 </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">jbe, </span><span style="color:#ae81ff;">76 </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">ja, </span><span style="color:#ae81ff;">77 </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">jl, </span><span style="color:#ae81ff;">7C </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">jge, </span><span style="color:#ae81ff;">7D </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">jle, </span><span style="color:#ae81ff;">7E </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">jg, </span><span style="color:#ae81ff;">7F </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">;
+</span></code></pre><h2 id="branches">Branches</h2>
+<p>When compiled into a definition, branches look like this:</p>
+<p><img src="https://niedzejkob.p4.team/bootstrap/branches/branches.svg" alt="Diagram demonstrates the compilation strategy for an if-else structure. IF compiles to two cells, where the first one is (0branch), and the second one is the jump target, which points just after the ELSE. Before this location, ELSE introduces an unconditional (branch) to the position of THEN." /></p>
+<p>By convention, words that get compiled into a definition but aren't used
+directly have their names wrapped in parentheses, so our branches are called
+<code>(branch)</code>, which is unconditonal, and <code>(0branch)</code>, which pops a value off the
+stack and branches if it's zero.</p>
+<p>We can read the branch target out of the pointer sequence with <code>lodsw</code>:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">(branch)
+  </span><span style="color:#c9d1d9;">lodsw,           </span><span style="color:#85817e;">\ lodsw
+  </span><span style="color:#c9d1d9;">ax si movw-rr,   </span><span style="color:#85817e;">\ mov si, ax
+</span><span style="color:#c9d1d9;">next,
+</span></code></pre>
+<p>In the case of the conditional branch, it is important to remember to always
+read (or skip) the branch target, regardless of whether the branch condition is
+true.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">(0branch)
+  </span><span style="color:#c9d1d9;">lodsw,           </span><span style="color:#85817e;">\ lodsw
+  </span><span style="color:#c9d1d9;">bx bx orw-rr,    </span><span style="color:#85817e;">\ or bx, bx
+  </span><span style="color:#c9d1d9;">jnz, j&gt;          </span><span style="color:#85817e;">\ jnz .skip
+  </span><span style="color:#c9d1d9;">ax si movw-rr,   </span><span style="color:#85817e;">\ mov si, ax
+</span><span style="color:#c9d1d9;">&gt;j               </span><span style="color:#85817e;">\ .skip:
+  </span><span style="color:#c9d1d9;">bx pop,          </span><span style="color:#85817e;">\ pop bx
+</span><span style="color:#c9d1d9;">next,
+</span></code></pre>
+<p>To handle branch offset computation, I use a very similar set of words to the
+ones used by jumps. The implementation is simpler, though, since the encoding
+isn't relative to the current position:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">br&gt; </span><span style="color:#c9d1d9;">here </span><span style="color:#ae81ff;">0 </span><span style="color:#c9d1d9;">, </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">&gt;br </span><span style="color:#c9d1d9;">here swap ! </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">br&lt; </span><span style="color:#c9d1d9;">here </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">&lt;br </span><span style="color:#c9d1d9;">, </span><span style="color:#f92672;">;
+</span></code></pre><h2 id="control-flow">Control flow</h2>
+<p>To make the logic that compiles <code>if</code>s actually run at compile tine, we need to
+mark these words as immediate. To do that, we use <code>immediate</code>, which sets the
+immediate flag of the most recently compiled word:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">immediate </span><span style="color:#85817e;">( -- )
+  </span><span style="color:#c9d1d9;">latest @      </span><span style="color:#85817e;">\ get pointer to word
+  </span><span style="color:#c9d1d9;">cell+         </span><span style="color:#85817e;">\ skip link field
+  </span><span style="color:#c9d1d9;">dup &gt;r c@     </span><span style="color:#85817e;">\ read current value of the length+flags field
+  </span><span style="color:#ae81ff;">80 </span><span style="color:#c9d1d9;">+          </span><span style="color:#85817e;">\ set the flag
+  </span><span style="color:#c9d1d9;">r&gt; c!         </span><span style="color:#85817e;">\ write back
+</span><span style="color:#f92672;">;
+</span></code></pre>
+<p>We'll also need <code>compile</code>, which, when invoked as <code>compile x</code>, appends <code>x</code> to
+the word currently being compiled. We don't actually need to make it an
+immediate word which parses the next word by itself, simply reading out the
+address of <code>x</code> like <code>lit</code> or <code>(branch)</code> do it is enough:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">compile </span><span style="color:#c9d1d9;">r&gt; dup cell+ &gt;r @ , </span><span style="color:#f92672;">;
+</span></code></pre>
+<p><code>if</code> is simply a conditional forward branch:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">if </span><span style="color:#c9d1d9;">compile (0branch) br&gt; </span><span style="color:#f92672;">; immediate
+: </span><span style="color:#a6e22e;">then </span><span style="color:#c9d1d9;">&gt;br </span><span style="color:#f92672;">; immediate
+</span></code></pre>
+<p><code>else</code> is a bit more complicated. We need to compile an unconditional branch
+jumping to the <code>then</code>, but also resolve <code>if</code>'s jump to point just after the
+unconditional jump. I like using the return stack manipulation words for this,
+as the arrows match the ones used by <code>&gt;br</code> and make the code easier to read:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">else </span><span style="color:#c9d1d9;">&gt;r compile (branch) br&gt; r&gt; &gt;br </span><span style="color:#f92672;">; immediate
+</span></code></pre>
+<p>Next, we need loops. Firstly, the simple <code>begin ... again</code> infinite loop:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">begin </span><span style="color:#c9d1d9;">br&lt; </span><span style="color:#f92672;">; immediate
+: </span><span style="color:#a6e22e;">again </span><span style="color:#c9d1d9;">compile (branch) &lt;br </span><span style="color:#f92672;">; immediate
+</span></code></pre>
+<p><code>begin ... until</code> isn't much harder — just use a conditional jump at the end:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">until </span><span style="color:#c9d1d9;">compile (0branch) &lt;br </span><span style="color:#f92672;">; immediate
+</span></code></pre>
+<p>Lastly, Forth's unique <code>begin ... while ... repeat</code> loop, where the loop
+condition is in the middle of the loop:</p>
+<p><img src="https://niedzejkob.p4.team/bootstrap/branches/while-repeat.svg" alt="Diagram illustrates the compilation strategy for BEGIN-WHILE-REPEAT. BEGIN doesn't compile to anything, and merely saves the location. WHILE does a (0branch) to after the loop, and REPEAT does an unconditional (branch) back to the BEGIN point" /></p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">while </span><span style="color:#85817e;">( backjmp -- fwdjmp backjmp )
+  </span><span style="color:#c9d1d9;">compile (0branch) br&gt; swap
+</span><span style="color:#f92672;">; immediate
+: </span><span style="color:#a6e22e;">repeat </span><span style="color:#85817e;">( fwdjmp backjmp -- )
+  </span><span style="color:#c9d1d9;">compile (branch) &lt;br &gt;br
+</span><span style="color:#f92672;">; immediate
+</span></code></pre><h2 id="comparisons">Comparisons</h2>
+<p>Branching is not that useful without any way to compare things. One common concern
+among all comparison words is turning a processor flag into a Forth boolean.
+Recall that, in Forth, booleans have all bits either set or unset:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">false </span><span style="color:#ae81ff;">0 </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">true </span><span style="color:#ae81ff;">FFFF </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>I chose to generate these booleans by first setting <code>ax</code> to 0, and then possibly
+decrementing it based on the result of the comparison. This code can be factored
+out as follows:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">:cmp </span><span style="color:#c9d1d9;">:code ax ax xorw-rr, </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">cmp; </span><span style="color:#c9d1d9;">j&gt; ax decw, &gt;j ax bx movw-rr, next, </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>Then, to define a comparison, you just need to compile a jump that will be taken
+when the result should be false:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">:cmp </span><span style="color:#a6e22e;">0= </span><span style="color:#c9d1d9;">bx bx orw-rr, jnz, </span><span style="color:#f92672;">cmp;
+:cmp </span><span style="color:#a6e22e;">0&lt;&gt; </span><span style="color:#c9d1d9;">bx bx orw-rr, jz, </span><span style="color:#f92672;">cmp;
+:cmp </span><span style="color:#a6e22e;">0&lt; </span><span style="color:#c9d1d9;">bx bx orw-rr, jge, </span><span style="color:#f92672;">cmp;
+:cmp </span><span style="color:#a6e22e;">0&lt;= </span><span style="color:#c9d1d9;">bx bx orw-rr, jg, </span><span style="color:#f92672;">cmp;
+:cmp </span><span style="color:#a6e22e;">0&gt; </span><span style="color:#c9d1d9;">bx bx orw-rr, jle, </span><span style="color:#f92672;">cmp;
+:cmp </span><span style="color:#a6e22e;">0&gt;= </span><span style="color:#c9d1d9;">bx bx orw-rr, jl, </span><span style="color:#f92672;">cmp;
+:cmp </span><span style="color:#a6e22e;">= </span><span style="color:#c9d1d9;">cx pop, bx cx cmpw-rr, jnz, </span><span style="color:#f92672;">cmp;
+:cmp </span><span style="color:#a6e22e;">&lt;&gt; </span><span style="color:#c9d1d9;">cx pop, bx cx cmpw-rr, jz, </span><span style="color:#f92672;">cmp;
+:cmp </span><span style="color:#a6e22e;">u&lt; </span><span style="color:#c9d1d9;">cx pop, bx cx cmpw-rr, jae, </span><span style="color:#f92672;">cmp;
+:cmp </span><span style="color:#a6e22e;">u&lt;= </span><span style="color:#c9d1d9;">cx pop, bx cx cmpw-rr, ja, </span><span style="color:#f92672;">cmp;
+:cmp </span><span style="color:#a6e22e;">u&gt; </span><span style="color:#c9d1d9;">cx pop, bx cx cmpw-rr, jbe, </span><span style="color:#f92672;">cmp;
+:cmp </span><span style="color:#a6e22e;">u&gt;= </span><span style="color:#c9d1d9;">cx pop, bx cx cmpw-rr, jb, </span><span style="color:#f92672;">cmp;
+:cmp </span><span style="color:#a6e22e;">&lt; </span><span style="color:#c9d1d9;">cx pop, bx cx cmpw-rr, jge, </span><span style="color:#f92672;">cmp;
+:cmp </span><span style="color:#a6e22e;">&lt;= </span><span style="color:#c9d1d9;">cx pop, bx cx cmpw-rr, jg, </span><span style="color:#f92672;">cmp;
+:cmp </span><span style="color:#a6e22e;">&gt; </span><span style="color:#c9d1d9;">cx pop, bx cx cmpw-rr, jle, </span><span style="color:#f92672;">cmp;
+:cmp </span><span style="color:#a6e22e;">&gt;= </span><span style="color:#c9d1d9;">cx pop, bx cx cmpw-rr, jl, </span><span style="color:#f92672;">cmp;
+</span></code></pre>
+<p>For more complex conditions, we have the typical logical operators. As long as
+we're using well-formed booleans, there is no need to distinguish a separate set
+of purely logical operators — the bitwise ones work just fine.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">or </span><span style="color:#c9d1d9;">ax pop, ax bx orw-rr, next,
+</span><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">and </span><span style="color:#c9d1d9;">ax pop, ax bx andw-rr, next,
+</span><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">xor </span><span style="color:#c9d1d9;">ax pop, ax bx xorw-rr, next,
+</span><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">invert </span><span style="color:#c9d1d9;">bx notw-r, next,
+</span></code></pre><h2 id="yay-loops-what-now">Yay, loops! What now?</h2>
+<p>So far, many words that could improve the workflow of editing the code in memory
+just weren't possible to define, as they inherently use a loop. This changes
+now. Firstly, let's define <code>type</code>, which prints a string:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">type </span><span style="color:#85817e;">( addr len -- )
+  </span><span style="color:#c9d1d9;">begin dup while </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">- &gt;r
+    dup c@ emit </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">+
+  r&gt; repeat drop drop
+</span><span style="color:#f92672;">;
+</span></code></pre>
+<p>In my current workflow, the most recently defined block is terminated with a
+null byte. Finding this location is necessary to append things to that block.
+This is what <code>seek</code> does:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">seek </span><span style="color:#85817e;">( addr -- end-addr ) </span><span style="color:#c9d1d9;">begin dup c@ 0&lt;&gt; while </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">+ repeat </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>It is then used by <code>appending</code> to set the <code>srcpos</code> and <code>checkpoint</code>
+appropriately:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">appending </span><span style="color:#85817e;">( addr -- ) </span><span style="color:#c9d1d9;">seek dup u. srcpos ! move-checkpoint </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>Another useful thing is the ability to show the contents of a block and quickly
+estimate the address of a specific point in the code — as we don't have any real
+code editor, this is the first step of any patching endeavour. I chose to
+display the blocks in the typical 64-by-16 format, even though my blocks aren't
+formatted in any way and tokens often span such linebreaks.</p>
+<p>Instead of line numbers, I print the address each line starts at. This is both
+easier to implement and more useful. First, we have <code>show-line</code>, which shows a
+single line:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#85817e;">\ cr emits a linebreak
+</span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">cr </span><span style="color:#ae81ff;">0D </span><span style="color:#c9d1d9;">emit </span><span style="color:#ae81ff;">0A </span><span style="color:#c9d1d9;">emit </span><span style="color:#f92672;">;
+
+</span><span style="color:#ae81ff;">40 </span><span style="color:#f92672;">constant </span><span style="color:#a6e22e;">line-length
+</span><span style="color:#ae81ff;">10 </span><span style="color:#f92672;">constant </span><span style="color:#a6e22e;">#lines
+</span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">show-line </span><span style="color:#85817e;">( addr -- next-addr )
+  </span><span style="color:#c9d1d9;">dup u.                    </span><span style="color:#85817e;">\ line number
+  </span><span style="color:#c9d1d9;">dup line-length type cr   </span><span style="color:#85817e;">\ line contents
+  </span><span style="color:#c9d1d9;">line-length +
+</span><span style="color:#f92672;">;
+</span></code></pre>
+<p>This is then called 16 times in a loop by <code>list</code>. Since we don't yet have
+<code>do</code>-<code>loop</code>, this is quite involved.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">list </span><span style="color:#85817e;">( addr -- )
+  </span><span style="color:#c9d1d9;">#lines begin
+    &gt;r show-line r&gt;
+  </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">- dup 0= until
+  drop drop
+</span><span style="color:#f92672;">;
+</span></code></pre>
+<p>Sometimes, we need to move some code around. For that, we'd need <code>move</code>. It is
+like C's <code>memmove</code>, in that it copies the data from the right end, so that the
+result is right even when the source and destination overlap. We'll implement
+this with x86's <code>rep movsb</code> instruction, which is basically an entire <code>memcpy</code>
+in one instruction. Let's teach the assembler about the rest of the string
+instructions while we're at it:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">rep, </span><span style="color:#ae81ff;">F2 </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">movsb, </span><span style="color:#ae81ff;">A4 </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">movsw, </span><span style="color:#ae81ff;">A5 </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">cmpsb, </span><span style="color:#ae81ff;">A6 </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">cmpsw, </span><span style="color:#ae81ff;">A7 </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>This is then used by <code>cmove</code>, which copies data forwards.<sup class="footnote-reference"><a href="#cmove">5</a></sup> This wrapper is
+somewhat long, as we need to save the values of <code>si</code> and <code>di</code>.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">cmove </span><span style="color:#85817e;">( src dest len -- )
+  </span><span style="color:#c9d1d9;">bx cx movw-rr,
+  si ax movw-rr, di dx movw-rr,
+  di pop, si pop,
+  rep, movsb,
+  ax si movw-rr, dx di movw-rr,
+  bx pop,
+next,
+</span></code></pre>
+<p>Next, we'll need <code>cmove&gt;</code>, which starts from the end of the buffers and copies
+backwards. The arrow <code>&gt;</code> indicates that this is the right word to use if the
+data is to be moved towards a higher address, i. e. to the right. To run such a
+copy, we run <code>rep movsb</code> with x86's direction flag enabled. This expects the
+registers to contain the addresses of the <em>ends</em> of the buffers, so we run the
+copy itself in <code>(cmove&gt;)</code>, and then the actual <code>cmove&gt;</code> is responsible for
+calculating the right address.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">cld, </span><span style="color:#ae81ff;">FC </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">std, </span><span style="color:#ae81ff;">FD </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">;
+:code </span><span style="color:#a6e22e;">(cmove&gt;)
+  </span><span style="color:#c9d1d9;">bx cx movw-rr,
+  si ax movw-rr, di dx movw-rr,
+  di pop, si pop,
+  std, rep, movsb, cld,
+  ax si movw-rr, dx di movw-rr,
+  bx pop,
+next,
+</span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">cmove&gt; </span><span style="color:#85817e;">( src dest len -- )
+  </span><span style="color:#c9d1d9;">dup &gt;r                  </span><span style="color:#85817e;">\ save length on return stack
+  </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">-                     </span><span style="color:#85817e;">\ we need to add len-1 to get the end pointer
+  </span><span style="color:#c9d1d9;">dup &gt;r + swap r&gt; + swap </span><span style="color:#85817e;">\ adjust the pointers
+  </span><span style="color:#c9d1d9;">r&gt; (cmove&gt;)
+</span><span style="color:#f92672;">;
+</span></code></pre>
+<p>Finally, <code>move</code> compares the two addresses and chooses the appropriate copying
+direction:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">over </span><span style="color:#85817e;">( a b -- a b a ) </span><span style="color:#c9d1d9;">&gt;r dup r&gt; swap </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">move </span><span style="color:#85817e;">( src dest len -- )
+  </span><span style="color:#c9d1d9;">&gt;r
+  over over u&lt; if
+    r&gt; cmove&gt;
+  else
+    r&gt; cmove
+  then
+</span><span style="color:#f92672;">;
+</span></code></pre>
+<p>Implementing <code>fill</code> is similar, and it's useful for erasing any leftovers after
+<code>move</code>s.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">fill </span><span style="color:#85817e;">( addr len byte -- )
+  </span><span style="color:#c9d1d9;">bx ax movw-rr,
+  cx pop,
+  di dx movw-rr, di pop,
+  rep, stosb,
+  dx di movw-rr,
+  bx pop,
+next,
+</span></code></pre>
+<p>Another issue when editing code is determining whether a specific word was
+already written. To handle that, I wrote <code>words</code>, which prints the list of words
+known to the system. Recall the structure of the dictionary:</p>
+<p><img src="../miniforth/dictionary.svg" alt="The first two bytes of each header are the link field, which points at the beginning of the previously defined word. At the end of this list, there is a NULL to indicate the first word that was defined, and therefore the last one in the list. After each link field is one byte signifying the length of the name. This is then followed by the actual name, and the machine code implementation is directly afterwards." /></p>
+<p>Word headers contain the name as a counted string, meaning the first byte stores
+the length. <code>count</code> takes a pointer to such a counted string, and turns it into
+the typical <code>addr len</code> representation:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">count </span><span style="color:#85817e;">( addr -- addr+1 len )
+  </span><span style="color:#c9d1d9;">dup 1+ swap c@
+</span><span style="color:#f92672;">;
+</span></code></pre>
+<p>Given a pointer to a dictionary header, <code>header-name</code> will extract the name out
+of it:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#ae81ff;">1F </span><span style="color:#f92672;">constant </span><span style="color:#a6e22e;">lenmask
+</span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">header-name </span><span style="color:#85817e;">( header-ptr -- addr len )
+  </span><span style="color:#c9d1d9;">cell+     </span><span style="color:#85817e;">\ skip link pointer
+  </span><span style="color:#c9d1d9;">count lenmask and
+</span><span style="color:#f92672;">;
+</span></code></pre>
+<p>We'll also need to check the hidden flag, as otherwise we'll encounter the
+garbage names <a href="/bootstrap/miniforth/#docol-compression">introduced by our compression tricks</a>.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">visible? </span><span style="color:#85817e;">( header-ptr -- t | f )
+  </span><span style="color:#c9d1d9;">cell+ c@ </span><span style="color:#ae81ff;">40 </span><span style="color:#c9d1d9;">and 0=
+</span><span style="color:#f92672;">;
+</span></code></pre>
+<p>Our last helper words are <code>space</code>, which simply prints a space, and <code>bl</code> (stands
+for <em>blank</em>), which is the constant that stores the ASCII value of the
+space.<sup class="footnote-reference"><a href="#bl-constant">6</a></sup></p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">bl </span><span style="color:#ae81ff;">20 </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">space </span><span style="color:#c9d1d9;">bl emit </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>All of this is then used by <code>words-in</code>, which takes a pointer to the first word
+in a list. This will make it easy to adapt once our Forth gains support for
+vocabularies.<sup class="footnote-reference"><a href="#vocab">7</a></sup></p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">words-in </span><span style="color:#85817e;">( dictionary-ptr -- )
+  </span><span style="color:#c9d1d9;">begin dup while </span><span style="color:#85817e;">\ loop until NULL
+    </span><span style="color:#c9d1d9;">dup visible? if
+      dup header-name type space
+    then
+    @
+  repeat
+  drop
+</span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">words </span><span style="color:#c9d1d9;">latest @ words-in </span><span style="color:#f92672;">;
+</span></code></pre><h2 id="parsing">Parsing</h2>
+<p>I will eventually need to replace the codegolfed outer interpreter with one
+written in Forth. This will let me add things like proper handling of undefined
+words, the familiar <code>ok</code> prompt, but also vocabularies and exception
+handling.<sup class="footnote-reference"><a href="#exceptions">8</a></sup> The first step towards that is the <code>parse ( delim -- addr len )</code> word, which will parse the input until a specified delimiter character is
+encountered. For usual parsing, this would be a space, but if we set it to <code>)</code>,
+we'll finally have comments.</p>
+<p><code>parse</code> stores the separator in a variable, so that helper words can use it.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">variable </span><span style="color:#a6e22e;">sep
+</span></code></pre>
+<p>Parsing can end because we found a separator, or because we ran out of input,
+which is signified by a NULL byte.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">sep? </span><span style="color:#85817e;">( ch -- t | f ) </span><span style="color:#c9d1d9;">dup 0= swap sep @ = or </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>After the parsing loop ends, we'll have a pointer to the separator. If it is a
+true separator, we want to remove it from the input — after all, <code>)</code> does not
+exist as a word. However, if we stopped because the input has ended, then we
+must not advance past the null terminator. <code>+sep</code> handles this, and advances the
+input pointer only if it doesn't point at a null byte.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">+sep </span><span style="color:#85817e;">( ptr -- ptr&#39; ) </span><span style="color:#c9d1d9;">dup c@ 0&lt;&gt; if 1+ then </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>The loop in <code>parse</code> keeps two pointers on the stack. One doesn't move, and marks
+the beginning of the token. The other is advanced in each iteration. At the end,
+we save the moved pointer into <code>&gt;in</code>, and then compute the length by subtracting
+the two pointers.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">parse </span><span style="color:#85817e;">( sep -- addr len )
+  </span><span style="color:#c9d1d9;">sep ! &gt;in @ dup begin </span><span style="color:#85817e;">( begin-ptr end-ptr )
+    </span><span style="color:#c9d1d9;">dup c@ sep? invert
+  while 1+ repeat
+  dup +sep &gt;in !  </span><span style="color:#85817e;">\ update &gt;in
+  </span><span style="color:#c9d1d9;">over -          </span><span style="color:#85817e;">\ compute length
+</span><span style="color:#f92672;">;
+</span></code></pre>
+<p>This works when we want to parse a comment, but to parse a word, we actually
+need to skip leading whitespace first. This is handled by <code>skip</code>, which also
+takes the separator as an argument and advances <code>&gt;in</code> so that it doesn't point at a
+separator anymore.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">skip </span><span style="color:#85817e;">( sep -- sep ) </span><span style="color:#c9d1d9;">begin dup &gt;in @ c@ = while </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">&gt;in +! repeat </span><span style="color:#f92672;">;
+</span></code></pre>
+<p><code>token</code> combines the two.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">token </span><span style="color:#85817e;">( sep -- addr len ) </span><span style="color:#c9d1d9;">skip parse </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>This is then used by <code>char</code>, which returns the first character of the
+following token — we can use this as character literals.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">char </span><span style="color:#c9d1d9;">bl token drop c@ </span><span style="color:#f92672;">;
+</span></code></pre>
+<p>However, to include such a literal in a compiled word, we need <code>[char]</code>:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">[char] </span><span style="color:#c9d1d9;">char lit, </span><span style="color:#f92672;">; immediate
+</span></code></pre>
+<p>Finally, <code>(</code> is an immediate word that runs a <code>)</code>-delimited parse and discards
+the result.</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">( </span><span style="color:#e6db74;">[char] ) </span><span style="color:#c9d1d9;">parse 2drop </span><span style="color:#f92672;">; immediate
+</span></code></pre><h2 id="bare-metal">Bare metal</h2>
+<p>Once the Miniforth bootsector was ready, I decided to do all my development and
+testing on a bare metal computer. All in all, I don't regret this decision, but
+getting to the point where I could save code on disk did take a few tries. I did
+take photos of the code, though, so retrying only took typing in about a
+kilobyte of source code again. A few attempts were ruined by typos made during
+this transcription, but apart from that I did have two bugs worth mentioning.</p>
+<p>The first time around, I tried implementing branches before writing to disk
+itself. The branching code itself was perfectly fine, but my looping test
+wasn't. Try spotting the mistake:</p>
+<pre style="background-color:#272822;">
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">foo </span><span style="color:#c9d1d9;">begin dup u. </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">- 0= until </span><span style="color:#f92672;">; </span><span style="color:#ae81ff;">5 </span><span style="color:#c9d1d9;">foo
+</span></code></pre><details>
+<summary>Show hint</summary>
+<p>The code crashed like this:</p>
+<p><img src="https://niedzejkob.p4.team/bootstrap/branches/crash.jpg" alt="After executing 5 foo, about 6 lines of output appeared before hanging. The output starts: 5 E0E 1F0E 1707 5BC, and so on, ending with DB69 10 1, lower-left border drawing character, 4, right arrow, 1B 1) 10" /></p>
+</details>
+<details>
+<summary>Reveal solution</summary>
+<p>The <code>0=</code> consumes the loop counter on the stack, which means that each iteration
+underflows further into the stack. Since there's no protection against this, the
+code will be popping things until it starts overwriting code important enough
+that it causes a crash.</p>
+</details>
+<p>The other bug was in the <code>int13</code> word itself. As I've alluded earlier, I forgot
+to save SI, which is the execution pointer for the threaded code. It crashed as
+soon as it ran <code>next</code>. Ironically, if I wasn't so cautious and ran a
+<code>write-block</code> as my first operation, most of the code would've been saved
+🙃</p>
+<p>Apart from bugs, there is another difficulty with running on bare metal: sharing
+the code on GitHub. I solved this by writing a script, <code>splitdisk.py</code>, which
+extracts the code out of a disk image. Since I'm booting off of a USB stick,
+getting the code over doesn't take long.</p>
+<p>Since there aren't any line breaks in there, I wrote a heuristic to split it
+into a line per definition. Thanks to Python's <code>difflib</code>, it even preserves any
+formatting adjustments made manually when extracting an updated version of a
+block.</p>
+<h2 id="what-s-next">What's next?</h2>
+<p>Now that we have branches, many things become available as the potential next
+step. One important goal is to write a text editor, but some other improvements
+to our Forth will probably have to come first.</p>
+<p>Meanwhile, I encourage you to try bootstrapping on top of Miniforth up to
+branching <em>without</em> using any additional assembled primitives. Not that there's
+any merit to limiting yourself like that, but it <em>is</em> an interesting problem.
+I'll explain my solution in a week's time, along with any substantially
+different ones found by readers like you. I've created a <a href="https://github.com/NieDzejkob/niedzejkob.p4.team/issues/2">separate discussion
+thread</a> for this problem, so please keep any spoilers out of
+the comments below the article.</p>
+<p>If you'd like to be notified of my future posts, consider subscribing to the RSS
+feed or <a href="https://twitter.com/NieDzejkob">following me on Twitter</a>. Also, if you feel like this work is
+worth a dollar or two, <a href="https://github.com/sponsors/NieDzejkob">I accept tips</a> 🙂</p>
+<hr />
+<div class="footnote-definition" id="load-difference"><sup class="footnote-definition-label">1</sup>
+<p>There is a slight difference from the standardized behavior,
+in that my <code>load</code> merely repoints the input pointer, and the block will only
+actually execute once just before execution reaches the top-level REPL.</p>
+</div>
+<div class="footnote-definition" id="to-in"><sup class="footnote-definition-label">2</sup>
+<p>It is now dawning on me that the reason it is usually called <code>&gt;in</code> is
+that it is usually an offset (<code>&gt;</code>) that gets added to a separate base address
+of the input buffer. Oh well.</p>
+</div>
+<div class="footnote-definition" id="redefine"><sup class="footnote-definition-label">3</sup>
+<p>It's not like that would be a disaster, though. Rerunning the code
+like that is a normal occurence after a bugfix.</p>
+</div>
+<div class="footnote-definition" id="modrm-order"><sup class="footnote-definition-label">4</sup>
+<p>If this was something like <code>mov [0x1234], 0x5678</code>, then the
+exact order used is: opcode, ModR/M, address, immediate.</p>
+</div>
+<div class="footnote-definition" id="cmove"><sup class="footnote-definition-label">5</sup>
+<p>This is not the best name, as it is not what a C programmer would call
+a &quot;move&quot;, but it is what the Forth standard uses, so I'll roll with it.</p>
+</div>
+<div class="footnote-definition" id="bl-constant"><sup class="footnote-definition-label">6</sup>
+<p>It is now dawning on me that I could've defined it with
+<code>constant</code> instead. I'll probably change that when I bootstrap a proper text
+editor.</p>
+</div>
+<div class="footnote-definition" id="vocab"><sup class="footnote-definition-label">7</sup>
+<p>Forth vocabularies, also known as wordlists, are a way segregating
+words into multiple separate 'dictionaries', which can be dynamically added
+and removed from the search order.</p>
+</div>
+<div class="footnote-definition" id="exceptions"><sup class="footnote-definition-label">8</sup>
+<p>The exact aspect I'm concerned with is installing a top-level
+handler for exceptions that aren't caught. There's probably a way to make this
+particular aspect work without a new outer interpreter, but the other benefits
+are still there, so there isn't much point trying to figure this out.</p>
+</div>
+
+
+<div id="previous-next">
+
+<div id="previous-article">
+    Previous post:<br>
+    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;">Fitting a FORTH in 512 bytes</a>
+</div>
+
+
+
+
+<div style="clear: both;"></div>
+</div>
+
+<script src="https://utteranc.es/client.js"
+        repo="NieDzejkob/niedzejkob.p4.team"
+        issue-term="pathname"
+        theme="preferred-color-scheme"
+        crossorigin="anonymous"
+        async>
+</script>
+
+        </main>
+        <footer>
+            <div class="main-column">
+                <span class="social-links" data-license="CC-BY 4.0 https://fontawesome.com/license">
+                    <a href="https://twitter.com/NieDzejkob" target="_blank"><svg width="2rem" height="2rem" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="twitter" class="svg-inline--fa fa-twitter fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"></path></svg>
+</a>
+                    <a href="https://github.com/NieDzejkob" target="_blank"><svg width="2rem" height="2rem" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="github" class="svg-inline--fa fa-github fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentColor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg>
+</a>
+                    <a href="https://keybase.io/niedzejkob" target="_blank"><svg width="2rem" height="2rem" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="keybase" class="svg-inline--fa fa-keybase fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentColor" d="M286.17 419a18 18 0 1 0 18 18 18 18 0 0 0-18-18zm111.92-147.6c-9.5-14.62-39.37-52.45-87.26-73.71q-9.1-4.06-18.38-7.27a78.43 78.43 0 0 0-47.88-104.13c-12.41-4.1-23.33-6-32.41-5.77-.6-2-1.89-11 9.4-35L198.66 32l-5.48 7.56c-8.69 12.06-16.92 23.55-24.34 34.89a51 51 0 0 0-8.29-1.25c-41.53-2.45-39-2.33-41.06-2.33-50.61 0-50.75 52.12-50.75 45.88l-2.36 36.68c-1.61 27 19.75 50.21 47.63 51.85l8.93.54a214 214 0 0 0-46.29 35.54C14 304.66 14 374 14 429.77v33.64l23.32-29.8a148.6 148.6 0 0 0 14.56 37.56c5.78 10.13 14.87 9.45 19.64 7.33 4.21-1.87 10-6.92 3.75-20.11a178.29 178.29 0 0 1-15.76-53.13l46.82-59.83-24.66 74.11c58.23-42.4 157.38-61.76 236.25-38.59 34.2 10.05 67.45.69 84.74-23.84.72-1 1.2-2.16 1.85-3.22a156.09 156.09 0 0 1 2.8 28.43c0 23.3-3.69 52.93-14.88 81.64-2.52 6.46 1.76 14.5 8.6 15.74 7.42 1.57 15.33-3.1 18.37-11.15C429 443 434 414 434 382.32c0-38.58-13-77.46-35.91-110.92zM142.37 128.58l-15.7-.93-1.39 21.79 13.13.78a93 93 0 0 0 .32 19.57l-22.38-1.34a12.28 12.28 0 0 1-11.76-12.79L107 119c1-12.17 13.87-11.27 13.26-11.32l29.11 1.73a144.35 144.35 0 0 0-7 19.17zm148.42 172.18a10.51 10.51 0 0 1-14.35-1.39l-9.68-11.49-34.42 27a8.09 8.09 0 0 1-11.13-1.08l-15.78-18.64a7.38 7.38 0 0 1 1.34-10.34l34.57-27.18-14.14-16.74-17.09 13.45a7.75 7.75 0 0 1-10.59-1s-3.72-4.42-3.8-4.53a7.38 7.38 0 0 1 1.37-10.34L214 225.19s-18.51-22-18.6-22.14a9.56 9.56 0 0 1 1.74-13.42 10.38 10.38 0 0 1 14.3 1.37l81.09 96.32a9.58 9.58 0 0 1-1.74 13.44zM187.44 419a18 18 0 1 0 18 18 18 18 0 0 0-18-18z"></path></svg>
+</a>
+                </span>
+            </div>
+        </footer>
+    </body>
+    <script data-goatcounter="https://niedzejkob.goatcounter.com/count" async src="https://niedzejkob.p4.team/count.js"></script>
+</html>

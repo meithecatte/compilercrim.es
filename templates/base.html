@@ -26,6 +26,8 @@
         {% endif %}
         {% if page.summary %}
             <meta property="og:description" content="{{ page.summary | striptags }}">
+        {% elif section.summary %}
+            <meta property="og:description" content="{{ section.summary | striptags }}">
         {% endif %}
         <meta property="og:url" content="{{ canonical_url }}">
         <meta property="og:image" content="{{ get_url(path="/icon.png") }}">

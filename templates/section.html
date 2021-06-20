@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% import "macros.html" as macros %}
+
+{% block meta %}
+<meta property="og:type" content="website">
+{% endblock meta %}
+
+{% block content %}
+<h1 class="title">
+  {{ section.title }}
+</h1>
+{{ macros::series_metadata(section=section) }}
+{{ section.description | markdown | safe }}
+
+{{ macros::article_list(articles=section.pages | reverse) }}
+
+{% endblock content %}

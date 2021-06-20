@@ -4,6 +4,13 @@
         <loc>https://niedzejkob.p4.team/</loc>
     </url>
     <url>
+        <loc>https://niedzejkob.p4.team/bootstrap/</loc>
+    </url>
+    <url>
+        <loc>https://niedzejkob.p4.team/bootstrap/branches/</loc>
+        <lastmod>2021-06-22</lastmod>
+    </url>
+    <url>
         <loc>https://niedzejkob.p4.team/bootstrap/miniforth/</loc>
         <lastmod>2021-06-10</lastmod>
     </url>

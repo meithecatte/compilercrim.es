@@ -15,7 +15,7 @@
         <link rel="canonical" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;"/>
         <link rel="alternate" type="application/rss+xml" title="NieDżejkob&#x27;s ramblings" href="/rss.xml">
         
-<meta property="og:type" content="website">
+<meta property="og:type" content="article">
 
         
             <meta property="og:title" content="Fitting a FORTH in 512 bytes">
@@ -49,11 +49,20 @@ challenge.  ">
   Fitting a FORTH in 512 bytes
 </h1>
 
-
-<p class="subtitle page-metadata">
+<p class="page-metadata">
 June 10, 2021
-&middot; 38 minute read
+&middot; 39 minute read
 </p>
+
+
+
+<div class="series-info">
+  This article is part of the <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;">Bootstrapping</a>
+  
+    series, in which I start from a 512-byte seed and try to bootstrap back
+into comfortable environment.
+  
+</div>
 
 
 <p>Software is full of circular dependencies if you look deep enough. Compilers
@@ -80,15 +89,15 @@ conversion code.<sup class="footnote-reference"><a href="#ascii-x86">2</a></sup>
 condition — just write to the buffer backwards until you run into the existing
 code and overwrite the jump target. This approach takes a mere 14 bytes:</p>
 <pre style="background-color:#272822;">
-<code class="language-lst" data-lang="lst"><span style="color:#75715e;">6a00    </span><span style="color:#f92672;">push </span><span style="color:#66d9ef;">word </span><span style="color:#ae81ff;">0
-</span><span style="color:#75715e;">07      </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">es
-</span><span style="color:#75715e;">fd      </span><span style="color:#f92672;">std
-</span><span style="color:#75715e;">bf1e7c  </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">di</span><span style="color:#c9d1d9;">, </span><span style="color:#a6e22e;">buffer</span><span style="color:#c9d1d9;">+</span><span style="color:#ae81ff;">16</span><span style="color:#75715e;"> ; Adjust to taste. Beware of fenceposting.
+<code class="language-lst" data-lang="lst"><span style="color:#85817e;">6a00    </span><span style="color:#f92672;">push </span><span style="color:#66d9ef;">word </span><span style="color:#ae81ff;">0
+</span><span style="color:#85817e;">07      </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">es
+</span><span style="color:#85817e;">fd      </span><span style="color:#f92672;">std
+</span><span style="color:#85817e;">bf1e7c  </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">di</span><span style="color:#c9d1d9;">, </span><span style="color:#a6e22e;">buffer</span><span style="color:#c9d1d9;">+</span><span style="color:#ae81ff;">16</span><span style="color:#85817e;"> ; Adjust to taste. Beware of fenceposting.
        </span><span style="color:#a6e22e;">input_loop:
-</span><span style="color:#75715e;">b400    </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">ah</span><span style="color:#c9d1d9;">, </span><span style="color:#ae81ff;">0
-</span><span style="color:#75715e;">cd16    </span><span style="color:#f92672;">int </span><span style="color:#ae81ff;">0x16
-</span><span style="color:#75715e;">aa      </span><span style="color:#f92672;">stosb
-</span><span style="color:#75715e;">ebf9    </span><span style="color:#f92672;">jmp </span><span style="color:#a6e22e;">short input_loop
+</span><span style="color:#85817e;">b400    </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">ah</span><span style="color:#c9d1d9;">, </span><span style="color:#ae81ff;">0
+</span><span style="color:#85817e;">cd16    </span><span style="color:#f92672;">int </span><span style="color:#ae81ff;">0x16
+</span><span style="color:#85817e;">aa      </span><span style="color:#f92672;">stosb
+</span><span style="color:#85817e;">ebf9    </span><span style="color:#f92672;">jmp </span><span style="color:#a6e22e;">short input_loop
        buffer:
 </span></code></pre>
 <p>However, I do not find the prospect of entering code this way anywhere near
@@ -112,7 +121,7 @@ programs.</p>
 code. Ideally, it would be a programming language, but one that, unlike BASIC,
 can be extended at runtime. If you've read the title of this post, you already
 know what I settled on — as it turns out, it's possible to fit a barebones FORTH
-in a bootsector. You can see the code in the <a href="https://github.com/NieDzejkob/miniforth">Miniforth repository on
+in a bootsector. You can see the code in the <a href="https://github.com/NieDzejkob/miniforth/tree/post1">Miniforth repository on
 GitHub</a>, but I will include most of it here.</p>
 <p>The entire FORTH takes, at this moment, 504 bytes. As you might expect, the
 development process involved being on a perpetual lookout for byte-saving
@@ -139,14 +148,14 @@ element on the stack:</p>
 <pre>
 <b>42 dup .s</b> &lt;2&gt; 42 42  ok
 </pre>
-<p>This is basically the entire language. There are some standard facilities for
+<p><em>This is basically the entire language.</em> There are some standard facilities for
 conditionals and loops, but we don't need to concern ourselves with those for
 now, as they can be built on top of Miniforth later on.</p>
 <p>To talk about the effect a word has on the state of the stack, we use a notation
 like this:</p>
 <pre style="background-color:#272822;">
-<code><span style="color:#c9d1d9;">dup ( a -- a a )
-swap ( a b -- b a )
+<code class="language-forth" data-lang="forth"><span style="color:#c9d1d9;">dup </span><span style="color:#85817e;">( a -- a a )
+</span><span style="color:#c9d1d9;">swap </span><span style="color:#85817e;">( a b -- b a )
 </span></code></pre>
 <p>The list before the <code>--</code> are the inputs, with the top of stack listed last.
 After the <code>--</code>, we list the outputs, which start at the same stack depth.
@@ -222,11 +231,11 @@ other. Pushing onto the return stack is particularily nice, since it's just the
     </span><span style="color:#66d9ef;">dw </span><span style="color:#a6e22e;">PLUS
     </span><span style="color:#66d9ef;">dw </span><span style="color:#a6e22e;">EXIT
 
-DOCOL:</span><span style="color:#75715e;">   ; short for &quot;do colon word&quot;
-    </span><span style="color:#f92672;">xchg </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#75715e;"> ; used here as `mov ax, si`, but swaps with
+DOCOL:</span><span style="color:#85817e;">   ; short for &quot;do colon word&quot;
+    </span><span style="color:#f92672;">xchg </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#85817e;"> ; used here as `mov ax, si`, but swaps with
                 ; ax are only one byte, while `mov`s are two bytes
     </span><span style="color:#f92672;">stosw
-    pop </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#75715e;"> ; grab the pointer pushed by `call`
+    pop </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#85817e;"> ; grab the pointer pushed by `call`
     </span><span style="color:#a6e22e;">NEXT
 
 EXIT:
@@ -273,7 +282,7 @@ This is the role of the <em>dictionary</em>. I use a structure similar to many o
 small-scale FORTHs — a singly linked list of word headers, directly prepended
 before the code of each word. Out of tradition, the head of the list is kept
 in a variable called <code>LATEST</code>.</p>
-<p><img src="https://niedzejkob.p4.team/bootstrap/miniforth/dictionary.svg" alt="" /></p>
+<p><img src="https://niedzejkob.p4.team/bootstrap/miniforth/dictionary.svg" alt="The first two bytes of each header are the link field, which points at the beginning of the previously defined word. At the end of this list, there is a NULL to indicate the first word that was defined, and therefore the last one in the list. After each link field is one byte signifying the length of the name. This is then followed by the actual name, and the machine code implementation is directly afterwards." /></p>
 <p>The most significant bits of the name length field also store some flags:</p>
 <pre style="background-color:#272822;">
 <code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">F_IMMEDIATE </span><span style="color:#66d9ef;">equ </span><span style="color:#ae81ff;">0x80
@@ -294,8 +303,8 @@ implementation of <code>:</code> and <code>;</code>.</p>
 payload have to fit in merely 512 bytes. However, in a FORTH implementation, one
 thing that's repeated very often is the implementation of <code>NEXT</code>.</p>
 <pre style="background-color:#272822;">
-<code class="language-lst" data-lang="lst"><span style="color:#75715e;">ad      </span><span style="color:#f92672;">lodsw
-</span><span style="color:#75715e;">ffe0    </span><span style="color:#f92672;">jmp </span><span style="font-style:italic;color:#fd971f;">ax
+<code class="language-lst" data-lang="lst"><span style="color:#85817e;">ad      </span><span style="color:#f92672;">lodsw
+</span><span style="color:#85817e;">ffe0    </span><span style="color:#f92672;">jmp </span><span style="font-style:italic;color:#fd971f;">ax
 </span></code></pre>
 <p>We could try to save some bytes by replacing these with jumps to a shared copy.
 However, a short jump still takes two bytes — not a significant saving. As it
@@ -318,10 +327,10 @@ very compact sequence of instructions, but it still takes enough bytes that it
 is worthy it to factor it out as a subroutine — it is also used by the
 implementation of <code>:</code>, which creates dictionary entries at runtime.</p>
 <pre style="background-color:#272822;">
-<code class="language-asm" data-lang="asm"><span style="color:#75715e;">; Creates a dictionary linked list link at DI.
+<code class="language-asm" data-lang="asm"><span style="color:#85817e;">; Creates a dictionary linked list link at DI.
 </span><span style="color:#a6e22e;">MakeLink:
     </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">di
-    </span><span style="color:#f92672;">xchg </span><span style="color:#c9d1d9;">[</span><span style="color:#a6e22e;">LATEST</span><span style="color:#c9d1d9;">], </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#75715e;">  ; AX now points at the old entry, while
+    </span><span style="color:#f92672;">xchg </span><span style="color:#c9d1d9;">[</span><span style="color:#a6e22e;">LATEST</span><span style="color:#c9d1d9;">], </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#85817e;">  ; AX now points at the old entry, while
                        ; LATEST and DI point at the new one.
     </span><span style="color:#f92672;">stosw
     ret
@@ -337,7 +346,7 @@ eats the instructions we want to jump over. That is, instead of</p>
 </span></code></pre>
 <p>you write</p>
 <pre style="background-color:#272822;">
-<code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">3c      </span><span style="color:#66d9ef;">db </span><span style="color:#ae81ff;">0x3c</span><span style="color:#75715e;"> ; skip the stosb below by comparing its opcode with AL
+<code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">3c      </span><span style="color:#66d9ef;">db </span><span style="color:#ae81ff;">0x3c</span><span style="color:#85817e;"> ; skip the stosb below by comparing its opcode with AL
     </span><span style="color:#a6e22e;">.write:
 aa      </span><span style="color:#f92672;">stosb
 </span></code></pre>
@@ -363,7 +372,7 @@ codepaths branch, and then essentially undo it with <code>dec di</code> if neces
     cmp </span><span style="font-style:italic;color:#fd971f;">al</span><span style="color:#c9d1d9;">, </span><span style="color:#a6e22e;">SPECIAL_BYTE
     </span><span style="color:#f92672;">jnz </span><span style="color:#a6e22e;">short .not_special
     </span><span style="color:#f92672;">dec </span><span style="font-style:italic;color:#fd971f;">di
-    </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="color:#ae81ff;">0xffad</span><span style="color:#75715e;"> ; lodsw / jmp ax
+    </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="color:#ae81ff;">0xffad</span><span style="color:#85817e;"> ; lodsw / jmp ax
     </span><span style="color:#f92672;">stosw
     mov </span><span style="font-style:italic;color:#fd971f;">al</span><span style="color:#c9d1d9;">, </span><span style="color:#ae81ff;">0xe0
     </span><span style="color:#f92672;">stosb
@@ -416,7 +425,7 @@ incrementing a counter in the <code>compression_sentinel</code> macro:</p>
     </span><span style="color:#66d9ef;">times </span><span style="color:#a6e22e;">COMPRESSED_SIZE </span><span style="color:#66d9ef;">db </span><span style="color:#ae81ff;">0xcc
 
 </span><span style="color:#a6e22e;">CompressedBegin:
-</span><span style="color:#75715e;">; ...
+</span><span style="color:#85817e;">; ...
 </span><span style="color:#a6e22e;">CompressedEnd:
 
 COMPRESSED_SIZE </span><span style="color:#66d9ef;">equ </span><span style="color:#a6e22e;">CompressedEnd </span><span style="color:#c9d1d9;">- </span><span style="color:#a6e22e;">CompressedBegin </span><span style="color:#c9d1d9;">- </span><span style="color:#a6e22e;">savings
@@ -440,7 +449,7 @@ compressed </span><span style="color:#f92672;">= </span><span style="font-style:
     compressed.extend(SPECIAL_BYTE)
     compressed.extend(chunk)
 
-</span><span style="color:#75715e;"># Make sure that exactly the right amount of space is allocated
+</span><span style="color:#85817e;"># Make sure that exactly the right amount of space is allocated
 # for the compressed data.
 </span><span style="color:#f92672;">assert </span><span style="font-style:italic;color:#66d9ef;">b</span><span style="color:#e6db74;">&#39;</span><span style="color:#ae81ff;">\xcc</span><span style="color:#e6db74;">&#39; </span><span style="color:#f92672;">* </span><span style="color:#66d9ef;">len</span><span style="color:#c9d1d9;">(compressed) </span><span style="color:#f92672;">in </span><span style="color:#c9d1d9;">data
 </span><span style="color:#f92672;">assert </span><span style="font-style:italic;color:#66d9ef;">b</span><span style="color:#e6db74;">&#39;</span><span style="color:#ae81ff;">\xcc</span><span style="color:#e6db74;">&#39; </span><span style="color:#f92672;">* </span><span style="color:#c9d1d9;">(</span><span style="color:#66d9ef;">len</span><span style="color:#c9d1d9;">(compressed) </span><span style="color:#f92672;">+ </span><span style="color:#ae81ff;">1</span><span style="color:#c9d1d9;">) </span><span style="color:#f92672;">not in </span><span style="color:#c9d1d9;">data
@@ -469,7 +478,7 @@ the dictionary entry for a primitive word. It takes a label (which can then be
 used to jump to the implementation of some word), the name of the word as a string,
 and optionally, some flags to be ORed into the length field:</p>
 <pre style="background-color:#272822;">
-<code class="language-asm" data-lang="asm"><span style="color:#75715e;">; defcode PLUS, &quot;+&quot;
+<code class="language-asm" data-lang="asm"><span style="color:#85817e;">; defcode PLUS, &quot;+&quot;
 ; defcode SEMI, &quot;;&quot;, F_IMMEDIATE
 </span><span style="color:#66d9ef;">%macro </span><span style="color:#a6e22e;">defcode </span><span style="color:#ae81ff;">2</span><span style="color:#c9d1d9;">-</span><span style="color:#ae81ff;">3 0
     </span><span style="color:#a6e22e;">compression_sentinel
@@ -491,19 +500,20 @@ into a <code>defcode</code>:</p>
     </span><span style="color:#f92672;">xchg </span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">ax
 
 </span><span style="color:#a6e22e;">defcode PEEK</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;@&quot;
-</span><span style="color:#75715e;">    ; ...
+</span><span style="color:#85817e;">    ; ...
 </span></code></pre>
-<p>However, <code>DOCOL</code>, <code>EXIT</code> and <code>LIT</code> also use the compression mechanism for their
-<code>NEXT</code>s. Since the link field is still written out, this essentially creates
-bogus dictionary entries. Fortunately, the first opcode of <code>EXIT</code> and <code>LIT</code> has
-the <code>F_HIDDEN</code> bit set, so this is not a problem:</p>
+<p><span id="docol-compression">However,</span> <code>DOCOL</code>, <code>EXIT</code> and <code>LIT</code> also use
+the compression mechanism for their <code>NEXT</code>s. Since the link field is still
+written out, this essentially creates bogus dictionary entries. Fortunately, the
+first opcode of <code>EXIT</code> and <code>LIT</code> has the <code>F_HIDDEN</code> bit set, so this is not a
+problem:</p>
 <pre style="background-color:#272822;">
 <code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">CompressedBegin:
 
 DOCOL:
     </span><span style="color:#f92672;">xchg </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">si
     </span><span style="color:#f92672;">stosw
-    pop </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#75715e;"> ; grab the pointer pushed by `call`
+    pop </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#85817e;"> ; grab the pointer pushed by `call`
     </span><span style="color:#a6e22e;">compression_sentinel
 
 LIT:
@@ -518,22 +528,23 @@ EXIT:
     </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#c9d1d9;">, [</span><span style="font-style:italic;color:#fd971f;">di</span><span style="color:#c9d1d9;">]
 
 </span><span style="color:#a6e22e;">defcode PLUS</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;+&quot;
-</span><span style="color:#75715e;">    ; ...
+</span><span style="color:#85817e;">    ; ...
 </span></code></pre><h2 id="variables">Variables?</h2>
 <p>Immediate load instructions tend to have shorter encodings than loads from
 memory:</p>
 <pre style="background-color:#272822;">
-<code class="language-lst" data-lang="lst"><span style="color:#75715e;">be3412    </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#c9d1d9;">, </span><span style="color:#ae81ff;">0x1234
-</span><span style="color:#75715e;">8b363412  </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#c9d1d9;">, [</span><span style="color:#ae81ff;">0x1234</span><span style="color:#c9d1d9;">]
+<code class="language-lst" data-lang="lst"><span style="color:#85817e;">be3412    </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#c9d1d9;">, </span><span style="color:#ae81ff;">0x1234
+</span><span style="color:#85817e;">8b363412  </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#c9d1d9;">, [</span><span style="color:#ae81ff;">0x1234</span><span style="color:#c9d1d9;">]
 </span></code></pre>
 <p>This is why Miniforth stores most of its variables in the immediate fields of
-instructions. Of course, this means that the address of these variables will
-change on every edit of the code, which is problematic, since we will be wanting
-to access these variables in FORTH code. The typical way of exposing a variable
-is to create a word that pushes its address. However, that's way too expensive
-with our constraints. What I settled on is pushing the addresses onto the stack
-at startup. This can be done with only 2 bytes for each address, by simply
-defining the initial contents of the stack as data:</p>
+instructions (a practice known as self-modifying code). Of course, this means
+that the address of these variables will change on every edit of the code, which
+is problematic, since we will be wanting to access these variables in FORTH
+code. The typical way of exposing a variable is to create a word that pushes its
+address. However, that's way too expensive with our constraints. What I settled
+on is pushing the addresses onto the stack at startup. This can be done with
+only 2 bytes for each address, by simply defining the initial contents of the
+stack as data:</p>
 <pre style="background-color:#272822;">
 <code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">    org </span><span style="color:#ae81ff;">0x7c00
 
@@ -544,7 +555,7 @@ stack:
     </span><span style="color:#66d9ef;">dw </span><span style="color:#a6e22e;">STATE
     </span><span style="color:#66d9ef;">dw </span><span style="color:#a6e22e;">LATEST
 start:
-</span><span style="color:#75715e;">    ; ...
+</span><span style="color:#85817e;">    ; ...
     </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">sp</span><span style="color:#c9d1d9;">, </span><span style="color:#a6e22e;">stack
 </span></code></pre>
 <p>Even when a variable's address needs to be pushed onto the stack, this
@@ -558,7 +569,7 @@ stack. The direction flag is also cleared, so that the string instructions work
 in the right direction.</p>
 <pre style="background-color:#272822;">
 <code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">    </span><span style="color:#f92672;">jmp </span><span style="color:#ae81ff;">0</span><span style="color:#a6e22e;">:start
-</span><span style="color:#75715e;">    ; ...
+</span><span style="color:#85817e;">    ; ...
 </span><span style="color:#a6e22e;">start:
     </span><span style="color:#f92672;">push </span><span style="font-style:italic;color:#fd971f;">cs
     </span><span style="color:#f92672;">push </span><span style="font-style:italic;color:#fd971f;">cs
@@ -573,17 +584,17 @@ in the right direction.</p>
 set through the stack. This is a byte-saving trick I've picked up from
 <code>bootBASIC</code> — it allows having to initialize a general-purpose register to zero:</p>
 <pre style="background-color:#272822;">
-<code class="language-lst" data-lang="lst"><span style="color:#75715e;">31c0    </span><span style="color:#f92672;">xor </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#75715e;">  ; through AX - 8 bytes
+<code class="language-lst" data-lang="lst"><span style="color:#85817e;">31c0    </span><span style="color:#f92672;">xor </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#85817e;">  ; through AX - 8 bytes
 8ed8    </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">ds</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">ax
-</span><span style="color:#75715e;">8ec0    </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">es</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">ax
-</span><span style="color:#75715e;">8ed0    </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">ss</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">ax
+</span><span style="color:#85817e;">8ec0    </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">es</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">ax
+</span><span style="color:#85817e;">8ed0    </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">ss</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">ax
 
-</span><span style="color:#75715e;">0e      </span><span style="color:#f92672;">push </span><span style="font-style:italic;color:#fd971f;">cs</span><span style="color:#75715e;">     ; through the stack - 6 bytes
+</span><span style="color:#85817e;">0e      </span><span style="color:#f92672;">push </span><span style="font-style:italic;color:#fd971f;">cs</span><span style="color:#85817e;">     ; through the stack - 6 bytes
 0e      </span><span style="color:#f92672;">push </span><span style="font-style:italic;color:#fd971f;">cs
-</span><span style="color:#75715e;">0e      </span><span style="color:#f92672;">push </span><span style="font-style:italic;color:#fd971f;">cs
-</span><span style="color:#75715e;">1f      </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">ds
-</span><span style="color:#75715e;">07      </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">es
-</span><span style="color:#75715e;">17      </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">ss
+</span><span style="color:#85817e;">0e      </span><span style="color:#f92672;">push </span><span style="font-style:italic;color:#fd971f;">cs
+</span><span style="color:#85817e;">1f      </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">ds
+</span><span style="color:#85817e;">07      </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">es
+</span><span style="color:#85817e;">17      </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">ss
 </span></code></pre>
 <p>Secondly, one would think that, while the stack is being repointed, a small race
 condition window occurs — if an interrupt happened between <code>pop ss</code> and <code>mov sp</code>,
@@ -602,7 +613,7 @@ number from which we were booted. It is then poked into the implementation of
 use by user code:</p>
 <pre style="background-color:#272822;">
 <code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">    </span><span style="color:#f92672;">mov </span><span style="color:#c9d1d9;">[</span><span style="color:#a6e22e;">DRIVE_NUMBER</span><span style="color:#c9d1d9;">], </span><span style="font-style:italic;color:#fd971f;">dl
-    </span><span style="color:#f92672;">push </span><span style="font-style:italic;color:#fd971f;">dx</span><span style="color:#75715e;"> ; for FORTH code
+    </span><span style="color:#f92672;">push </span><span style="font-style:italic;color:#fd971f;">dx</span><span style="color:#85817e;"> ; for FORTH code
 </span></code></pre><h2 id="the-outer-interpreter">The Outer Interpreter</h2>
 <p>At this point, we reach the <em>outer interpreter</em> - the part of a FORTH system
 that processes user input. The name &quot;<em>outer</em> interpreter&quot; distinguishes it from
@@ -637,7 +648,7 @@ self-modification technique, as it does not need to be explicitly initialized �
 it naturally gets written to before it is read.</p>
 <pre style="background-color:#272822;">
 <code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">InputBuf </span><span style="color:#66d9ef;">equ </span><span style="color:#ae81ff;">0x500
-</span><span style="color:#a6e22e;">InputPtr </span><span style="color:#66d9ef;">equ </span><span style="color:#ae81ff;">0xa02</span><span style="color:#75715e;"> ; dw
+</span><span style="color:#a6e22e;">InputPtr </span><span style="color:#66d9ef;">equ </span><span style="color:#ae81ff;">0xa02</span><span style="color:#85817e;"> ; dw
 
 </span><span style="color:#a6e22e;">ReadLine:
     </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">di</span><span style="color:#c9d1d9;">, </span><span style="color:#a6e22e;">InputBuf
@@ -651,7 +662,7 @@ it naturally gets written to before it is read.</p>
     cmp </span><span style="font-style:italic;color:#fd971f;">al</span><span style="color:#c9d1d9;">, </span><span style="color:#ae81ff;">0x08
     </span><span style="color:#f92672;">jne </span><span style="color:#a6e22e;">short .write
     </span><span style="color:#f92672;">dec </span><span style="font-style:italic;color:#fd971f;">di
-    </span><span style="color:#f92672;">cmp </span><span style="font-style:italic;color:#fd971f;">di</span><span style="color:#c9d1d9;">, </span><span style="color:#a6e22e;">InputBuf</span><span style="color:#75715e;"> ; underflow check
+    </span><span style="color:#f92672;">cmp </span><span style="font-style:italic;color:#fd971f;">di</span><span style="color:#c9d1d9;">, </span><span style="color:#a6e22e;">InputBuf</span><span style="color:#85817e;"> ; underflow check
     </span><span style="color:#f92672;">je </span><span style="color:#a6e22e;">short .</span><span style="color:#f92672;">loop
     dec </span><span style="font-style:italic;color:#fd971f;">di
 </span><span style="color:#a6e22e;">.write:
@@ -661,10 +672,10 @@ it naturally gets written to before it is read.</p>
     </span><span style="color:#f92672;">call </span><span style="color:#a6e22e;">PutChar
     </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">al</span><span style="color:#c9d1d9;">, </span><span style="color:#ae81ff;">0x0a
     </span><span style="color:#f92672;">int </span><span style="color:#ae81ff;">0x10
-    </span><span style="color:#f92672;">xchg </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#75715e;"> ; write the null terminator by using the BX = 0 from PutChar
+    </span><span style="color:#f92672;">xchg </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#85817e;"> ; write the null terminator by using the BX = 0 from PutChar
     </span><span style="color:#f92672;">stosb
 </span><span style="color:#a6e22e;">InterpreterLoop:
-    </span><span style="color:#f92672;">call </span><span style="color:#a6e22e;">ParseWord</span><span style="color:#75715e;"> ; returns length in CX. Zero implies no more input.
+    </span><span style="color:#f92672;">call </span><span style="color:#a6e22e;">ParseWord</span><span style="color:#85817e;"> ; returns length in CX. Zero implies no more input.
     </span><span style="color:#a6e22e;">jcxz short ReadLine
 </span></code></pre>
 <p>The BIOS interrupt for getting a character from the keyboard does not print the
@@ -697,17 +708,17 @@ if a word is not found in the dictionary, its numeric value is pushed, which is
 probably nonsense if this wasn't intended.</p>
 <p>We start out by skipping any whitespace in the input buffer:</p>
 <pre style="background-color:#272822;">
-<code class="language-asm" data-lang="asm"><span style="color:#75715e;">; returns
+<code class="language-asm" data-lang="asm"><span style="color:#85817e;">; returns
 ; DX = pointer to string
 ; CX = string length
 ; BX = numeric value
 ; clobbers SI and BP
 </span><span style="color:#a6e22e;">ParseWord:
     </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#c9d1d9;">, [</span><span style="color:#a6e22e;">InputPtr</span><span style="color:#c9d1d9;">]
-</span><span style="color:#75715e;">    ; repe scasb would probably save some bytes here if the registers worked out - scasb
+</span><span style="color:#85817e;">    ; repe scasb would probably save some bytes here if the registers worked out - scasb
     ; uses DI instead of SI :(
 </span><span style="color:#a6e22e;">.skiploop:
-    </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">dx</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#75715e;"> ; if we exit the loop in this iteration, dx will point to the first letter
+    </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">dx</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#85817e;"> ; if we exit the loop in this iteration, dx will point to the first letter
                ; of the word
     </span><span style="color:#f92672;">lodsb
     cmp </span><span style="font-style:italic;color:#fd971f;">al</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot; &quot;
@@ -724,7 +735,7 @@ Thus our next loop will need to do <code>lodsb</code> at its <em>end</em>.</p>
     </span><span style="color:#f92672;">xor </span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">bx
 </span><span style="color:#a6e22e;">.takeloop:
     </span><span style="color:#f92672;">and </span><span style="font-style:italic;color:#fd971f;">al</span><span style="color:#c9d1d9;">, </span><span style="color:#a6e22e;">~</span><span style="color:#ae81ff;">0x20
-    </span><span style="color:#f92672;">jz </span><span style="color:#a6e22e;">short Return</span><span style="color:#75715e;"> ; jump to a borrowed `ret` from some other routine
+    </span><span style="color:#f92672;">jz </span><span style="color:#a6e22e;">short Return</span><span style="color:#85817e;"> ; jump to a borrowed `ret` from some other routine
 </span></code></pre>
 <p>This <code>and</code> instruction is interesting, as it does three things at once. It
 detects both spaces and null bytes in one fell swoop, but also also turns off
@@ -750,11 +761,11 @@ the product.<sup class="footnote-reference"><a href="#imul">7</a></sup></p>
 <p>This particular instruction needs to be encoded manually to force the literal
 width to be 2 bytes wide.<sup class="footnote-reference"><a href="#base-dw">8</a></sup></p>
 <pre style="background-color:#272822;">
-<code class="language-asm" data-lang="asm"><span style="color:#75715e;">    ; imul bx, bx, &lt;BASE&gt; but yasm insists on encoding the immediate in just one byte...
+<code class="language-asm" data-lang="asm"><span style="color:#85817e;">    ; imul bx, bx, &lt;BASE&gt; but yasm insists on encoding the immediate in just one byte...
     </span><span style="color:#66d9ef;">db </span><span style="color:#ae81ff;">0x69</span><span style="color:#c9d1d9;">, </span><span style="color:#ae81ff;">0xdb
 </span><span style="color:#a6e22e;">BASE </span><span style="color:#66d9ef;">equ </span><span style="color:#a6e22e;">$
     </span><span style="color:#66d9ef;">dw </span><span style="color:#ae81ff;">16
-    </span><span style="color:#f92672;">add </span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#75715e;"> ; add the new digit
+    </span><span style="color:#f92672;">add </span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#85817e;"> ; add the new digit
 </span></code></pre>
 <p>Finally, we set up for the next iteration of the loop. We use a similar trick as
 before, where a pointer result is updated in each iteration to avoid a separate
@@ -777,7 +788,7 @@ optimizations.</p>
     </span><span style="color:#f92672;">call </span><span style="color:#a6e22e;">ParseWord
     jcxz short ReadLine
 
-</span><span style="color:#75715e;">; Try to find the word in the dictionary.
+</span><span style="color:#85817e;">; Try to find the word in the dictionary.
 ; SI = dictionary pointer
 ; DX = string pointer
 ; CX = string length
@@ -786,9 +797,9 @@ optimizations.</p>
     </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#c9d1d9;">, </span><span style="color:#ae81ff;">0
 </span><span style="color:#a6e22e;">.find:
     </span><span style="color:#f92672;">lodsw
-    push </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#75715e;"> ; save pointer to next entry
+    push </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#85817e;"> ; save pointer to next entry
     </span><span style="color:#f92672;">lodsb
-    xor </span><span style="font-style:italic;color:#fd971f;">al</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">cl</span><span style="color:#75715e;"> ; if the length matches, then AL contains only the flags
+    xor </span><span style="font-style:italic;color:#fd971f;">al</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">cl</span><span style="color:#85817e;"> ; if the length matches, then AL contains only the flags
     </span><span style="color:#f92672;">test </span><span style="font-style:italic;color:#fd971f;">al</span><span style="color:#c9d1d9;">, </span><span style="color:#a6e22e;">F_HIDDEN | F_LENMASK
     </span><span style="color:#f92672;">jnz </span><span style="color:#a6e22e;">short .next
 
@@ -802,11 +813,11 @@ optimizations.</p>
     </span><span style="color:#f92672;">or </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">si
     </span><span style="color:#f92672;">jnz </span><span style="color:#a6e22e;">short .find
 
-</span><span style="color:#75715e;">    ; If we reach this point, it&#39;s a number.
+</span><span style="color:#85817e;">    ; If we reach this point, it&#39;s a number.
     ; ...
 
 </span><span style="color:#a6e22e;">.found:
-    </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#75715e;"> ; discard pointer to next entry
+    </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#85817e;"> ; discard pointer to next entry
     ; When we get here, SI points to the code of the word, and AL contains
     ; the F_IMMEDIATE flag
 </span></code></pre>
@@ -823,14 +834,14 @@ the lookup.</p>
 interpreting. We store this flag in the immediate field of an <code>or</code> instruction —
 it will be set to 0 when compiling:</p>
 <pre style="background-color:#272822;">
-<code class="language-asm" data-lang="asm"><span style="color:#75715e;">    ; When we get here, SI points to the code of the word, and AL contains
+<code class="language-asm" data-lang="asm"><span style="color:#85817e;">    ; When we get here, SI points to the code of the word, and AL contains
     ; the F_IMMEDIATE flag
 </span><span style="color:#a6e22e;">STATE </span><span style="color:#66d9ef;">equ </span><span style="color:#a6e22e;">$</span><span style="color:#c9d1d9;">+</span><span style="color:#ae81ff;">1
     </span><span style="color:#f92672;">or </span><span style="font-style:italic;color:#fd971f;">al</span><span style="color:#c9d1d9;">, </span><span style="color:#ae81ff;">1
-    </span><span style="color:#f92672;">xchg </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#75715e;"> ; both codepaths need the pointer to be in AX
+    </span><span style="color:#f92672;">xchg </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#85817e;"> ; both codepaths need the pointer to be in AX
     </span><span style="color:#f92672;">jz </span><span style="color:#a6e22e;">short .compile
 
-</span><span style="color:#75715e;">    ; Execute the word
+</span><span style="color:#85817e;">    ; Execute the word
     ; ...
 </span></code></pre>
 <p>The most important words that need to change the state are <code>:</code> and <code>;</code>, but they
@@ -838,7 +849,7 @@ just jump to <code>[</code> and <code>]</code> — words that allow to temporari
 interpreted mode while compiling a word. The typical usecase is to eagerly
 calculate the value of a constant expression:</p>
 <pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#c9d1d9;">: third-foo [ foos 3 cells + ] literal @ ;
+<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">third-foo </span><span style="color:#f92672;">[ </span><span style="color:#c9d1d9;">foos </span><span style="color:#ae81ff;">3 </span><span style="color:#c9d1d9;">cells + </span><span style="color:#f92672;">] </span><span style="color:#c9d1d9;">literal @ </span><span style="color:#f92672;">;
 </span></code></pre>
 <p>Since the two values of <code>STATE</code> differ only by 1, we can switch between them
 with <code>inc</code> and <code>dec</code>. This has the disadvantage that they are no longer
@@ -853,7 +864,7 @@ idempotent, but this shouldn't matter to well-written code:</p>
 <p>If we decided to execute the word, we retrieve <code>BX</code> and <code>DI</code>, and set up <code>SI</code>
 so that <code>NEXT</code> will jump back to <code>.executed</code>:</p>
 <pre style="background-color:#272822;">
-<code class="language-asm" data-lang="asm"><span style="color:#75715e;">    ; Execute the word
+<code class="language-asm" data-lang="asm"><span style="color:#85817e;">    ; Execute the word
 </span><span style="color:#a6e22e;">RetSP </span><span style="color:#66d9ef;">equ </span><span style="color:#a6e22e;">$</span><span style="color:#c9d1d9;">+</span><span style="color:#ae81ff;">1
     </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">di</span><span style="color:#c9d1d9;">, </span><span style="color:#a6e22e;">RS0
     </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">bx
@@ -873,9 +884,9 @@ will <code>AH</code> have when we reach the number case?</p>
 <pre style="background-color:#272822;">
 <code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">.find:
     </span><span style="color:#f92672;">lodsw
-    push </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#75715e;"> ; save pointer to next entry
+    push </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#85817e;"> ; save pointer to next entry
     </span><span style="color:#f92672;">lodsb
-    xor </span><span style="font-style:italic;color:#fd971f;">al</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">cl</span><span style="color:#75715e;"> ; if the length matches, then AL contains only the flags
+    xor </span><span style="font-style:italic;color:#fd971f;">al</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">cl</span><span style="color:#85817e;"> ; if the length matches, then AL contains only the flags
     </span><span style="color:#f92672;">test </span><span style="font-style:italic;color:#fd971f;">al</span><span style="color:#c9d1d9;">, </span><span style="color:#a6e22e;">F_HIDDEN | F_LENMASK
     </span><span style="color:#f92672;">jnz </span><span style="color:#a6e22e;">short .next
 
@@ -889,19 +900,19 @@ will <code>AH</code> have when we reach the number case?</p>
     </span><span style="color:#f92672;">or </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">si
     </span><span style="color:#f92672;">jnz </span><span style="color:#a6e22e;">short .find
 
-</span><span style="color:#75715e;">    ; AH = ?
+</span><span style="color:#85817e;">    ; AH = ?
 </span></code></pre>
 <p>Do you see it? At this point, AH is zero, since it contains the higher half of the pointer
 to the next word, which we know is NULL, as we just got to the end of the list.
 This allows us to check the value of <code>STATE</code> without loading it into a register
 or any immediate bytes:</p>
 <pre style="background-color:#272822;">
-<code class="language-asm" data-lang="asm"><span style="color:#75715e;">    ; It&#39;s a number. Push its value - we&#39;ll pop it later if it turns out we need to compile
+<code class="language-asm" data-lang="asm"><span style="color:#85817e;">    ; It&#39;s a number. Push its value - we&#39;ll pop it later if it turns out we need to compile
     ; it instead.
     </span><span style="color:#f92672;">push </span><span style="font-style:italic;color:#fd971f;">bx
     </span><span style="color:#f92672;">cmp </span><span style="color:#66d9ef;">byte</span><span style="color:#c9d1d9;">[</span><span style="color:#a6e22e;">STATE</span><span style="color:#c9d1d9;">], </span><span style="font-style:italic;color:#fd971f;">ah
     </span><span style="color:#f92672;">jnz </span><span style="color:#a6e22e;">short InterpreterLoop
-</span><span style="color:#75715e;">    ; Otherwise, compile the literal.
+</span><span style="color:#85817e;">    ; Otherwise, compile the literal.
     ; ...
 </span></code></pre><h2 id="compiling-things">Compiling things</h2>
 <p>The output pointer for the compilation process is called <code>HERE</code>. It starts out
@@ -918,7 +929,7 @@ HERE </span><span style="color:#66d9ef;">equ </span><span style="color:#a6e22e;"
 share the tail, though — compiling a word will jump into the middle of compiling
 a number:</p>
 <pre style="background-color:#272822;">
-<code class="language-asm" data-lang="asm"><span style="color:#75715e;">    ; Otherwise, compile the literal.
+<code class="language-asm" data-lang="asm"><span style="color:#85817e;">    ; Otherwise, compile the literal.
     </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="color:#a6e22e;">LIT
     </span><span style="color:#f92672;">call </span><span style="color:#a6e22e;">COMMA
     </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">ax
@@ -936,23 +947,23 @@ save <em>all</em> the registers with <code>pusha</code>.</p>
 <code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">defcode COLON</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;:&quot;
     </span><span style="color:#f92672;">pusha
     mov </span><span style="font-style:italic;color:#fd971f;">di</span><span style="color:#c9d1d9;">, [</span><span style="color:#a6e22e;">HERE</span><span style="color:#c9d1d9;">]
-    </span><span style="color:#f92672;">call </span><span style="color:#a6e22e;">MakeLink</span><span style="color:#75715e;">    ; link field
+    </span><span style="color:#f92672;">call </span><span style="color:#a6e22e;">MakeLink</span><span style="color:#85817e;">    ; link field
     </span><span style="color:#f92672;">call </span><span style="color:#a6e22e;">ParseWord
     </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">cx
-    </span><span style="color:#f92672;">stosb</span><span style="color:#75715e;">            ; length field
+    </span><span style="color:#f92672;">stosb</span><span style="color:#85817e;">            ; length field
     </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">dx
-    </span><span style="color:#f92672;">rep movsb</span><span style="color:#75715e;">        ; name field
+    </span><span style="color:#f92672;">rep movsb</span><span style="color:#85817e;">        ; name field
 
-    </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">al</span><span style="color:#c9d1d9;">, </span><span style="color:#ae81ff;">0xe8</span><span style="color:#75715e;">     ; call
+    </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">al</span><span style="color:#c9d1d9;">, </span><span style="color:#ae81ff;">0xe8</span><span style="color:#85817e;">     ; call
     </span><span style="color:#f92672;">stosb
-</span><span style="color:#75715e;">    ; The offset is defined as (call target) - (ip after the call instruction)
+</span><span style="color:#85817e;">    ; The offset is defined as (call target) - (ip after the call instruction)
     ; That works out to DOCOL - (di + 2) = DOCOL - 2 - di
     </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="color:#a6e22e;">DOCOL </span><span style="color:#c9d1d9;">- </span><span style="color:#ae81ff;">2
     </span><span style="color:#f92672;">sub </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">di
     </span><span style="color:#f92672;">stosw
     mov </span><span style="color:#c9d1d9;">[</span><span style="color:#a6e22e;">HERE</span><span style="color:#c9d1d9;">], </span><span style="font-style:italic;color:#fd971f;">di
     </span><span style="color:#f92672;">popa
-    jmp </span><span style="color:#a6e22e;">short RBRACK</span><span style="color:#75715e;"> ; enter compilation mode
+    jmp </span><span style="color:#a6e22e;">short RBRACK</span><span style="color:#85817e;"> ; enter compilation mode
 </span></code></pre>
 <p><code>;</code> is much shorter. We merely need to compile <code>EXIT</code> and go back to
 interpretation mode:</p>
@@ -983,8 +994,8 @@ mean that floppies are not supported, but I wasn't planning on using any anyway.
 <p>To use the EDD interface, we need to build a <em>disk address packet</em>, which looks
 like this:</p>
 <pre style="background-color:#272822;">
-<code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">    </span><span style="color:#66d9ef;">db </span><span style="color:#ae81ff;">0x10</span><span style="color:#75715e;"> ; size of packet
-    </span><span style="color:#66d9ef;">db </span><span style="color:#ae81ff;">0</span><span style="color:#75715e;">    ; reserved
+<code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">    </span><span style="color:#66d9ef;">db </span><span style="color:#ae81ff;">0x10</span><span style="color:#85817e;"> ; size of packet
+    </span><span style="color:#66d9ef;">db </span><span style="color:#ae81ff;">0</span><span style="color:#85817e;">    ; reserved
     </span><span style="color:#66d9ef;">dw </span><span style="color:#a6e22e;">sector_count
     </span><span style="color:#66d9ef;">dw </span><span style="color:#a6e22e;">buffer_offset</span><span style="color:#c9d1d9;">, </span><span style="color:#a6e22e;">buffer_segment
     </span><span style="color:#66d9ef;">dq </span><span style="color:#a6e22e;">LBA
@@ -999,7 +1010,7 @@ the perfect place is just before the compressed data:</p>
 </span><span style="color:#a6e22e;">.count:
     </span><span style="color:#66d9ef;">dw </span><span style="color:#ae81ff;">2
 </span><span style="color:#a6e22e;">.buffer:
-</span><span style="color:#75715e;">    ; rest is filled out at runtime, overwriting the compressed data,
+</span><span style="color:#85817e;">    ; rest is filled out at runtime, overwriting the compressed data,
     ; which isn&#39;t necessary anymore
 
 </span><span style="color:#a6e22e;">CompressedData:
@@ -1010,12 +1021,12 @@ when it comes to the address of the buffer, we can do better. We will need to
 write said address to <code>InputPtr</code> anyway. The most direct way to do that takes
 six bytes:</p>
 <pre style="background-color:#272822;">
-<code class="language-lst" data-lang="lst"><span style="color:#75715e;">c706020a0006    </span><span style="color:#f92672;">mov </span><span style="color:#66d9ef;">word</span><span style="color:#c9d1d9;">[</span><span style="color:#a6e22e;">InputPtr</span><span style="color:#c9d1d9;">], </span><span style="color:#a6e22e;">BlockBuf
+<code class="language-lst" data-lang="lst"><span style="color:#85817e;">c706020a0006    </span><span style="color:#f92672;">mov </span><span style="color:#66d9ef;">word</span><span style="color:#c9d1d9;">[</span><span style="color:#a6e22e;">InputPtr</span><span style="color:#c9d1d9;">], </span><span style="color:#a6e22e;">BlockBuf
 </span></code></pre>
 <p>However, we can get that value in <code>AX</code> at no extra cost:</p>
 <pre style="background-color:#272822;">
-<code class="language-lst" data-lang="lst"><span style="color:#75715e;">b80006          </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="color:#a6e22e;">BlockBuf
-</span><span style="color:#75715e;">a3020a          </span><span style="color:#f92672;">mov </span><span style="color:#c9d1d9;">[</span><span style="color:#a6e22e;">InputPtr</span><span style="color:#c9d1d9;">], </span><span style="font-style:italic;color:#fd971f;">ax
+<code class="language-lst" data-lang="lst"><span style="color:#85817e;">b80006          </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="color:#a6e22e;">BlockBuf
+</span><span style="color:#85817e;">a3020a          </span><span style="color:#f92672;">mov </span><span style="color:#c9d1d9;">[</span><span style="color:#a6e22e;">InputPtr</span><span style="color:#c9d1d9;">], </span><span style="font-style:italic;color:#fd971f;">ax
 </span></code></pre>
 <p>Thus, we can write these two bytes of the disk packet with only 1 byte of code:</p>
 <pre style="background-color:#272822;">
@@ -1029,15 +1040,15 @@ six bytes:</p>
 <p>Next, we need to write the segment (<code>0000</code>) and the LBA (which ends in six <code>00</code>
 bytes). I like to think of the instructions corresponding to these like so:</p>
 <pre style="background-color:#272822;">
-<code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">31c0    </span><span style="color:#f92672;">xor </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#75715e;">    ; LBA zeroes
-</span><span style="color:#a6e22e;">ab      </span><span style="color:#f92672;">stosw</span><span style="color:#75715e;">         ; segment
-</span><span style="color:#a6e22e;">d1e3    </span><span style="color:#f92672;">shl </span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#c9d1d9;">, </span><span style="color:#ae81ff;">1</span><span style="color:#75715e;">     ; LBA data
-</span><span style="color:#ae81ff;">93      </span><span style="color:#f92672;">xchg </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#75715e;">   ; LBA data
-</span><span style="color:#a6e22e;">ab      </span><span style="color:#f92672;">stosw</span><span style="color:#75715e;">         ; LBA data
-</span><span style="color:#ae81ff;">93      </span><span style="color:#f92672;">xchg </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#75715e;">   ; segment
-</span><span style="color:#a6e22e;">ab      </span><span style="color:#f92672;">stosw</span><span style="color:#75715e;">         ; LBA zeroes
-</span><span style="color:#a6e22e;">ab      </span><span style="color:#f92672;">stosw</span><span style="color:#75715e;">         ; LBA zeroes
-</span><span style="color:#a6e22e;">ab      </span><span style="color:#f92672;">stosw</span><span style="color:#75715e;">         ; LBA zeroes
+<code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">31c0    </span><span style="color:#f92672;">xor </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#85817e;">    ; LBA zeroes
+</span><span style="color:#a6e22e;">ab      </span><span style="color:#f92672;">stosw</span><span style="color:#85817e;">         ; segment
+</span><span style="color:#a6e22e;">d1e3    </span><span style="color:#f92672;">shl </span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#c9d1d9;">, </span><span style="color:#ae81ff;">1</span><span style="color:#85817e;">     ; LBA data
+</span><span style="color:#ae81ff;">93      </span><span style="color:#f92672;">xchg </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#85817e;">   ; LBA data
+</span><span style="color:#a6e22e;">ab      </span><span style="color:#f92672;">stosw</span><span style="color:#85817e;">         ; LBA data
+</span><span style="color:#ae81ff;">93      </span><span style="color:#f92672;">xchg </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#85817e;">   ; segment
+</span><span style="color:#a6e22e;">ab      </span><span style="color:#f92672;">stosw</span><span style="color:#85817e;">         ; LBA zeroes
+</span><span style="color:#a6e22e;">ab      </span><span style="color:#f92672;">stosw</span><span style="color:#85817e;">         ; LBA zeroes
+</span><span style="color:#a6e22e;">ab      </span><span style="color:#f92672;">stosw</span><span style="color:#85817e;">         ; LBA zeroes
 </span></code></pre>
 <p>That is, we write the six LBA zeroes in 5 bytes of code. Writing out the segment
 only took moving the <code>xor ax, ax</code> earlier, and an additional <code>stosw</code> and <code>xchg ax, bx</code>. Thus, it is neutral at 2 bytes (but we need to write it out in code so
@@ -1100,8 +1111,8 @@ again to actually save it on disk.</p>
 so that we can return properly. By using <code>xchg</code>, we can preserve it in
 <code>[InputPtr]</code> for the duration of the copy, at no extra cost:</p>
 <pre style="background-color:#272822;">
-<code class="language-asm" data-lang="asm"><span style="color:#75715e;">;; Copies the rest of the line to buf.
-</span><span style="color:#a6e22e;">defcode LINE</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;s:&quot;</span><span style="color:#75715e;"> ; ( buf -- buf+len )
+<code class="language-asm" data-lang="asm"><span style="color:#85817e;">;; Copies the rest of the line to buf.
+</span><span style="color:#a6e22e;">defcode LINE</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;s:&quot;</span><span style="color:#85817e;"> ; ( buf -- buf+len )
     </span><span style="color:#f92672;">xchg </span><span style="font-style:italic;color:#fd971f;">si</span><span style="color:#c9d1d9;">, [</span><span style="color:#a6e22e;">InputPtr</span><span style="color:#c9d1d9;">]
 </span><span style="color:#a6e22e;">.copy:
     </span><span style="color:#f92672;">lodsb
@@ -1132,19 +1143,19 @@ and later define <code>: negate 0 swap - ;</code> and <code>: + negate - ;</code
 into memory. The implementation of <code>!</code> is particularily nice, since we can just
 pop directly into <code>[bx]</code>:</p>
 <pre style="background-color:#272822;">
-<code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">defcode PEEK</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;@&quot;</span><span style="color:#75715e;"> ; ( addr -- val )
+<code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">defcode PEEK</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;@&quot;</span><span style="color:#85817e;"> ; ( addr -- val )
     </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#c9d1d9;">, [</span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#c9d1d9;">]
 
-</span><span style="color:#a6e22e;">defcode POKE</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;!&quot;</span><span style="color:#75715e;"> ; ( val addr -- )
+</span><span style="color:#a6e22e;">defcode POKE</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;!&quot;</span><span style="color:#85817e;"> ; ( val addr -- )
     </span><span style="color:#f92672;">pop </span><span style="color:#66d9ef;">word </span><span style="color:#c9d1d9;">[</span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#c9d1d9;">]
     </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">bx
 </span></code></pre>
 <p>There also are variants that read and write only a single byte:</p>
 <pre style="background-color:#272822;">
-<code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">defcode CPEEK</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;c@&quot;</span><span style="color:#75715e;"> ; ( addr -- ch )
+<code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">defcode CPEEK</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;c@&quot;</span><span style="color:#85817e;"> ; ( addr -- ch )
     </span><span style="color:#f92672;">movzx </span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#c9d1d9;">, </span><span style="color:#66d9ef;">byte</span><span style="color:#c9d1d9;">[</span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#c9d1d9;">]
 
-</span><span style="color:#a6e22e;">defcode CPOKE</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;c!&quot;</span><span style="color:#75715e;"> ; ( ch addr -- )
+</span><span style="color:#a6e22e;">defcode CPOKE</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;c!&quot;</span><span style="color:#85817e;"> ; ( ch addr -- )
     </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">ax
     </span><span style="color:#f92672;">mov </span><span style="color:#c9d1d9;">[</span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#c9d1d9;">], </span><span style="font-style:italic;color:#fd971f;">al
     </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">bx
@@ -1152,13 +1163,13 @@ pop directly into <code>[bx]</code>:</p>
 <p>We certainly need some stack manipulation words. <code>dup</code> and <code>drop</code> have
 dead simple implementations, and <code>swap</code> is definitely too useful to skip it.</p>
 <pre style="background-color:#272822;">
-<code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">defcode DUP</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;dup&quot;</span><span style="color:#75715e;"> ; ( a -- a a )
+<code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">defcode DUP</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;dup&quot;</span><span style="color:#85817e;"> ; ( a -- a a )
     </span><span style="color:#f92672;">push </span><span style="font-style:italic;color:#fd971f;">bx
 
-</span><span style="color:#a6e22e;">defcode DROP</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;drop&quot;</span><span style="color:#75715e;"> ; ( a -- )
+</span><span style="color:#a6e22e;">defcode DROP</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;drop&quot;</span><span style="color:#85817e;"> ; ( a -- )
     </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">bx
 
-</span><span style="color:#a6e22e;">defcode SWAP</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;swap&quot;</span><span style="color:#75715e;"> ; ( a b -- b a )
+</span><span style="color:#a6e22e;">defcode SWAP</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;swap&quot;</span><span style="color:#85817e;"> ; ( a b -- b a )
     </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">ax
     </span><span style="color:#f92672;">push </span><span style="font-style:italic;color:#fd971f;">bx
     </span><span style="color:#f92672;">xchg </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">bx
@@ -1193,11 +1204,12 @@ that would significantly simplify the bootstrap, while taking few enough bytes
 that it seems remotely within the reach of code golf. This is largely thanks to
 Ilya Kurdyukov's help — without it, I wouldn't have been able to fit <code>s:</code> in.</p>
 <p>I've found an old PC I can use for my experiments. It boots Miniforth just fine:</p>
-<p><img src="./hardware.jpg" alt="" /></p>
+<p><img src="./hardware.jpg" alt="A photo of the corner of a monitor. We see the calculation &quot;6969 4242 100 + + u-dot&quot;, which results in &quot;ACAB&quot;. Then the &quot;1 load&quot; command is issued, to which the system describes &quot;Hello, world!&quot;" /></p>
 <p>I will be documenting my journey of building upon Miniforth in future posts on
 this blog. If that sounds like your cup of tea (and it probably does if you've
 read this far), consider subscribing to the RSS feed or <a href="https://twitter.com/NieDzejkob">following me on
-Twitter</a> to get notified about new posts.</p>
+Twitter</a> to get notified about new posts. Also, if you feel like
+this work is worth a dollar or two, <a href="https://github.com/sponsors/NieDzejkob">I accept tips</a> 🙂</p>
 <hr />
 <div class="footnote-definition" id="cycle"><sup class="footnote-definition-label">1</sup>
 <p>A graph theorist would have many strong words to describe this,
@@ -1259,6 +1271,11 @@ problem.</p>
 <div id="previous-next">
 
 
+
+<div id="next-article">
+    Next post:<br>
+    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;">No branches? No problem — a Forth assembler</a>
+</div>
 
 
 <div style="clear: both;"></div>

@@ -17,6 +17,7 @@ html {
     position: relative;
     min-height: 100vh;
     box-sizing: border-box;
+    font-size: 16px;
 }
 
 body {
@@ -26,7 +27,6 @@ body {
 }
 
 main {
-    font-size: 1rem;
     font-weight: 400;
 }
 
@@ -94,28 +94,47 @@ footer {
     margin: auto 0.5rem auto 0.1rem;
 }
 
+.series-info {
+    background: var(--shaded);
+    padding: 1.2rem;
+}
+
 .article-preview {
     background: var(--shaded);
-    padding: 1.4rem;
+    padding: 1.2rem;
     position: relative;
-    padding-bottom: 2.8rem;
+    padding-bottom: 3.4rem;
     margin-bottom: 1rem;
 
-    & .title {
+    .title {
         font-size: 1.6rem;
-        & a {
+        a {
             color: inherit;
         }
     }
 
-    & .page-metadata {
+    .page-metadata {
         font-size: 1rem;
     }
 
-    & .read-more {
+    .read-more {
         position: absolute;
         right: 1em;
         bottom: 1em;
+    }
+}
+
+table {
+    border-spacing: 0;
+    border-collapse: collapse;
+
+    td, th {
+        padding: 6px 13px;
+        border: 1px solid var(--line-color);
+    }
+
+    tr:nth-child(2n) {
+        background: var(--shaded);
     }
 }
 
@@ -128,10 +147,12 @@ footer {
 
 #previous-article {
     float: left;
+    margin-left: 0;
 }
 
 #next-article {
     float: right;
+    margin-right: 0;
 }
 
 pre {
@@ -146,8 +167,8 @@ pre b {
 }
 
 ul, ol {
-    list-style-position: inside;
-    margin-left: 1rem;
+    list-style-position: outside;
+    margin-left: 2rem;
 }
 
 ul {
@@ -170,8 +191,8 @@ blockquote {
     padding: 0 1em;
 }
 
-p, blockquote, ol, ul {
-    margin-bottom: 16px;
+p, blockquote, ol, ul, table, details, .series-info {
+    margin-bottom: 1rem;
 }
 
 a {
@@ -219,13 +240,27 @@ code {
     font-size: 0.9rem;
 }
 
-.subtitle:not(.is-spaced) + .subtitle {
-    margin-top: -1.25rem;
-}
-
-.inset, main img {
+.inset, main img:not([src*=".svg"]) {
     margin: 0 3rem;
     max-width: calc(100% - 6rem);
+
+    @media (max-width: 30rem) {
+        margin: 0 1rem;
+        max-width: calc(100% - 2rem);
+    }
+}
+
+main img[src*=".svg"] {
+    margin: 0 2rem;
+
+    @media (max-width: 30rem) {
+        margin: 0 1rem;
+    }
+}
+
+details > :not(summary) {
+  margin-left: 1rem;
+  margin-right: 1rem;
 }
 
 .button {
@@ -244,14 +279,12 @@ code {
     text-decoration: none;
 }
 
-@media (max-width: 30rem) {
-    .inset, main img {
-        margin: 0 1rem;
-        max-width: calc(100% - 2rem);
-    }
-}
-
 @media (prefers-color-scheme: dark) {
+    * {
+        --line-color: #21262d;
+        --shaded: #222;
+    }
+
     html {
         background-color: #111;
     }
@@ -274,11 +307,6 @@ code {
 
     code {
         background-color: rgba(240,246,252,0.15);
-    }
-
-    * {
-        --line-color: #21262d;
-        --shaded: #222;
     }
 
     .button {

@@ -1,8 +1,52 @@
 {% macro post_metadata(page) %}
-
-<p class="subtitle page-metadata">
+<p class="page-metadata">
 {{ page.date | date(format="%B %e, %Y") }}
 &middot; {{ page.reading_time }} minute read
 </p>
-
 {% endmacro post_metadata %}
+
+{% macro series_metadata(section) %}
+<p class="page-metadata">
+A series of {{ section.pages | length }} articles
+&middot;
+{% if section.extra.ongoing %}
+in progress
+{% else %}
+completed
+{% endif %}
+</p>
+{% endmacro %}
+
+{% macro article_list(articles) %}
+  {% for page in articles %}
+  <div class="article-preview">
+  <h1 class="title"><a href="{{ page.permalink }}">{{ page.title }}</a></h1>
+  {{ macros::post_metadata(page=page) }}
+  {{ page.summary | safe }}
+  <a class="read-more button" href="{{ page.permalink }}#continue-reading">Read more</a>
+  </div>
+  {% endfor %}
+{% endmacro %}
+
+{% macro series_list(series) %}
+  {% for ser in series %}
+  {% set section = get_section(path=ser, metadata_only=false) %}
+  <div class="article-preview">
+  <h1 class="title"><a href="{{ section.permalink }}">{{ section.title }}</a></h1>
+  {{ macros::series_metadata(section=section) }}
+  {{ section.description | markdown | safe }}
+  <a class="read-more button" href="{{ section.permalink }}">Go to series overview</a>
+  </div>
+  {% endfor %}
+{% endmacro %}
+
+{% macro part_of_series(series) %}
+<div class="series-info">
+  This article is part of the <a href="{{ series.permalink }}">{{ series.title }}</a>
+  {% if series.extra.brief %}
+    series, {{ series.extra.brief }}
+  {% else %}
+    series.
+  {% endif %}
+</div>
+{% endmacro %}

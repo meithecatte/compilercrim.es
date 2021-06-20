@@ -7,7 +7,17 @@
         <generator>Zola</generator>
         <language>en</language>
         <atom:link href="https://niedzejkob.p4.team/rss.xml" rel="self" type="application/rss+xml"/>
-        <lastBuildDate>Thu, 10 Jun 2021 00:00:00 +0000</lastBuildDate>
+        <lastBuildDate>Tue, 22 Jun 2021 00:00:00 +0000</lastBuildDate>
+        <item>
+            <title>No branches? No problem — a Forth assembler</title>
+            <pubDate>Tue, 22 Jun 2021 00:00:00 +0000</pubDate>
+            <link>https://niedzejkob.p4.team/bootstrap/branches/</link>
+            <guid>https://niedzejkob.p4.team/bootstrap/branches/</guid>
+            <description>&lt;p&gt;The set of words available after Miniforth boots is quite bare-bones. One
+reader even &lt;a href=&quot;https:&#x2F;&#x2F;www.reddit.com&#x2F;r&#x2F;Forth&#x2F;comments&#x2F;nxgg20&#x2F;fitting_a_forth_in_512_bytes&#x2F;h1eq4ok&quot;&gt;claimed&lt;&#x2F;a&gt; that, since there&#x27;s no branches, it is not
+Turing-complete, and therefore not worthy of being called a Forth! Today is the
+day we prove them wrong. </description>
+        </item>
         <item>
             <title>Fitting a FORTH in 512 bytes</title>
             <pubDate>Thu, 10 Jun 2021 00:00:00 +0000</pubDate>

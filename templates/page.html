@@ -2,7 +2,7 @@
 {% import "macros.html" as macros %}
 
 {% block meta %}
-<meta property="og:type" content="website">
+<meta property="og:type" content="article">
 {% endblock meta %}
 
 {% block content %}
@@ -10,6 +10,9 @@
   {{ page.title }}
 </h1>
 {{ macros::post_metadata(page=page) }}
+{% if page.ancestors[1] %}
+{{ macros::part_of_series(series=get_section(path=page.ancestors[1])) }}
+{% endif %}
 {{ page.content | safe }}
 
 <div id="previous-next">

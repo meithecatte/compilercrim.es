@@ -103,14 +103,14 @@ element on the stack:
 <b>42 dup .s</b> &lt;2&gt; 42 42  ok
 </pre>
 
-This is basically the entire language. There are some standard facilities for
+*This is basically the entire language.* There are some standard facilities for
 conditionals and loops, but we don't need to concern ourselves with those for
 now, as they can be built on top of Miniforth later on.
 
 To talk about the effect a word has on the state of the stack, we use a notation
 like this:
 
-```
+```forth
 dup ( a -- a a )
 swap ( a b -- b a )
 ```
@@ -261,7 +261,12 @@ small-scale FORTHs — a singly linked list of word headers, directly prepended
 before the code of each word. Out of tradition, the head of the list is kept
 in a variable called `LATEST`.
 
-![](dictionary.svg)
+![The first two bytes of each header are the link field, which points at the
+beginning of the previously defined word. At the end of this list, there is a
+NULL to indicate the first word that was defined, and therefore the last one in
+the list. After each link field is one byte signifying the length of the name.
+This is then followed by the actual name, and the machine code implementation
+is directly afterwards.](dictionary.svg)
 
 The most significant bits of the name length field also store some flags:
 
@@ -517,10 +522,11 @@ defcode PEEK, "@"
     ; ...
 ```
 
-However, `DOCOL`, `EXIT` and `LIT` also use the compression mechanism for their
-`NEXT`s. Since the link field is still written out, this essentially creates
-bogus dictionary entries. Fortunately, the first opcode of `EXIT` and `LIT` has
-the `F_HIDDEN` bit set, so this is not a problem:
+<span id="docol-compression">However,</span> `DOCOL`, `EXIT` and `LIT` also use
+the compression mechanism for their `NEXT`s. Since the link field is still
+written out, this essentially creates bogus dictionary entries. Fortunately, the
+first opcode of `EXIT` and `LIT` has the `F_HIDDEN` bit set, so this is not a
+problem:
 
 ```asm
 CompressedBegin:
@@ -557,13 +563,14 @@ be3412    mov si, 0x1234
 ```
 
 This is why Miniforth stores most of its variables in the immediate fields of
-instructions. Of course, this means that the address of these variables will
-change on every edit of the code, which is problematic, since we will be wanting
-to access these variables in FORTH code. The typical way of exposing a variable
-is to create a word that pushes its address. However, that's way too expensive
-with our constraints. What I settled on is pushing the addresses onto the stack
-at startup. This can be done with only 2 bytes for each address, by simply
-defining the initial contents of the stack as data:
+instructions (a practice known as self-modifying code). Of course, this means
+that the address of these variables will change on every edit of the code, which
+is problematic, since we will be wanting to access these variables in FORTH
+code. The typical way of exposing a variable is to create a word that pushes its
+address. However, that's way too expensive with our constraints. What I settled
+on is pushing the addresses onto the stack at startup. This can be done with
+only 2 bytes for each address, by simply defining the initial contents of the
+stack as data:
 
 ```asm
     org 0x7c00
@@ -1341,12 +1348,16 @@ Ilya Kurdyukov's help — without it, I wouldn't have been able to fit `s:` in.
 
 I've found an old PC I can use for my experiments. It boots Miniforth just fine:
 
-![](./hardware.jpg)
+![A photo of the corner of a monitor. We see the calculation "6969 4242 100 + +
+u-dot", which results in "ACAB". Then the "1 load" command is issued, to which the
+system describes "Hello, world!"](./hardware.jpg)
 
 I will be documenting my journey of building upon Miniforth in future posts on
 this blog. If that sounds like your cup of tea (and it probably does if you've
 read this far), consider subscribing to the RSS feed or [following me on
-Twitter][twitter-me] to get notified about new posts.
+Twitter][twitter-me] to get notified about new posts. Also, if you feel like
+this work is worth a dollar or two, [I accept tips][tipjar]&nbsp;:slightly_smiling_face:
+
 
 ---
 
@@ -1407,7 +1418,7 @@ Twitter][twitter-me] to get notified about new posts.
 [cubicDoom]: https://github.com/nanochess/cubicDoom
 [atomchess]: https://github.com/nanochess/Toledo-Atomchess
 [bootbasic]: https://github.com/nanochess/bootBASIC
-[miniforth]: https://github.com/NieDzejkob/miniforth
+[miniforth]: https://github.com/NieDzejkob/miniforth/tree/post1
 [ilya]: https://twitter.com/ilyakurdyukov
 [twitter-me]: https://twitter.com/NieDzejkob
 [db-trick-twitter]: https://twitter.com/NieDzejkob/status/1401557309118103560
@@ -1417,3 +1428,4 @@ Twitter][twitter-me] to get notified about new posts.
 [BDA]: https://www.matrix-bios.nl/system/bda.html
 [RBIL]: http://www.ctyme.com/rbrown.htm
 [reader-exercise]: https://abstrusegoose.com/12
+[tipjar]: https://github.com/sponsors/NieDzejkob

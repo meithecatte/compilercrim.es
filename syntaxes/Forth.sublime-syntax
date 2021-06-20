@@ -1,0 +1,166 @@
+%YAML 1.2
+---
+version: 2
+file_extensions: [f, fs, fth]
+scope: source.forth
+
+variables:
+  comment_line_begin: (?i)(?:\\|\\g) # \g may be specific to gforth.
+  word_begin: '(?<=^|\s)'
+  word_end: '(?=\s|$)'
+  word: '\S+'
+  word_declaration: (?i)constant|variable|value|create|vocabulary|defer|:code
+
+contexts:
+  prototype:
+    - include: match-comment
+
+  main:
+    - include: match-colon
+    - include: match-declaration
+    - include: match-char
+    - include: definition
+
+  definition:
+    - include: match-number
+    - include: match-string
+    - include: match-import
+    - include: match-bchar
+    - include: match-keywords
+    - include: match-any-word
+
+  match-keywords:
+    - match: '{{word_begin}}\[{{word_end}}'
+      scope: keyword
+    - match: '{{word_begin}}\]{{word_end}}'
+      scope: keyword
+    - match: '{{word_begin}}immediate{{word_end}}'
+      scope: keyword
+
+  match-comment:
+    - include: match-comment-line
+    - include: match-comment-block-paren
+
+  match-comment-line:
+    - match: '{{word_begin}}({{comment_line_begin}}){{word_end}}.*(\n|$)'
+      scope: comment.line.forth
+      captures:
+        1: punctuation.definition.comment.begin.forth
+
+  match-comment-block-paren:
+    - match: '{{word_begin}}\({{word_end}}'
+      scope: punctuation.definition.comment.begin.forth
+      push: pop-comment-block-paren
+
+  pop-comment-block-paren:
+    - meta_scope: comment.block.forth
+    - match: '{{word_begin}}\){{word_end}}'
+      scope: punctuation.definition.comment.end.forth
+      pop: true
+
+  # Sadly we're limited to supporting only decimals. Correctly detecting
+  # hexadecimals and differentiating them from defined words requires access to
+  # Forth's dictionary of defined words. Even decimals may be defined as words,
+  # but we just assume that most users aren't that crazy.
+  match-number:
+    - match: '{{word_begin}}[0-9A-F]+{{word_end}}'
+      scope: constant.numeric.decimal.forth
+
+  match-string:
+    - include: match-string-quoted-double
+    - include: match-string-parens
+
+  # Scopes constructs like this:
+  #
+  #   <begin>" <string content>"<end>
+  #
+  # Tentative. Misfires in source code of GForth.
+  match-string-quoted-double:
+    - match: '{{word_begin}}([^\s"]*")\s([^"]*)("[^\s"]*){{word_end}}'
+      captures:
+        1: punctuation.definition.string.begin.forth
+        2: string.quoted.double.forth
+        3: punctuation.definition.string.end.forth
+
+  match-string-parens:
+    - match: '{{word_begin}}(\.\()\s([^)]*)(\)){{word_end}}'
+      captures:
+        1: punctuation.definition.string.begin.forth
+        2: string.quoted.other.forth
+        3: punctuation.definition.string.end.forth
+
+  match-colon:
+    - match: '{{word_begin}}:{{word_end}}'
+      scope: keyword.declaration.function.forth
+      push: [meta-colon, pop-colon-name]
+    - match: '{{word_begin}}:cmp{{word_end}}'
+      scope: keyword.declaration.function.forth
+      push: [meta-colon, pop-cmp-colon-name]
+
+  pop-colon-name:
+    - meta_include_prototype: false
+    - meta_scope: meta.declaration.forth
+    - match: '{{word_begin}};{{word_end}}'
+      scope: punctuation.terminator.forth
+      pop: true
+    - match: '{{word_begin}}{{word}}{{word_end}}'
+      scope: entity.name.function.forth
+      set: pop-on-semi
+
+  pop-cmp-colon-name:
+    - meta_include_prototype: false
+    - meta_scope: meta.declaration.forth
+    - match: '{{word_begin}}cmp;{{word_end}}'
+      scope: punctuation.terminator.forth
+      pop: true
+    - match: '{{word_begin}}{{word}}{{word_end}}'
+      scope: entity.name.function.forth
+      set: pop-on-cmp-semi
+
+  meta-colon:
+    - meta_scope: meta.colon.forth
+    - match: ''
+      pop: true
+
+  # Tentative. Can misfire in some code.
+  match-declaration:
+    - match: '{{word_begin}}({{word_declaration}}){{word_end}}\s+({{word}}){{word_end}}'
+      scope: meta.declaration.forth
+      captures:
+        1: keyword.declaration.forth
+        2: entity.name.function.forth
+
+  match-import:
+    - match: '{{word_begin}}(require|include){{word_end}}\s+({{word}}){{word_end}}'
+      scope: meta.import.forth
+      captures:
+        1: keyword.import.forth
+        2: string.other.forth
+
+  match-char:
+    - match: '{{word_begin}}(char|chars){{word_end}}\s+({{word}}){{word_end}}'
+      captures:
+        1: string.other.forth
+        2: string.other.forth
+
+  match-bchar:
+    - match: '{{word_begin}}(\[char\]){{word_end}}\s+({{word}}){{word_end}}'
+      captures:
+        1: string.other.forth
+        2: string.other.forth
+
+  pop-on-semi:
+    - match: '{{word_begin}};{{word_end}}'
+      scope: keyword.declaration.function.forth
+      pop: true
+    - include: definition
+
+  pop-on-cmp-semi:
+    - match: '{{word_begin}}cmp;{{word_end}}'
+      scope: keyword.declaration.function.forth
+      pop: true
+    - include: definition
+
+  match-any-word:
+    - match: '{{word_begin}}{{word}}{{word_end}}'
+      scope: variable.function.forth
