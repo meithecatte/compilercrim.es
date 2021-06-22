@@ -707,7 +707,7 @@ isn't relative to the current position:
 
 ## Control flow
 
-To make the logic that compiles `if`s actually run at compile tine, we need to
+To make the logic that compiles `if`s actually run at compile time, we need to
 mark these words as immediate. To do that, we use `immediate`, which sets the
 immediate flag of the most recently compiled word:
 
