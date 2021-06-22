@@ -10,5 +10,5 @@ with a one sector (512-byte) seed and find out how far I can get."""
 [extra]
 ongoing = true
 brief = """in which I start from a 512-byte seed and try to bootstrap back
-into comfortable environment."""
+into a comfortable environment."""
 +++
