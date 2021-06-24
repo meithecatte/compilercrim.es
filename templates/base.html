@@ -2,6 +2,8 @@
 <html lang="en">
     {% if page.title %}
         {% set title = page.title ~ " — " ~ config.title %}
+    {% elif section.title %}
+        {% set title = section.title ~ " — " ~ config.title %}
     {% else %}
         {% set title = config.title %}
     {% endif %}
