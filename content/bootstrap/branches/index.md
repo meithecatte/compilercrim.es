@@ -55,7 +55,7 @@ code we put there. The `InputPtr` is defined to be at `A02`, so let's define
 `run`, which pokes a value of our choice at that address:
 
 ```forth
-: >in A02 ; : run >in ! ;
+: >in A02 ;  ; run >in ! ;
 ```
 
 `>in` is a traditional name for the input buffer pointer, so I went with
@@ -63,7 +63,7 @@ that.[^to-in] To make sure it is also available on subsequent boots, I save this
 piece of code in memory:
 
 ```forth
-1000 s: : >in A02 ; : run >in ! ;
+1000 s: : >in A02 ;  ; run >in ! ;
 ```
 
 This is a good time to peek at the current pointer to the source buffer, with
@@ -332,7 +332,7 @@ hardware design, but no hard facts.
 The corresponding numbering for byte-sized registers looks like this:
 
 ```fth
-: al 0 ; : cl 1 ; : dl 2 ; : bl 3 ; : ah 4 ; : ch 5 ; : dh 6 ; : bh 7 ;
+: al 0 ;  : cl 1 ;  : dl 2 ;  : bl 3 ;  : ah 4 ;  : ch 5 ;  : dh 6 ;  : bh 7 ;
 ```
 
 Thus, we can encode some `mov`s:
@@ -446,8 +446,8 @@ Memory-to-register variants aren't much harder. We define the addressing modes,
 just like we did for registers.
 
 ```fth
-: [bx+si] 0 ; : [bx+di] 1 ; : [bp+si] 2 ; : [bp+di] 3 ;
-: [si] 4 ; : [di] 5 ; : [#] 6 ; : [bp] 6 ; : [bx] 7 ;
+: [bx+si] 0 ;  ; [bx+di] 1 ;  ; [bp+si] 2 ;  ; [bp+di] 3 ;
+: [si] 4 ;  ; [di] 5 ;  ; [#] 6 ;  ; [bp] 6 ;  ; [bx] 7 ;
 ```
 
 `[#]` is the absolute address mode, which should be used by assembling the
@@ -651,9 +651,9 @@ if `b`elow. The same applies to `je` and `jz`, but that's intuitive enough for
 me, so I didn't feel the need to define both names.
 
 ```fth
-: jb, 72 c, ; : jc, 72 c, ; : jae, 73 c, ; : jnc, 73 c, ;
-: jz, 74 c, ; : jnz, 75 c, ; : jbe, 76 c, ; : ja, 77 c, ;
-: jl, 7C c, ; : jge, 7D c, ; : jle, 7E c, ; : jg, 7F c, ;
+: jb, 72 c, ;  ; jc, 72 c, ;  ; jae, 73 c, ;  ; jnc, 73 c, ;
+: jz, 74 c, ;  ; jnz, 75 c, ;  ; jbe, 76 c, ;  ; ja, 77 c, ;
+: jl, 7C c, ;  ; jge, 7D c, ;  ; jle, 7E c, ;  ; jg, 7F c, ;
 ```
 
 ## Branches
@@ -902,7 +902,7 @@ instructions while we're at it:
 
 ```fth
 : rep, F2 c, ;
-: movsb, A4 c, ; : movsw, A5 c, ; : cmpsb, A6 c, ; : cmpsw, A7 c, ;
+: movsb, A4 c, ;  ; movsw, A5 c, ;  ; cmpsb, A6 c, ;  ; cmpsw, A7 c, ;
 ```
 
 This is then used by `cmove`, which copies data forwards.[^cmove] This wrapper is
@@ -928,7 +928,7 @@ copy itself in `(cmove>)`, and then the actual `cmove>` is responsible for
 calculating the right address.
 
 ```fth
-: cld, FC c, ; : std, FD c, ;
+: cld, FC c, ;  ; std, FD c, ;
 :code (cmove>)
   bx cx movw-rr,
   si ax movw-rr, di dx movw-rr,
