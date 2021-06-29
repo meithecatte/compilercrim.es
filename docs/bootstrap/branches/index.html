@@ -10,7 +10,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>No branches? No problem — a Forth assembler — NieDżejkob&#x27;s ramblings</title>
-        <link rel="stylesheet" href="https://niedzejkob.p4.team/style.css?cachebust=1"/>
+        <link rel="stylesheet" href="https://niedzejkob.p4.team/style.css?cachebust=2"/>
         <link rel="icon" href="https://niedzejkob.p4.team/icon.png"/>
         <link rel="canonical" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;"/>
         <link rel="alternate" type="application/rss+xml" title="NieDżejkob&#x27;s ramblings" href="/rss.xml">
@@ -546,7 +546,7 @@ me, so I didn't feel the need to define both names.</p>
 </span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">jl, </span><span style="color:#ae81ff;">7C </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">;  </span><span style="color:#c9d1d9;">; jge, </span><span style="color:#ae81ff;">7D </span><span style="color:#c9d1d9;">c, ;  ; jle, </span><span style="color:#ae81ff;">7E </span><span style="color:#c9d1d9;">c, ;  ; jg, </span><span style="color:#ae81ff;">7F </span><span style="color:#c9d1d9;">c, ;
 </span></code></pre><h2 id="branches">Branches</h2>
 <p>When compiled into a definition, branches look like this:</p>
-<p><img src="https://niedzejkob.p4.team/bootstrap/branches/branches.svg" alt="Diagram demonstrates the compilation strategy for an if-else structure. IF compiles to two cells, where the first one is (0branch), and the second one is the jump target, which points just after the ELSE. Before this location, ELSE introduces an unconditional (branch) to the position of THEN." /></p>
+<p><img src="https://niedzejkob.p4.team/bootstrap/branches/branches.svg" alt="Diagram demonstrates the compilation strategy for an if-else structure. IF compiles to two cells, where the first one is (0branch), and the second one is the jump target, which points just after the ELSE. Before that jump target, ELSE introduces an unconditional (branch) to the position of THEN." /></p>
 <p>By convention, words that get compiled into a definition but aren't used
 directly have their names wrapped in parentheses, so our branches are called
 <code>(branch)</code>, which is unconditonal, and <code>(0branch)</code>, which pops a value off the
@@ -1007,9 +1007,36 @@ are still there, so there isn't much point trying to figure this out.</p>
 
 
 
+<div id="next-article">
+    Next post:<br>
+    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;asmless&#x2F;">Branches: No assembly required</a>
+</div>
+
 
 <div style="clear: both;"></div>
 </div>
+
+<script type="text/javascript">
+    window.addEventListener('load', function() {
+        for (const ref of document.getElementsByClassName('footnote-reference')) {
+            const hash = ref.children[0].hash.substring(1);
+            const refhash = 'ref:' + hash;
+            ref.id = refhash;
+        }
+
+        for (const footnote of document.getElementsByClassName('footnote-definition')) {
+            const hash = footnote.id;
+            const refhash = 'ref:' + hash;
+            const backlink = document.createElement('a');
+            backlink.href = '#' + refhash;
+            backlink.className = 'footnote-backlink';
+            backlink.innerText = '↩';
+            const paras = footnote.children;
+            const lastPara = paras[paras.length - 1];
+            lastPara.appendChild(backlink);
+        }
+    });
+</script>
 
 <script src="https://utteranc.es/client.js"
         repo="NieDzejkob/niedzejkob.p4.team"

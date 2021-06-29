@@ -10,7 +10,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Bootstrapping — NieDżejkob&#x27;s ramblings</title>
-        <link rel="stylesheet" href="https://niedzejkob.p4.team/style.css?cachebust=1"/>
+        <link rel="stylesheet" href="https://niedzejkob.p4.team/style.css?cachebust=2"/>
         <link rel="icon" href="https://niedzejkob.p4.team/icon.png"/>
         <link rel="canonical" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;"/>
         <link rel="alternate" type="application/rss+xml" title="NieDżejkob&#x27;s ramblings" href="/rss.xml">
@@ -20,6 +20,10 @@
         
             <meta property="og:title" content="NieDżejkob&#x27;s ramblings">
         
+        
+            <meta property="og:description" content="What if all software suddenly disappeared? What&#x27;s the minimum
+you&#x27;d need to bootstrap back into a comfortable environment? I decided to start
+with a one sector (512-byte) seed and find out how far I can get.">
         
         <meta property="og:url" content="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;">
         <meta property="og:image" content="https://niedzejkob.p4.team/icon.png">
@@ -40,7 +44,7 @@
 </h1>
 
 <p class="page-metadata">
-A series of 2 articles
+A series of 3 articles
 &middot;
 
 in progress
@@ -87,6 +91,23 @@ reader even <a href="https://www.reddit.com/r/Forth/comments/nxgg20/fitting_a_fo
 Turing-complete, and therefore not worthy of being called a Forth! Today is the
 day we prove them wrong. 
   <a class="read-more button" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#continue-reading">Read more</a>
+  </div>
+  
+  <div class="article-preview">
+  <h1 class="title"><a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;asmless&#x2F;">Branches: No assembly required</a></h1>
+  
+<p class="page-metadata">
+June 29, 2021
+&middot; 7 minute read
+</p>
+
+  <p><a href="https://niedzejkob.p4.team/bootstrap/branches/">Last time,</a> we started from the barebones <a href="https://niedzejkob.p4.team/bootstrap/miniforth/">Miniforth kernel</a>, and
+implemented branches by writing additional primitive words in assembly. For
+pragmatic reasons, that is the road I will be pursuing further, but I noticed
+that it is also possible to implement branches in pure Forth. I believe that
+this approach is quite interesting, so let's take a detour and get a closer
+look. 
+  <a class="read-more button" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;asmless&#x2F;#continue-reading">Read more</a>
   </div>
   
 

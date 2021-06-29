@@ -16,7 +16,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>{{ title }}</title>
-        <link rel="stylesheet" href="{{ get_url(path="/style.css") }}?cachebust=1"/>
+        <link rel="stylesheet" href="{{ get_url(path="/style.css") }}?cachebust=2"/>
         <link rel="icon" href="{{ get_url(path="/icon.png") }}"/>
         <link rel="canonical" href="{{ canonical_url }}"/>
         <link rel="alternate" type="application/rss+xml" title="{{ config.title }}" href="/rss.xml">
@@ -28,8 +28,8 @@
         {% endif %}
         {% if page.summary %}
             <meta property="og:description" content="{{ page.summary | striptags }}">
-        {% elif section.summary %}
-            <meta property="og:description" content="{{ section.summary | striptags }}">
+        {% elif section.description %}
+            <meta property="og:description" content="{{ section.description | striptags }}">
         {% endif %}
         <meta property="og:url" content="{{ canonical_url }}">
         <meta property="og:image" content="{{ get_url(path="/icon.png") }}">

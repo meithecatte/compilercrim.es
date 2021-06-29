@@ -10,7 +10,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>Fitting a FORTH in 512 bytes — NieDżejkob&#x27;s ramblings</title>
-        <link rel="stylesheet" href="https://niedzejkob.p4.team/style.css?cachebust=1"/>
+        <link rel="stylesheet" href="https://niedzejkob.p4.team/style.css?cachebust=2"/>
         <link rel="icon" href="https://niedzejkob.p4.team/icon.png"/>
         <link rel="canonical" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;"/>
         <link rel="alternate" type="application/rss+xml" title="NieDżejkob&#x27;s ramblings" href="/rss.xml">
@@ -1280,6 +1280,28 @@ problem.</p>
 
 <div style="clear: both;"></div>
 </div>
+
+<script type="text/javascript">
+    window.addEventListener('load', function() {
+        for (const ref of document.getElementsByClassName('footnote-reference')) {
+            const hash = ref.children[0].hash.substring(1);
+            const refhash = 'ref:' + hash;
+            ref.id = refhash;
+        }
+
+        for (const footnote of document.getElementsByClassName('footnote-definition')) {
+            const hash = footnote.id;
+            const refhash = 'ref:' + hash;
+            const backlink = document.createElement('a');
+            backlink.href = '#' + refhash;
+            backlink.className = 'footnote-backlink';
+            backlink.innerText = '↩';
+            const paras = footnote.children;
+            const lastPara = paras[paras.length - 1];
+            lastPara.appendChild(backlink);
+        }
+    });
+</script>
 
 <script src="https://utteranc.es/client.js"
         repo="NieDzejkob/niedzejkob.p4.team"

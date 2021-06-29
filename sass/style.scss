@@ -240,6 +240,10 @@ code {
     font-size: 0.9rem;
 }
 
+.footnote-backlink {
+    margin-left: 0.3rem;
+}
+
 .inset, main img:not([src*=".svg"]) {
     margin: 0 3rem;
     max-width: calc(100% - 6rem);

@@ -7,7 +7,19 @@
         <generator>Zola</generator>
         <language>en</language>
         <atom:link href="https://niedzejkob.p4.team/rss.xml" rel="self" type="application/rss+xml"/>
-        <lastBuildDate>Tue, 22 Jun 2021 00:00:00 +0000</lastBuildDate>
+        <lastBuildDate>Tue, 29 Jun 2021 00:00:00 +0000</lastBuildDate>
+        <item>
+            <title>Branches: No assembly required</title>
+            <pubDate>Tue, 29 Jun 2021 00:00:00 +0000</pubDate>
+            <link>https://niedzejkob.p4.team/bootstrap/asmless/</link>
+            <guid>https://niedzejkob.p4.team/bootstrap/asmless/</guid>
+            <description>&lt;p&gt;&lt;a href=&quot;https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;&quot;&gt;Last time,&lt;&#x2F;a&gt; we started from the barebones &lt;a href=&quot;https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;&quot;&gt;Miniforth kernel&lt;&#x2F;a&gt;, and
+implemented branches by writing additional primitive words in assembly. For
+pragmatic reasons, that is the road I will be pursuing further, but I noticed
+that it is also possible to implement branches in pure Forth. I believe that
+this approach is quite interesting, so let&#x27;s take a detour and get a closer
+look. </description>
+        </item>
         <item>
             <title>No branches? No problem — a Forth assembler</title>
             <pubDate>Tue, 22 Jun 2021 00:00:00 +0000</pubDate>

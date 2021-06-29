@@ -662,7 +662,7 @@ When compiled into a definition, branches look like this:
 
 ![Diagram demonstrates the compilation strategy for an if-else structure. IF
 compiles to two cells, where the first one is (0branch), and the second one is
-the jump target, which points just after the ELSE. Before this location, ELSE
+the jump target, which points just after the ELSE. Before that jump target, ELSE
 introduces an unconditional (branch) to the position of THEN.](branches.svg)
 
 By convention, words that get compiled into a definition but aren't used
