@@ -172,6 +172,9 @@ z z z z z z z z z z z z z z z z z     \ 17 times
 
 ## Is that all?
 
+Yup, we're done. The [rest of the code][block2] needed to define `if`, `then`,
+and other control-flow words looks exactly like in the previous post.
+
 You might ask, is that everything we need for Turing-completeness?[^turing]
 Perhaps there's a primitive we won't be able to define for some reason? I don't
 think we need to worry. Our branch can be used to implement a loop-until-zero
@@ -216,7 +219,6 @@ Twitter][twitter] to get notified of future posts. See you next time!
 [prev]: @/bootstrap/branches/index.md
 [Miniforth kernel]: @/bootstrap/miniforth/index.md
 [github]: https://github.com/NieDzejkob/miniforth/tree/post2#building-a-disk-image
-[purity]: https://github.com/NieDzejkob/miniforth/tree/purity
 [purity]: https://github.com/NieDzejkob/miniforth/blob/purity/block1.fth
 [brainfuck]: https://esolangs.org/wiki/Brainfuck
 [LBA]: https://en.wikipedia.org/wiki/Linear_bounded_automaton
@@ -225,3 +227,4 @@ Twitter][twitter] to get notified of future posts. See you next time!
 [bitwise-comment]: https://github.com/NieDzejkob/niedzejkob.p4.team/issues/2#issuecomment-867288663
 [mov]: https://www.youtube.com/watch?v=R7EEoWg6Ekk
 [twitter]: https://twitter.com/NieDzejkob
+[block2]: https://github.com/NieDzejkob/miniforth/blob/purity/block2.fth

@@ -46,7 +46,7 @@ look. ">
 
 <p class="page-metadata">
 June 29, 2021
-&middot; 7 minute read
+&middot; 8 minute read
 </p>
 
 
@@ -80,7 +80,7 @@ post</a>:</p>
 </ul>
 <p>You can fire up Miniforth by following the instructions in <a href="https://github.com/NieDzejkob/miniforth/tree/post2#building-a-disk-image">the GitHub
 repo</a>. If you'd like to try implementing pure-Forth branches on your
-own, now is the time to stop reading. Otherwise, we'll be studying <a href="https://github.com/NieDzejkob/miniforth/tree/purity">the branches
+own, now is the time to stop reading. Otherwise, we'll be studying <a href="https://github.com/NieDzejkob/miniforth/blob/purity/block1.fth">the branches
 on the <code>purity</code>, uh, branch</a>.</p>
 <h2 id="unconditional-branches">Unconditional branches</h2>
 <p>When <code>(branch)</code> or <code>(0branch)</code> is compiled into a word, it will be immediately
@@ -185,6 +185,8 @@ z z z z z z z z z z z z z z z z z     </span><span style="color:#85817e;">\ 17 t
 </span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">1bit-half </span><span style="color:#c9d1d9;">tab + c@ </span><span style="color:#f92672;">;
 : </span><span style="color:#a6e22e;">1bit </span><span style="color:#c9d1d9;">dup hibyte 1bit-half swap lobyte 1bit-half + 1bit-half </span><span style="color:#f92672;">;
 </span></code></pre><h2 id="is-that-all">Is that all?</h2>
+<p>Yup, we're done. The <a href="https://github.com/NieDzejkob/miniforth/blob/purity/block2.fth">rest of the code</a> needed to define <code>if</code>, <code>then</code>,
+and other control-flow words looks exactly like in the previous post.</p>
 <p>You might ask, is that everything we need for Turing-completeness?<sup class="footnote-reference"><a href="#turing">6</a></sup>
 Perhaps there's a primitive we won't be able to define for some reason? I don't
 think we need to worry. Our branch can be used to implement a loop-until-zero
