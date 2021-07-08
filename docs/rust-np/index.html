@@ -91,13 +91,18 @@ variables, such that the formula evaluates to 1. For example, the formula</p>
 <code class="language-c++" data-lang="c++"><span style="color:#c9d1d9;">A </span><span style="color:#f92672;">and</span><span style="color:#c9d1d9;"> B </span><span style="color:#f92672;">and </span><span style="color:#c9d1d9;">(A </span><span style="color:#f92672;">xor</span><span style="color:#c9d1d9;"> B)
 </span></code></pre>
 <p>is not satisfiable.</p>
-<p>The standard representation of such a formula is the <em>conjunctive normal form</em>,
-or simply: AND-of-ORs. Our previous example would look like this when
-transformed:</p>
+<p>Most algorithms for solving this problem begin by transforming it into the
+<em>conjunctive normal form</em>, or simply: AND-of-ORs. That is, the formula must be
+of the form</p>
+<pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">(_ or _ or ...) and (_ or _ or ...) and ...
+</span></code></pre>
+<p>where the <code>_</code> are filled in with variables and their negations.</p>
+<p>Our previous example would look like this when transformed:</p>
 <pre style="background-color:#272822;">
 <code class="language-c++" data-lang="c++"><span style="color:#c9d1d9;">A </span><span style="color:#f92672;">and</span><span style="color:#c9d1d9;"> B </span><span style="color:#f92672;">and </span><span style="color:#c9d1d9;">(A </span><span style="color:#f92672;">or</span><span style="color:#c9d1d9;"> B) </span><span style="color:#f92672;">and </span><span style="color:#c9d1d9;">(</span><span style="color:#f92672;">!</span><span style="color:#c9d1d9;">A </span><span style="color:#f92672;">or !</span><span style="color:#c9d1d9;">B)
 </span></code></pre>
-<p>This is usually written as a list of constrants, where we need to pick one
+<p>This is usually written as a list of constraints, where we need to pick one
 option from each line without conflicts:</p>
 <pre style="background-color:#272822;">
 <code><span style="color:#c9d1d9;"> A
@@ -105,10 +110,10 @@ option from each line without conflicts:</p>
  A  B
 !A !B
 </span></code></pre>
-<p>Obviously, every formula can be transformed into this form. To do so without an
-exponential blowup is a bit harder, but we don't need to concern ourselves with
-the specifics.<sup class="footnote-reference"><a href="#clausal">1</a></sup> At this point, the representation should look similar
-to a set of Rust patterns.</p>
+<p>Obviously, every formula can be transformed into this form, by applying the
+rules of Boolean algebra. To do so without an exponential blowup is a bit
+harder, but we don't need to concern ourselves with the specifics.<sup class="footnote-reference"><a href="#clausal">1</a></sup> At
+this point, the representation should look similar to a set of Rust patterns.</p>
 <h2 id="connecting-the-two">Connecting the two</h2>
 <p>Thinking about the equivalence between exhaustiveness checking and
 satisfiability is a <em>bit</em> tricky, as there's a negation between them at

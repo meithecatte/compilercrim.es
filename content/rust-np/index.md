@@ -59,15 +59,23 @@ A and B and (A xor B)
 
 is not satisfiable.
 
-The standard representation of such a formula is the *conjunctive normal form*,
-or simply: AND-of-ORs. Our previous example would look like this when
-transformed:
+Most algorithms for solving this problem begin by transforming it into the
+*conjunctive normal form*, or simply: AND-of-ORs. That is, the formula must be
+of the form
+
+```
+(_ or _ or ...) and (_ or _ or ...) and ...
+```
+
+where the `_` are filled in with variables and their negations.
+
+Our previous example would look like this when transformed:
 
 ```c++
 A and B and (A or B) and (!A or !B)
 ```
 
-This is usually written as a list of constrants, where we need to pick one
+This is usually written as a list of constraints, where we need to pick one
 option from each line without conflicts:
 
 ```
@@ -77,10 +85,10 @@ option from each line without conflicts:
 !A !B
 ```
 
-Obviously, every formula can be transformed into this form. To do so without an
-exponential blowup is a bit harder, but we don't need to concern ourselves with
-the specifics.[^clausal] At this point, the representation should look similar
-to a set of Rust patterns.
+Obviously, every formula can be transformed into this form, by applying the
+rules of Boolean algebra. To do so without an exponential blowup is a bit
+harder, but we don't need to concern ourselves with the specifics.[^clausal] At
+this point, the representation should look similar to a set of Rust patterns.
 
 ## Connecting the two
 
