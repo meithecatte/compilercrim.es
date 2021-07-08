@@ -160,10 +160,12 @@ pre {
     margin: 1rem 0;
     background-color: #272822;
     color: #c9d1d9;
+    white-space: pre-wrap;
 }
 
-pre b {
+pre b, pre .ansi1 {
     color: #f8f8f8;
+    font-weight: bold;
 }
 
 ul, ol {
@@ -212,6 +214,11 @@ pre code {
     padding: 0;
     white-space: inherit;
 }
+
+
+.ansi33 { color: #f1fa8c !important; }
+.ansi38-9 { color: #ff5555 !important; }
+.ansi38-12 { color: #bd93f9 !important; }
 
 pre, pre code {
     font-size: .85rem;

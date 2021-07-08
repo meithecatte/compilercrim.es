@@ -7,7 +7,17 @@
         <generator>Zola</generator>
         <language>en</language>
         <atom:link href="https://niedzejkob.p4.team/rss.xml" rel="self" type="application/rss+xml"/>
-        <lastBuildDate>Tue, 29 Jun 2021 00:00:00 +0000</lastBuildDate>
+        <lastBuildDate>Wed, 07 Jul 2021 00:00:00 +0000</lastBuildDate>
+        <item>
+            <title>Compiling Rust is NP-hard</title>
+            <pubDate>Wed, 07 Jul 2021 00:00:00 +0000</pubDate>
+            <link>https://niedzejkob.p4.team/rust-np/</link>
+            <guid>https://niedzejkob.p4.team/rust-np/</guid>
+            <description>&lt;p&gt;...though it&#x27;s not the flagship borrow checking that&#x27;s at fault.  What I
+noticed, and would like to share with you today, is that the exhaustiveness
+checking performed by the Rust compiler on &lt;code&gt;match&lt;&#x2F;code&gt; patterns is a superset of the
+&lt;a href=&quot;https:&#x2F;&#x2F;en.wikipedia.org&#x2F;wiki&#x2F;Boolean_satisfiability_problem&quot;&gt;SAT&lt;&#x2F;a&gt; problem. </description>
+        </item>
         <item>
             <title>Branches: No assembly required</title>
             <pubDate>Tue, 29 Jun 2021 00:00:00 +0000</pubDate>
