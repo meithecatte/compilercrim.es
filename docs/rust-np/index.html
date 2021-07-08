@@ -110,10 +110,10 @@ option from each line without conflicts:</p>
  A  B
 !A !B
 </span></code></pre>
-<p>Obviously, every formula can be transformed into this form, by applying the
-rules of Boolean algebra. To do so without an exponential blowup is a bit
-harder, but we don't need to concern ourselves with the specifics.<sup class="footnote-reference"><a href="#clausal">1</a></sup> At
-this point, the representation should look similar to a set of Rust patterns.</p>
+<p>While every formula can be transformed into this form by applying the rules of
+Boolean algebra, it's a bit harder to do so without an exponential blowup. We
+don't need to concern ourselves with the specifics, though.<sup class="footnote-reference"><a href="#clausal">1</a></sup> At this
+point, the representation should look similar to a set of Rust patterns.</p>
 <h2 id="connecting-the-two">Connecting the two</h2>
 <p>Thinking about the equivalence between exhaustiveness checking and
 satisfiability is a <em>bit</em> tricky, as there's a negation between them at

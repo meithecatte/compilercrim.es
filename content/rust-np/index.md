@@ -85,10 +85,10 @@ option from each line without conflicts:
 !A !B
 ```
 
-Obviously, every formula can be transformed into this form, by applying the
-rules of Boolean algebra. To do so without an exponential blowup is a bit
-harder, but we don't need to concern ourselves with the specifics.[^clausal] At
-this point, the representation should look similar to a set of Rust patterns.
+While every formula can be transformed into this form by applying the rules of
+Boolean algebra, it's a bit harder to do so without an exponential blowup. We
+don't need to concern ourselves with the specifics, though.[^clausal] At this
+point, the representation should look similar to a set of Rust patterns.
 
 ## Connecting the two
 
