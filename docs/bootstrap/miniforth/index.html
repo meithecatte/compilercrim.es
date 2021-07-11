@@ -63,6 +63,93 @@ into a comfortable environment.
 </div>
 
 
+
+<div>
+
+<div id="toc">
+    <h4>Table of contents</h4>
+    <ul>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#a-primer-on-forth">A primer on FORTH</a>
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#threaded-code">Threaded code</a>
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#the-dictionary">The dictionary</a>
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#compression">Compression</a>
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#variables">Variables?</a>
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#initialization-code">Initialization code</a>
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#the-outer-interpreter">The outer interpreter</a>
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#keyboard-input">Keyboard input</a>
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#parsing">Parsing</a>
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#dictionary-lookup">Dictionary Lookup</a>
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#should-we-execute-it">Should we execute it?</a>
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#executing-the-word">Executing the word</a>
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#handling-numbers">Handling numbers</a>
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#compiling-things">Compiling things</a>
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#loading-code-from-disk">Loading code from disk</a>
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#printing-numbers">Printing numbers</a>
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#s-string-poke">s: — string poke</a>
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#other-primitives">Other primitives</a>
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#conclusion">Conclusion</a>
+        </li>
+        
+    </ul>
+</div>
+
+
 <p>Software is full of circular dependencies if you look deep enough. Compilers
 written in the language they compile are the most obvious example, but not the
 only one. To compile a kernel, you need a running kernel. Linkers, build
@@ -274,7 +361,7 @@ LIT:
     </span><span style="color:#f92672;">lodsw
     xchg </span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">ax
     </span><span style="color:#a6e22e;">NEXT
-</span></code></pre><h2 id="the-dictionary">The Dictionary</h2>
+</span></code></pre><h2 id="the-dictionary">The dictionary</h2>
 <p>FORTH needs a way to locate the implementation of the words the user types in.
 This is the role of the <em>dictionary</em>. I use a structure similar to many other
 small-scale FORTHs — a singly linked list of word headers, directly prepended
@@ -612,7 +699,7 @@ use by user code:</p>
 <pre style="background-color:#272822;">
 <code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">    </span><span style="color:#f92672;">mov </span><span style="color:#c9d1d9;">[</span><span style="color:#a6e22e;">DRIVE_NUMBER</span><span style="color:#c9d1d9;">], </span><span style="font-style:italic;color:#fd971f;">dl
     </span><span style="color:#f92672;">push </span><span style="font-style:italic;color:#fd971f;">dx</span><span style="color:#85817e;"> ; for FORTH code
-</span></code></pre><h2 id="the-outer-interpreter">The Outer Interpreter</h2>
+</span></code></pre><h2 id="the-outer-interpreter">The outer interpreter</h2>
 <p>At this point, we reach the <em>outer interpreter</em> - the part of a FORTH system
 that processes user input. The name &quot;<em>outer</em> interpreter&quot; distinguishes it from
 the <em>inner</em> interpreter, which is the component that coordinates the execution
@@ -1265,6 +1352,7 @@ a stack effect into a sequence of words that implement it. It's a nice
 problem.</p>
 </div>
 
+</div>
 
 <div id="previous-next">
 

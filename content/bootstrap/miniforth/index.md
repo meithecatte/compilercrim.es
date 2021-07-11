@@ -253,7 +253,7 @@ LIT:
     NEXT
 ```
 
-## The Dictionary
+## The dictionary
 
 FORTH needs a way to locate the implementation of the words the user types in.
 This is the role of the *dictionary*. I use a structure similar to many other
@@ -651,7 +651,7 @@ use by user code:
     push dx ; for FORTH code
 ```
 
-## The Outer Interpreter
+## The outer interpreter
 
 At this point, we reach the *outer interpreter* - the part of a FORTH system
 that processes user input. The name "*outer* interpreter" distinguishes it from

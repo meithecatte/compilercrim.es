@@ -238,6 +238,24 @@ code {
     line-height: 1.125;
 }
 
+#toc {
+    float: right;
+    clear: right;
+    width: 35%;
+    margin-right: calc(-35% - 1rem);
+    position: sticky;
+    top: 1rem;
+    background: var(--shaded);
+    padding: 1rem;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+
+    ul {
+        margin-bottom: 0;
+        margin-left: 1rem;
+    }
+}
+
 .footnote-definition-label {
     float: left;
     padding-right: 0.5rem;

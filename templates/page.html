@@ -13,7 +13,23 @@
 {% if page.ancestors[1] %}
 {{ macros::part_of_series(series=get_section(path=page.ancestors[1])) }}
 {% endif %}
+
+<div>
+{% if page.toc %}
+<div id="toc">
+    <h4>Table of contents</h4>
+    <ul>
+        {% for h1 in page.toc %}
+        <li>
+            <a href="{{ h1.permalink }}">{{ h1.title }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endif %}
+
 {{ page.content | safe }}
+</div>
 
 <div id="previous-next">
 {% if page.earlier %}
