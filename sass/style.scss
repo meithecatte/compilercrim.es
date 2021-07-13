@@ -274,6 +274,10 @@ nav {
     a:hover, li.active > a {
         color: inherit;
     }
+
+    li.active > a {
+        font-weight: bold;
+    }
 }
 
 @media(max-width: 68rem) {

@@ -73,7 +73,8 @@ The entire FORTH takes, at this moment, 504 bytes. As you might expect, the
 development process involved being on a perpetual lookout for byte-saving
 opportunities. However, when I published what I thought was quite tightly
 optimized code, [Ilya Kurdyukov][ilya] came along and managed to find 24 bytes
-to be saved! I promptly reinvested this saved space in new features.
+to be saved! I promptly reinvested this saved space in [new
+features](#s-string-poke).
 
 ## A primer on FORTH
 
