@@ -8,7 +8,7 @@
     
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
         <title>Fitting a FORTH in 512 bytes</title>
         <link rel="stylesheet" href="https://niedzejkob.p4.team/style.css?cachebust=2"/>
         <link rel="icon" href="https://niedzejkob.p4.team/icon.png"/>
@@ -19,7 +19,8 @@
 
         <meta property="og:title" content="Fitting a FORTH in 512 bytes">
         
-            <meta property="og:description" content="Software is full of circular dependencies if you look deep enough. Compilers
+            <meta property="og:description" content="
+Software is full of circular dependencies if you look deep enough. Compilers
 written in the language they compile are the most obvious example, but not the
 only one. To compile a kernel, you need a running kernel. Linkers, build
 systems, shells.  Even text editors, if you want to write the code instead of
@@ -42,7 +43,8 @@ challenge.  ">
             </div>
         </header>
         <main>
-            
+            <article>
+                
 <h1 class="title">
   Fitting a FORTH in 512 bytes
 </h1>
@@ -57,99 +59,15 @@ June 10, 2021
 <div class="series-info">
   This article is part of the <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;">Bootstrapping</a>
   
-    series, in which I start from a 512-byte seed and try to bootstrap back
-into a comfortable environment.
+    series, in which I start from a 512-byte seed and try to bootstrap a
+practical system.
   
 </div>
 
 
 
-<div>
 
-<div id="toc">
-    <h4>Table of contents</h4>
-    <ul>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#a-primer-on-forth">A primer on FORTH</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#threaded-code">Threaded code</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#the-dictionary">The dictionary</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#compression">Compression</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#variables">Variables?</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#initialization-code">Initialization code</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#the-outer-interpreter">The outer interpreter</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#keyboard-input">Keyboard input</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#parsing">Parsing</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#dictionary-lookup">Dictionary Lookup</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#should-we-execute-it">Should we execute it?</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#executing-the-word">Executing the word</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#handling-numbers">Handling numbers</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#compiling-things">Compiling things</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#loading-code-from-disk">Loading code from disk</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#printing-numbers">Printing numbers</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#s-string-poke">s: — string poke</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#other-primitives">Other primitives</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#conclusion">Conclusion</a>
-        </li>
-        
-    </ul>
-</div>
-
-
+<section>
 <p>Software is full of circular dependencies if you look deep enough. Compilers
 written in the language they compile are the most obvious example, but not the
 only one. To compile a kernel, you need a running kernel. Linkers, build
@@ -213,7 +131,7 @@ development process involved being on a perpetual lookout for byte-saving
 opportunities. However, when I published what I thought was quite tightly
 optimized code, <a href="https://twitter.com/ilyakurdyukov">Ilya Kurdyukov</a> came along and managed to find 24 bytes
 to be saved! I promptly reinvested this saved space in new features.</p>
-<h2 id="a-primer-on-forth">A primer on FORTH</h2>
+</section><section id="a-primer-on-forth"><h2>A primer on FORTH</h2>
 <p><em>If you've ever written anything in FORTH, you can safely skip this section.</em></p>
 <p>FORTH is a stack-based language. For example, a number will push its value onto
 the stack, while the <code>+</code> <em>word</em> will pop two numbers and push their sum. A
@@ -245,7 +163,7 @@ like this:</p>
 <p>The list before the <code>--</code> are the inputs, with the top of stack listed last.
 After the <code>--</code>, we list the outputs, which start at the same stack depth.
 This lets us succintly describe the common aspects of a word.</p>
-<h2 id="threaded-code">Threaded code</h2>
+</section><section id="threaded-code"><h2>Threaded code</h2>
 <p>While some FORTH systems do include full-blown, optimizing compilers similar to
 those one'd see in a typical programming language, there is a much simpler
 strategy. After all, everything a FORTH word can do is execute other words, so a
@@ -361,8 +279,8 @@ LIT:
     </span><span style="color:#f92672;">lodsw
     xchg </span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">ax
     </span><span style="color:#a6e22e;">NEXT
-</span></code></pre><h2 id="the-dictionary">The dictionary</h2>
-<p>FORTH needs a way to locate the implementation of the words the user types in.
+</span></code></pre></section><section id="the-dictionary"><h2>The dictionary</h2>
+<p>We need a way to locate the implementation of the words the user types in.
 This is the role of the <em>dictionary</em>. I use a structure similar to many other
 small-scale FORTHs — a singly linked list of word headers, directly prepended
 before the code of each word. Out of tradition, the head of the list is kept
@@ -383,7 +301,7 @@ can refer to the previous word with the same name (and <code>RECURSE</code> is u
 you want the definition currently being compiled). However, towards the end of
 development, I have removed the code that actually does this from the default
 implementation of <code>:</code> and <code>;</code>.</p>
-<h2 id="compression">Compression</h2>
+</section><section id="compression"><h2>Compression</h2>
 <p>It is usually not worth it to use compression when both the decompressor and its
 payload have to fit in merely 512 bytes. However, in a FORTH implementation, one
 thing that's repeated very often is the implementation of <code>NEXT</code>.</p>
@@ -614,7 +532,7 @@ EXIT:
 
 </span><span style="color:#a6e22e;">defcode PLUS</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;+&quot;
 </span><span style="color:#85817e;">    ; ...
-</span></code></pre><h2 id="variables">Variables?</h2>
+</span></code></pre></section><section id="variables"><h2>Variables?</h2>
 <p>Immediate load instructions tend to have shorter encodings than loads from
 memory:</p>
 <pre style="background-color:#272822;">
@@ -648,7 +566,7 @@ self-modifying code strategy saves bytes if a variable needs to be initialized �
 the best way to initialize a variable is to simply allocate it within the
 bootsector and <code>dw</code> the initial value there, which exactly evens out the stack
 data, and keeps the advantage of the shorter instruction encoding.</p>
-<h2 id="initialization-code">Initialization code</h2>
+</section><section id="initialization-code"><h2>Initialization code</h2>
 <p>The first thing done after booting is setting up the <a href="https://en.wikipedia.org/wiki/X86_memory_segmentation">segment registers</a> and
 stack. The direction flag is also cleared, so that the string instructions work
 in the right direction.</p>
@@ -699,7 +617,7 @@ use by user code:</p>
 <pre style="background-color:#272822;">
 <code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">    </span><span style="color:#f92672;">mov </span><span style="color:#c9d1d9;">[</span><span style="color:#a6e22e;">DRIVE_NUMBER</span><span style="color:#c9d1d9;">], </span><span style="font-style:italic;color:#fd971f;">dl
     </span><span style="color:#f92672;">push </span><span style="font-style:italic;color:#fd971f;">dx</span><span style="color:#85817e;"> ; for FORTH code
-</span></code></pre><h2 id="the-outer-interpreter">The outer interpreter</h2>
+</span></code></pre></section><section id="the-outer-interpreter"><h2>The outer interpreter</h2>
 <p>At this point, we reach the <em>outer interpreter</em> - the part of a FORTH system
 that processes user input. The name &quot;<em>outer</em> interpreter&quot; distinguishes it from
 the <em>inner</em> interpreter, which is the component that coordinates the execution
@@ -721,7 +639,7 @@ reserved for the top of stack and the return stack pointer, respectively, while
 the outer interpreter is executing. This significantly helps with register
 starvation within these comparatively complex parts of the system. These
 registers are set up just before jumping to a word, and saved after it returns.</p>
-<h2 id="keyboard-input">Keyboard input</h2>
+</section><section id="keyboard-input"><h3>Keyboard input</h3>
 <p>After initialization is completed, the code falls through to <code>ReadLine</code>, the
 routine for reading in an input line from the keyboard. We will also jump back
 here later, when the current line of input is exhausted. The input buffer is at
@@ -782,7 +700,7 @@ terminals). I chose to skip that.</p>
 <p>Finally, <a href="http://www.ctyme.com/rbrown.htm">Ralf Brown's Interrupt List</a> mentions that some BIOSes clobber
 BP when the printed character causes the screen to scroll. This does not concern
 us, as we do not use this register at all.</p>
-<h2 id="parsing">Parsing</h2>
+</section><section id="parsing"><h3>Parsing</h3>
 <p>After we read in a line, we need to parse it into words. This is done on demand
 — each word is executed (or compiled, depending on the state), as soon as it is
 parsed. Apart from the interpreter loop, <code>ParseWord</code> is also called by
@@ -860,7 +778,7 @@ after the terminator.</p>
 <code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">    </span><span style="color:#f92672;">mov </span><span style="color:#c9d1d9;">[</span><span style="color:#a6e22e;">InputPtr</span><span style="color:#c9d1d9;">], </span><span style="font-style:italic;color:#fd971f;">si
     </span><span style="color:#f92672;">lodsb
     jmp </span><span style="color:#a6e22e;">short .takeloop
-</span></code></pre><h2 id="dictionary-lookup">Dictionary Lookup</h2>
+</span></code></pre></section><section id="dictionary-lookup"><h3>Dictionary Lookup</h3>
 <p>After a word is parsed, we try to look it up in the dictionary. For each entry,
 we need to compare the length of the name, and if it matches, the name itself.
 By including <code>F_HIDDEN</code> in the mask, we automatically handle hidden entries,
@@ -909,7 +827,7 @@ optimizations.</p>
 <p>This part shows another advantage of not splitting the interpreter into reusable
 chunks — we can easily exit into two different codepaths, based on the result of
 the lookup.</p>
-<h2 id="should-we-execute-it">Should we execute it?</h2>
+</section><section id="should-we-execute-it"><h3>Should we execute it?</h3>
 <p>The system can be in two possible states:</p>
 <ul>
 <li>interpreting — all words should be executed</li>
@@ -945,7 +863,7 @@ idempotent, but this shouldn't matter to well-written code:</p>
 
 </span><span style="color:#a6e22e;">defcode RBRACK</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot;]&quot;
     </span><span style="color:#f92672;">dec </span><span style="color:#66d9ef;">byte</span><span style="color:#c9d1d9;">[</span><span style="color:#a6e22e;">STATE</span><span style="color:#c9d1d9;">]
-</span></code></pre><h2 id="executing-the-word">Executing the word</h2>
+</span></code></pre></section><section id="executing-the-word"><h3>Executing the word</h3>
 <p>If we decided to execute the word, we retrieve <code>BX</code> and <code>DI</code>, and set up <code>SI</code>
 so that <code>NEXT</code> will jump back to <code>.executed</code>:</p>
 <pre style="background-color:#272822;">
@@ -961,7 +879,7 @@ so that <code>NEXT</code> will jump back to <code>.executed</code>:</p>
     </span><span style="color:#f92672;">mov </span><span style="color:#c9d1d9;">[</span><span style="color:#a6e22e;">RetSP</span><span style="color:#c9d1d9;">], </span><span style="font-style:italic;color:#fd971f;">di
     </span><span style="color:#f92672;">push </span><span style="font-style:italic;color:#fd971f;">bx
     </span><span style="color:#f92672;">jmp </span><span style="color:#a6e22e;">short InterpreterLoop
-</span></code></pre><h2 id="handling-numbers">Handling numbers</h2>
+</span></code></pre></section><section id="handling-numbers"><h3>Handling numbers</h3>
 <p>There is no <code>F_IMMEDIATE</code> flag for numbers, so we just need to check the state
 to decide.  It's a simple comparison, but if we're clever enough, you can save a
 byte here. Let's look again at the code that searches the dictionary. What value
@@ -999,7 +917,7 @@ or any immediate bytes:</p>
     </span><span style="color:#f92672;">jnz </span><span style="color:#a6e22e;">short InterpreterLoop
 </span><span style="color:#85817e;">    ; Otherwise, compile the literal.
     ; ...
-</span></code></pre><h2 id="compiling-things">Compiling things</h2>
+</span></code></pre></section><section id="compiling-things"><h3>Compiling things</h3>
 <p>The output pointer for the compilation process is called <code>HERE</code>. It starts out
 just after the decompressed data. The function that writes out a word into this
 area is called <code>COMMA</code>, since the FORTH word that does this is <code>,</code>.</p>
@@ -1063,7 +981,7 @@ Remember how the <code>NEXT</code>s are written out as part of the <code>defcode
 word? One of the words needs to be last in memory, and then it won't have any
 &quot;next word&quot; after it. <code>:</code> and <code>;</code> are perfect candidates for this, since they
 don't need a <code>NEXT</code> at all.</p>
-<h2 id="loading-code-from-disk">Loading code from disk</h2>
+</section><section id="loading-code-from-disk"><h2>Loading code from disk</h2>
 <p>Since we don't want to type in disk routines on every boot, we need to include
 a way to run source code loaded from disk. A filesystem would be its own beast,
 but FORTH tradition has a minimalistic solution: the disk is simply divided
@@ -1157,7 +1075,7 @@ which breaks our template.</p>
     </span><span style="color:#f92672;">jc </span><span style="color:#a6e22e;">short $
     </span><span style="color:#f92672;">popa
     pop </span><span style="font-style:italic;color:#fd971f;">bx
-</span></code></pre><h2 id="printing-numbers">Printing numbers</h2>
+</span></code></pre></section><section id="printing-numbers"><h2>Printing numbers</h2>
 <p><code>u.</code> prints an unsigned number, followed by a space. Since splitting the number
 into digits with division yields the least-significant digit first, we push the
 digits onto the stack, and then pop and print in a separate loop. The space is
@@ -1185,7 +1103,7 @@ it just printed a space.</p>
     </span><span style="color:#f92672;">cmp </span><span style="font-style:italic;color:#fd971f;">al</span><span style="color:#c9d1d9;">, </span><span style="color:#e6db74;">&quot; &quot;
     </span><span style="color:#f92672;">jne </span><span style="color:#a6e22e;">short .print
     </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">bx
-</span></code></pre><h2 id="s-string-poke"><code>s:</code> — string poke</h2>
+</span></code></pre></section><section id="s-string-poke"><h2><code>s:</code> — string poke</h2>
 <p><code>s:</code> is a feature which is, I believe, uniquely relevant to bootstrapping. This
 word takes the address of a buffer, and copies the rest of the current input
 line there. Without this, a significant amount of code would've had to be typed
@@ -1215,7 +1133,7 @@ so that we can return properly. By using <code>xchg</code>, we can preserve it i
 end, we leave a pointer to the null terminator on the stack. That way, you can
 continue the string by just using <code>s:</code> again on the next line. Since we don't
 skip any leading whitespace, this is even guaranteed to be properly spaced.</p>
-<h2 id="other-primitives">Other primitives</h2>
+</section><section id="other-primitives"><h2>Other primitives</h2>
 <p>Choosing the primitives to include in Miniforth is perhaps the biggest tradeoff
 to be made. I am fully expecting that some more primitive words will need to be
 defined at runtime by poking in opcodes. After all, there aren't any branching
@@ -1282,7 +1200,7 @@ of the bootstrap, that I would be comfortable with removing this one if need be.
     </span><span style="color:#f92672;">xchg </span><span style="font-style:italic;color:#fd971f;">bx</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">ax
     </span><span style="color:#f92672;">call </span><span style="color:#a6e22e;">PutChar
     </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">bx
-</span></code></pre><h2 id="conclusion">Conclusion</h2>
+</span></code></pre></section><section id="conclusion"><h2>Conclusion</h2>
 <p>I am pleased with how this turned out. For a system constrained to the boot
 sector, I can pretty much call it feature-complete — I can't think of anything
 that would significantly simplify the bootstrap, while taking few enough bytes
@@ -1351,8 +1269,7 @@ reader</a>.<sup class="footnote-reference"><a href="#exercise">10</a></sup></p>
 a stack effect into a sequence of words that implement it. It's a nice
 problem.</p>
 </div>
-
-</div>
+</section>
 
 <div id="previous-next">
 
@@ -1367,28 +1284,9 @@ problem.</p>
 <div style="clear: both;"></div>
 </div>
 
-<script type="text/javascript">
-    window.addEventListener('load', function() {
-        for (const ref of document.getElementsByClassName('footnote-reference')) {
-            const hash = ref.children[0].hash.substring(1);
-            const refhash = 'ref:' + hash;
-            ref.id = refhash;
-        }
-
-        for (const footnote of document.getElementsByClassName('footnote-definition')) {
-            const hash = footnote.id;
-            const refhash = 'ref:' + hash;
-            const backlink = document.createElement('a');
-            backlink.href = '#' + refhash;
-            backlink.className = 'footnote-backlink';
-            backlink.innerText = '↩';
-            const paras = footnote.children;
-            const lastPara = paras[paras.length - 1];
-            lastPara.appendChild(backlink);
-        }
-    });
-</script>
-
+<noscript>
+    This is where the comments would load if you enabled JavaScript.
+</noscript>
 <script src="https://utteranc.es/client.js"
         repo="NieDzejkob/niedzejkob.p4.team"
         issue-term="pathname"
@@ -1397,19 +1295,123 @@ problem.</p>
         async>
 </script>
 
+            </article>
+            
+
+<nav>
+    <h4>Table of contents</h4>
+    <ul>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#a-primer-on-forth">A primer on FORTH</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#threaded-code">Threaded code</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#the-dictionary">The dictionary</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#compression">Compression</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#variables">Variables?</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#initialization-code">Initialization code</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#the-outer-interpreter">The outer interpreter</a>
+            
+            <ul>
+                
+                    <li>
+                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#keyboard-input">Keyboard input</a>
+                    </li>
+                
+                    <li>
+                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#parsing">Parsing</a>
+                    </li>
+                
+                    <li>
+                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#dictionary-lookup">Dictionary Lookup</a>
+                    </li>
+                
+                    <li>
+                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#should-we-execute-it">Should we execute it?</a>
+                    </li>
+                
+                    <li>
+                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#executing-the-word">Executing the word</a>
+                    </li>
+                
+                    <li>
+                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#handling-numbers">Handling numbers</a>
+                    </li>
+                
+                    <li>
+                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#compiling-things">Compiling things</a>
+                    </li>
+                
+            </ul>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#loading-code-from-disk">Loading code from disk</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#printing-numbers">Printing numbers</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#s-string-poke">s: — string poke</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#other-primitives">Other primitives</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#conclusion">Conclusion</a>
+            
+        </li>
+        
+    </ul>
+</nav>
+
+
         </main>
         <footer>
             <div class="main-column">
                 <span class="social-links" data-license="CC-BY 4.0 https://fontawesome.com/license">
-                    <a href="https://twitter.com/NieDzejkob" target="_blank"><svg width="2rem" height="2rem" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="twitter" class="svg-inline--fa fa-twitter fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"></path></svg>
+                    <a href="https://twitter.com/NieDzejkob" target="_blank"><svg width="32" height="32" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="twitter" class="svg-inline--fa fa-twitter fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"></path></svg>
 </a>
-                    <a href="https://github.com/NieDzejkob" target="_blank"><svg width="2rem" height="2rem" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="github" class="svg-inline--fa fa-github fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentColor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg>
+                    <a href="https://github.com/NieDzejkob" target="_blank"><svg width="32" height="32" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="github" class="svg-inline--fa fa-github fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentColor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg>
 </a>
-                    <a href="https://keybase.io/niedzejkob" target="_blank"><svg width="2rem" height="2rem" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="keybase" class="svg-inline--fa fa-keybase fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentColor" d="M286.17 419a18 18 0 1 0 18 18 18 18 0 0 0-18-18zm111.92-147.6c-9.5-14.62-39.37-52.45-87.26-73.71q-9.1-4.06-18.38-7.27a78.43 78.43 0 0 0-47.88-104.13c-12.41-4.1-23.33-6-32.41-5.77-.6-2-1.89-11 9.4-35L198.66 32l-5.48 7.56c-8.69 12.06-16.92 23.55-24.34 34.89a51 51 0 0 0-8.29-1.25c-41.53-2.45-39-2.33-41.06-2.33-50.61 0-50.75 52.12-50.75 45.88l-2.36 36.68c-1.61 27 19.75 50.21 47.63 51.85l8.93.54a214 214 0 0 0-46.29 35.54C14 304.66 14 374 14 429.77v33.64l23.32-29.8a148.6 148.6 0 0 0 14.56 37.56c5.78 10.13 14.87 9.45 19.64 7.33 4.21-1.87 10-6.92 3.75-20.11a178.29 178.29 0 0 1-15.76-53.13l46.82-59.83-24.66 74.11c58.23-42.4 157.38-61.76 236.25-38.59 34.2 10.05 67.45.69 84.74-23.84.72-1 1.2-2.16 1.85-3.22a156.09 156.09 0 0 1 2.8 28.43c0 23.3-3.69 52.93-14.88 81.64-2.52 6.46 1.76 14.5 8.6 15.74 7.42 1.57 15.33-3.1 18.37-11.15C429 443 434 414 434 382.32c0-38.58-13-77.46-35.91-110.92zM142.37 128.58l-15.7-.93-1.39 21.79 13.13.78a93 93 0 0 0 .32 19.57l-22.38-1.34a12.28 12.28 0 0 1-11.76-12.79L107 119c1-12.17 13.87-11.27 13.26-11.32l29.11 1.73a144.35 144.35 0 0 0-7 19.17zm148.42 172.18a10.51 10.51 0 0 1-14.35-1.39l-9.68-11.49-34.42 27a8.09 8.09 0 0 1-11.13-1.08l-15.78-18.64a7.38 7.38 0 0 1 1.34-10.34l34.57-27.18-14.14-16.74-17.09 13.45a7.75 7.75 0 0 1-10.59-1s-3.72-4.42-3.8-4.53a7.38 7.38 0 0 1 1.37-10.34L214 225.19s-18.51-22-18.6-22.14a9.56 9.56 0 0 1 1.74-13.42 10.38 10.38 0 0 1 14.3 1.37l81.09 96.32a9.58 9.58 0 0 1-1.74 13.44zM187.44 419a18 18 0 1 0 18 18 18 18 0 0 0-18-18z"></path></svg>
+                    <a href="https://keybase.io/niedzejkob" target="_blank"><svg width="32" height="32" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="keybase" class="svg-inline--fa fa-keybase fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentColor" d="M286.17 419a18 18 0 1 0 18 18 18 18 0 0 0-18-18zm111.92-147.6c-9.5-14.62-39.37-52.45-87.26-73.71q-9.1-4.06-18.38-7.27a78.43 78.43 0 0 0-47.88-104.13c-12.41-4.1-23.33-6-32.41-5.77-.6-2-1.89-11 9.4-35L198.66 32l-5.48 7.56c-8.69 12.06-16.92 23.55-24.34 34.89a51 51 0 0 0-8.29-1.25c-41.53-2.45-39-2.33-41.06-2.33-50.61 0-50.75 52.12-50.75 45.88l-2.36 36.68c-1.61 27 19.75 50.21 47.63 51.85l8.93.54a214 214 0 0 0-46.29 35.54C14 304.66 14 374 14 429.77v33.64l23.32-29.8a148.6 148.6 0 0 0 14.56 37.56c5.78 10.13 14.87 9.45 19.64 7.33 4.21-1.87 10-6.92 3.75-20.11a178.29 178.29 0 0 1-15.76-53.13l46.82-59.83-24.66 74.11c58.23-42.4 157.38-61.76 236.25-38.59 34.2 10.05 67.45.69 84.74-23.84.72-1 1.2-2.16 1.85-3.22a156.09 156.09 0 0 1 2.8 28.43c0 23.3-3.69 52.93-14.88 81.64-2.52 6.46 1.76 14.5 8.6 15.74 7.42 1.57 15.33-3.1 18.37-11.15C429 443 434 414 434 382.32c0-38.58-13-77.46-35.91-110.92zM142.37 128.58l-15.7-.93-1.39 21.79 13.13.78a93 93 0 0 0 .32 19.57l-22.38-1.34a12.28 12.28 0 0 1-11.76-12.79L107 119c1-12.17 13.87-11.27 13.26-11.32l29.11 1.73a144.35 144.35 0 0 0-7 19.17zm148.42 172.18a10.51 10.51 0 0 1-14.35-1.39l-9.68-11.49-34.42 27a8.09 8.09 0 0 1-11.13-1.08l-15.78-18.64a7.38 7.38 0 0 1 1.34-10.34l34.57-27.18-14.14-16.74-17.09 13.45a7.75 7.75 0 0 1-10.59-1s-3.72-4.42-3.8-4.53a7.38 7.38 0 0 1 1.37-10.34L214 225.19s-18.51-22-18.6-22.14a9.56 9.56 0 0 1 1.74-13.42 10.38 10.38 0 0 1 14.3 1.37l81.09 96.32a9.58 9.58 0 0 1-1.74 13.44zM187.44 419a18 18 0 1 0 18 18 18 18 0 0 0-18-18z"></path></svg>
 </a>
                 </span>
             </div>
         </footer>
     </body>
+    <script type="text/javascript" src="/enhance.js" async></script>
     <script data-goatcounter="https://niedzejkob.goatcounter.com/count" async src="https://niedzejkob.p4.team/count.js"></script>
 </html>

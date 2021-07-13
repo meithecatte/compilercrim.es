@@ -13,7 +13,8 @@
             <pubDate>Wed, 07 Jul 2021 00:00:00 +0000</pubDate>
             <link>https://niedzejkob.p4.team/rust-np/</link>
             <guid>https://niedzejkob.p4.team/rust-np/</guid>
-            <description>&lt;p&gt;...though it&#x27;s not the flagship borrow checking that&#x27;s at fault.  What I
+            <description>&lt;section&gt;
+&lt;p&gt;...though it&#x27;s not the flagship borrow checking that&#x27;s at fault.  What I
 noticed, and would like to share with you today, is that the exhaustiveness
 checking performed by the Rust compiler on &lt;code&gt;match&lt;&#x2F;code&gt; patterns is a superset of the
 &lt;a href=&quot;https:&#x2F;&#x2F;en.wikipedia.org&#x2F;wiki&#x2F;Boolean_satisfiability_problem&quot;&gt;SAT&lt;&#x2F;a&gt; problem. </description>
@@ -23,7 +24,8 @@ checking performed by the Rust compiler on &lt;code&gt;match&lt;&#x2F;code&gt; p
             <pubDate>Tue, 29 Jun 2021 00:00:00 +0000</pubDate>
             <link>https://niedzejkob.p4.team/bootstrap/asmless/</link>
             <guid>https://niedzejkob.p4.team/bootstrap/asmless/</guid>
-            <description>&lt;p&gt;&lt;a href=&quot;https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;&quot;&gt;Last time,&lt;&#x2F;a&gt; we started from the barebones &lt;a href=&quot;https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;&quot;&gt;Miniforth kernel&lt;&#x2F;a&gt;, and
+            <description>&lt;section&gt;
+&lt;p&gt;&lt;a href=&quot;https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;&quot;&gt;Last time,&lt;&#x2F;a&gt; we started from the barebones &lt;a href=&quot;https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;&quot;&gt;Miniforth kernel&lt;&#x2F;a&gt;, and
 implemented branches by writing additional primitive words in assembly. For
 pragmatic reasons, that is the road I will be pursuing further, but I noticed
 that it is also possible to implement branches in pure Forth. I believe that
@@ -35,7 +37,8 @@ look. </description>
             <pubDate>Tue, 22 Jun 2021 00:00:00 +0000</pubDate>
             <link>https://niedzejkob.p4.team/bootstrap/branches/</link>
             <guid>https://niedzejkob.p4.team/bootstrap/branches/</guid>
-            <description>&lt;p&gt;The set of words available after Miniforth boots is quite bare-bones. One
+            <description>&lt;section&gt;
+&lt;p&gt;The set of words available after Miniforth boots is quite bare-bones. One
 reader even &lt;a href=&quot;https:&#x2F;&#x2F;www.reddit.com&#x2F;r&#x2F;Forth&#x2F;comments&#x2F;nxgg20&#x2F;fitting_a_forth_in_512_bytes&#x2F;h1eq4ok&quot;&gt;claimed&lt;&#x2F;a&gt; that, since there&#x27;s no branches, it is not
 Turing-complete, and therefore not worthy of being called a Forth! Today is the
 day we prove them wrong. </description>
@@ -45,7 +48,8 @@ day we prove them wrong. </description>
             <pubDate>Thu, 10 Jun 2021 00:00:00 +0000</pubDate>
             <link>https://niedzejkob.p4.team/bootstrap/miniforth/</link>
             <guid>https://niedzejkob.p4.team/bootstrap/miniforth/</guid>
-            <description>&lt;p&gt;Software is full of circular dependencies if you look deep enough. Compilers
+            <description>&lt;section&gt;
+&lt;p&gt;Software is full of circular dependencies if you look deep enough. Compilers
 written in the language they compile are the most obvious example, but not the
 only one. To compile a kernel, you need a running kernel. Linkers, build
 systems, shells.  Even text editors, if you want to write the code instead of

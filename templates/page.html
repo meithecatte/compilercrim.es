@@ -14,22 +14,8 @@
 {{ macros::part_of_series(series=get_section(path=page.ancestors[1])) }}
 {% endif %}
 
-<div>
-{% if page.toc %}
-<div id="toc">
-    <h4>Table of contents</h4>
-    <ul>
-        {% for h1 in page.toc %}
-        <li>
-            <a href="{{ h1.permalink }}">{{ h1.title }}</a>
-        </li>
-        {% endfor %}
-    </ul>
-</div>
-{% endif %}
 
 {{ page.content | safe }}
-</div>
 
 <div id="previous-next">
 {% if page.earlier %}
@@ -49,28 +35,9 @@
 <div style="clear: both;"></div>
 </div>
 
-<script type="text/javascript">
-    window.addEventListener('load', function() {
-        for (const ref of document.getElementsByClassName('footnote-reference')) {
-            const hash = ref.children[0].hash.substring(1);
-            const refhash = 'ref:' + hash;
-            ref.id = refhash;
-        }
-
-        for (const footnote of document.getElementsByClassName('footnote-definition')) {
-            const hash = footnote.id;
-            const refhash = 'ref:' + hash;
-            const backlink = document.createElement('a');
-            backlink.href = '#' + refhash;
-            backlink.className = 'footnote-backlink';
-            backlink.innerText = '↩';
-            const paras = footnote.children;
-            const lastPara = paras[paras.length - 1];
-            lastPara.appendChild(backlink);
-        }
-    });
-</script>
-
+<noscript>
+    This is where the comments would load if you enabled JavaScript.
+</noscript>
 <script src="https://utteranc.es/client.js"
         repo="NieDzejkob/niedzejkob.p4.team"
         issue-term="pathname"
@@ -79,3 +46,27 @@
         async>
 </script>
 {% endblock content %}
+
+{% block toc %}
+{% if page.toc %}
+<nav>
+    <h4>Table of contents</h4>
+    <ul>
+        {% for h1 in page.toc %}
+        <li>
+            <a href="{{ h1.permalink }}">{{ h1.title }}</a>
+            {% if h1.children %}
+            <ul>
+                {% for h2 in h1.children %}
+                    <li>
+                        <a href="{{ h2.permalink }}">{{ h2.title }}</a>
+                    </li>
+                {% endfor %}
+            </ul>
+            {% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

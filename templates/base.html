@@ -14,7 +14,7 @@
     {% endif %}
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
         <title>{{ title }}</title>
         <link rel="stylesheet" href="{{ get_url(path="/style.css") }}?cachebust=2"/>
         <link rel="icon" href="{{ get_url(path="/icon.png") }}"/>
@@ -40,7 +40,10 @@
             </div>
         </header>
         <main>
-            {% block content %} {% endblock %}
+            <article>
+                {% block content %} {% endblock %}
+            </article>
+            {% block toc %} {% endblock %}
         </main>
         <footer>
             <div class="main-column">
@@ -52,5 +55,6 @@
             </div>
         </footer>
     </body>
+    <script type="text/javascript" src="/enhance.js" async></script>
     <script data-goatcounter="https://niedzejkob.goatcounter.com/count" async src="{{ get_url(path="/count.js") }}"></script>
 </html>

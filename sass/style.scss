@@ -1,6 +1,11 @@
+$main-width: 50rem;
+$toc-width: 15rem;
+$phone-width-threshold: 30rem;
+
 * {
     --line-color: #ebedef;
     --shaded: #f8f8f8;
+    --inactive-color: #808e90;
 }
 
 *, ::before, ::after {
@@ -26,18 +31,24 @@ body {
     line-height: 1.5;
 }
 
-main {
+article {
     font-weight: 400;
 }
 
-main, .main-column {
-    max-width: 50rem;
-    margin: 0 auto;
+article {
+    max-width: $main-width;
     padding: 0 0.3rem;
 }
 
+.main-column {
+    padding: 0 0.4rem;
+}
+
 main {
-    padding: 0 0.6rem;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: flex-start;
 }
 
 header, footer {
@@ -182,7 +193,7 @@ ul {
     font-size: 1.2rem;
 }
 
-h2 {
+h2, h3 {
     font-size: 1.8rem;
     font-weight: 400;
     padding-bottom: 0.5rem;
@@ -238,21 +249,44 @@ code {
     line-height: 1.125;
 }
 
-#toc {
-    float: right;
-    clear: right;
-    width: 35%;
-    margin-right: calc(-35% - 1rem);
-    position: sticky;
-    top: 1rem;
+nav {
     background: var(--shaded);
     padding: 1rem;
+    position: sticky;
+    top: 1rem;
+    margin-left: 1rem;
+    margin-right: 1rem;
     max-height: calc(100vh - 2rem);
+    min-width: $toc-width;
     overflow-y: auto;
 
     ul {
         margin-bottom: 0;
         margin-left: 1rem;
+        list-style: none;
+    }
+
+    a {
+        text-decoration: none;
+        color: var(--inactive-color);
+    }
+
+    a:hover, li.active > a {
+        color: inherit;
+    }
+}
+
+@media(max-width: 68rem) {
+    nav {
+        display: none;
+    }
+
+    main {
+        display: block;
+    }
+
+    article {
+        margin: 0 auto;
     }
 }
 
@@ -269,20 +303,20 @@ code {
     margin-left: 0.3rem;
 }
 
-.inset, main img:not([src*=".svg"]) {
+.inset, article img:not([src*=".svg"]) {
     margin: 0 3rem;
     max-width: calc(100% - 6rem);
 
-    @media (max-width: 30rem) {
+    @media (max-width: $phone-width-threshold) {
         margin: 0 1rem;
         max-width: calc(100% - 2rem);
     }
 }
 
-main img[src*=".svg"] {
+article img[src*=".svg"] {
     margin: 0 2rem;
 
-    @media (max-width: 30rem) {
+    @media (max-width: $phone-width-threshold) {
         margin: 0 1rem;
     }
 }

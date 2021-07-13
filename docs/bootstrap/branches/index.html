@@ -8,7 +8,7 @@
     
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
         <title>No branches? No problem — a Forth assembler</title>
         <link rel="stylesheet" href="https://niedzejkob.p4.team/style.css?cachebust=2"/>
         <link rel="icon" href="https://niedzejkob.p4.team/icon.png"/>
@@ -19,7 +19,8 @@
 
         <meta property="og:title" content="No branches? No problem — a Forth assembler">
         
-            <meta property="og:description" content="The set of words available after Miniforth boots is quite bare-bones. One
+            <meta property="og:description" content="
+The set of words available after Miniforth boots is quite bare-bones. One
 reader even claimed that, since there&#x27;s no branches, it is not
 Turing-complete, and therefore not worthy of being called a Forth! Today is the
 day we prove them wrong. ">
@@ -37,7 +38,8 @@ day we prove them wrong. ">
             </div>
         </header>
         <main>
-            
+            <article>
+                
 <h1 class="title">
   No branches? No problem — a Forth assembler
 </h1>
@@ -52,91 +54,15 @@ June 22, 2021
 <div class="series-info">
   This article is part of the <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;">Bootstrapping</a>
   
-    series, in which I start from a 512-byte seed and try to bootstrap back
-into a comfortable environment.
+    series, in which I start from a 512-byte seed and try to bootstrap a
+practical system.
   
 </div>
 
 
 
-<div>
 
-<div id="toc">
-    <h4>Table of contents</h4>
-    <ul>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#s-the-workflow">s: — the workflow</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#system-variables">System variables</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#custom-variables">Custom variables</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#improving-on-s">Improving on s:</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#forth-style-assemblers">Forth-style assemblers</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#x86-instruction-encoding">x86 instruction encoding</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#modr-m">ModR&#x2F;M</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#disk-i-o">Disk I&#x2F;O</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#precautions">Precautions</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#jumps">Jumps</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#branches">Branches</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#control-flow">Control flow</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#comparisons">Comparisons</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#yay-loops-what-now">Yay, loops! What now?</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#parsing">Parsing</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#bare-metal">Bare metal</a>
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#what-s-next">What&#x27;s next?</a>
-        </li>
-        
-    </ul>
-</div>
-
-
+<section>
 <p>The set of words available after Miniforth boots is quite bare-bones. One
 reader even <a href="https://www.reddit.com/r/Forth/comments/nxgg20/fitting_a_forth_in_512_bytes/h1eq4ok">claimed</a> that, since there's no branches, it is not
 Turing-complete, and therefore not worthy of being called a Forth! Today is the
@@ -174,7 +100,7 @@ performance in the name of purity. For reference and easy experimentation, the
 code from this post is <a href="https://github.com/NieDzejkob/miniforth/tree/post2">available on GitHub</a>. When explaining the code,
 I'll sometimes add comments, but since we didn't implement any comment
 handling yet, they aren't actually there in the code.</p>
-<h2 id="s-the-workflow"><code>s:</code> — the workflow</h2>
+</section><section id="s-the-workflow"><h2><code>s:</code> — the workflow</h2>
 <p>I've decided to keep my source code at address <code>1000</code>, in the space between the
 parameter and return stacks. The first thing we'll need is a way of running the
 code we put there. The <code>InputPtr</code> is defined to be at <code>A02</code>, so let's define
@@ -197,7 +123,7 @@ of the buffer with <code>u.</code>, and then <code>run</code> the new code from 
 buffer address. At first, it's important that the buffer address is not left at
 the top of the stack, as Miniforth boots up <a href="https://niedzejkob.p4.team/bootstrap/miniforth/#variables">with the addresses of the built-in
 system variables on the stack</a>, and we will want to access those.</p>
-<h2 id="system-variables">System variables</h2>
+</section><section id="system-variables"><h2>System variables</h2>
 <p>In fact, almost everything we want to do requires these variables, so let's take
 care of that first — having to dig into the stack every time you need one of
 these variables is unworkable. The stack starts out like this:</p>
@@ -262,7 +188,7 @@ did for <code>dp</code>:</p>
 <p>I'm calling it <code>st</code> instead of <code>state</code>, because <code>state</code> should be a cell-sized
 variable where true means compiling, and <code>st</code> is a byte-sized variable where
 true means interpreting.</p>
-<h2 id="custom-variables">Custom variables</h2>
+</section><section id="custom-variables"><h2>Custom variables</h2>
 <p>If you're in the mood for mischief, you can create variables out of thin air by
 simply mentioning them. The lack of error checking will turn them into a number,
 essentially giving you a random address. For example, <code>srcpos u.</code> outputs
@@ -301,7 +227,7 @@ each of <code>LIT</code>, the actual value, and <code>EXIT</code>.</p>
 <p><code>variable</code>, then, simply <code>allot</code>s one cell:</p>
 <pre style="background-color:#272822;">
 <code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">variable </span><span style="color:#c9d1d9;">create </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">cells allot </span><span style="color:#f92672;">;
-</span></code></pre><h2 id="improving-on-s">Improving on <code>s:</code></h2>
+</span></code></pre></section><section id="improving-on-s"><h2>Improving on <code>s:</code></h2>
 <p>So far, the pointers passed to <code>s:</code> and <code>run</code> have had to be managed manually. It's
 a simple process, though, so let's automate it. <code>srcpos</code> will contain the
 current end of the buffer, and <code>checkpoint</code> will point at the part that hasn't
@@ -333,7 +259,7 @@ our buffer can be directly written into blocks.</li>
 </span></code></pre>
 <p>This line is not written to disk, as the exact address is not going to be useful
 after a reboot.</p>
-<h2 id="forth-style-assemblers">Forth-style assemblers</h2>
+</section><section id="forth-style-assemblers"><h2>Forth-style assemblers</h2>
 <p>The usual syntax of assembly looks like this:</p>
 <pre style="background-color:#272822;">
 <code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">    </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">ax</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#fd971f;">bx
@@ -357,7 +283,7 @@ limitation of Forth assemblers. Usually, nothing prevents building in more
 smarts into these words to pick the right variant based on the operands
 automatically. However, in this particular case, we don't have any branching
 words (as they are our goal 😄).</p>
-<h2 id="x86-instruction-encoding">x86 instruction encoding</h2>
+</section><section id="x86-instruction-encoding"><h2>x86 instruction encoding</h2>
 <p>The simplest to encode are the instructions that don't take any arguments. For
 example,</p>
 <pre style="background-color:#272822;">
@@ -406,7 +332,7 @@ hardware design, but no hard facts.</p>
 : </span><span style="color:#a6e22e;">decw, </span><span style="color:#ae81ff;">48 </span><span style="color:#c9d1d9;">+ c, </span><span style="color:#f92672;">;
 : </span><span style="color:#a6e22e;">push, </span><span style="color:#ae81ff;">50 </span><span style="color:#c9d1d9;">+ c, </span><span style="color:#f92672;">;
 : </span><span style="color:#a6e22e;">pop,  </span><span style="color:#ae81ff;">58 </span><span style="color:#c9d1d9;">+ c, </span><span style="color:#f92672;">;
-</span></code></pre><h2 id="modr-m">ModR/M</h2>
+</span></code></pre></section><section id="modr-m"><h2>ModR/M</h2>
 <p>The most complex instructions we'll have to deal with make use of the <em>ModR/M</em>
 byte. This is the encoding mechanism responsible for instructions like <code>add ax, [bx+si+16]</code>, but also ones as simple as <code>mov ax, bx</code>.</p>
 <p>The opcode itself specifies a pattern, such as <code>mov r16, r/m16</code>. In this case,
@@ -517,7 +443,7 @@ assembler macro.</p>
 of <code>1+</code>:</p>
 <pre style="background-color:#272822;">
 <code class="language-fth" data-lang="fth"><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">1+ </span><span style="color:#c9d1d9;">bx incw, next,
-</span></code></pre><h2 id="disk-i-o">Disk I/O</h2>
+</span></code></pre></section><section id="disk-i-o"><h2>Disk I/O</h2>
 <p>This is actually enough to write our work to disk. Just like the implementation
 of <code>load</code>, we'll need to create a disk address packet, and then call <code>int 0x13</code>.
 One primitive word can serve for both reading and writing, as the only
@@ -556,7 +482,7 @@ write — we do, so I've set it to <code>0x02</code>.</p>
 <pre style="background-color:#272822;">
 <code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">read-block </span><span style="color:#c9d1d9;">make-packet </span><span style="color:#ae81ff;">4200 </span><span style="color:#c9d1d9;">int13 </span><span style="color:#f92672;">;
 : </span><span style="color:#a6e22e;">write-block </span><span style="color:#c9d1d9;">make-packet </span><span style="color:#ae81ff;">4302 </span><span style="color:#c9d1d9;">int13 </span><span style="color:#f92672;">;
-</span></code></pre><h2 id="precautions">Precautions</h2>
+</span></code></pre></section><section id="precautions"><h2>Precautions</h2>
 <p>It would be nice to verify that our new code was assembled correctly before
 running it. Ideally, we'd write a little hexdump utility, but we still don't
 have any way to loop. There is a way around that, though — just type in the word
@@ -581,7 +507,7 @@ attempting a write, to make sure that providing the LBA is working properly.
 Thankfully, this particular bug was purely hypothetical.</p>
 <p>I also wrote the same data to blocks 0x101 and 0x102. That way, I can recover if I
 ever break booting from the usual block numbers.</p>
-<h2 id="jumps">Jumps</h2>
+</section><section id="jumps"><h2>Jumps</h2>
 <p>Before we tackle implementing branches, we'll need one more instruction — the
 conditional jump. On x86, the jump offsets are encoded as a signed value
 relative to the current instruction pointer. There are different encodings for
@@ -621,7 +547,7 @@ me, so I didn't feel the need to define both names.</p>
 <code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">jb, </span><span style="color:#ae81ff;">72 </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">;  </span><span style="color:#c9d1d9;">; jc, </span><span style="color:#ae81ff;">72 </span><span style="color:#c9d1d9;">c, ;  ; jae, </span><span style="color:#ae81ff;">73 </span><span style="color:#c9d1d9;">c, ;  ; jnc, </span><span style="color:#ae81ff;">73 </span><span style="color:#c9d1d9;">c, ;
 </span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">jz, </span><span style="color:#ae81ff;">74 </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">;  </span><span style="color:#c9d1d9;">; jnz, </span><span style="color:#ae81ff;">75 </span><span style="color:#c9d1d9;">c, ;  ; jbe, </span><span style="color:#ae81ff;">76 </span><span style="color:#c9d1d9;">c, ;  ; ja, </span><span style="color:#ae81ff;">77 </span><span style="color:#c9d1d9;">c, ;
 </span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">jl, </span><span style="color:#ae81ff;">7C </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">;  </span><span style="color:#c9d1d9;">; jge, </span><span style="color:#ae81ff;">7D </span><span style="color:#c9d1d9;">c, ;  ; jle, </span><span style="color:#ae81ff;">7E </span><span style="color:#c9d1d9;">c, ;  ; jg, </span><span style="color:#ae81ff;">7F </span><span style="color:#c9d1d9;">c, ;
-</span></code></pre><h2 id="branches">Branches</h2>
+</span></code></pre></section><section id="branches"><h2>Branches</h2>
 <p>When compiled into a definition, branches look like this:</p>
 <p><img src="https://niedzejkob.p4.team/bootstrap/branches/branches.svg" alt="Diagram demonstrates the compilation strategy for an if-else structure. IF compiles to two cells, where the first one is (0branch), and the second one is the jump target, which points just after the ELSE. Before that jump target, ELSE introduces an unconditional (branch) to the position of THEN." /></p>
 <p>By convention, words that get compiled into a definition but aren't used
@@ -656,7 +582,7 @@ isn't relative to the current position:</p>
 : </span><span style="color:#a6e22e;">&gt;br </span><span style="color:#c9d1d9;">here swap ! </span><span style="color:#f92672;">;
 : </span><span style="color:#a6e22e;">br&lt; </span><span style="color:#c9d1d9;">here </span><span style="color:#f92672;">;
 : </span><span style="color:#a6e22e;">&lt;br </span><span style="color:#c9d1d9;">, </span><span style="color:#f92672;">;
-</span></code></pre><h2 id="control-flow">Control flow</h2>
+</span></code></pre></section><section id="control-flow"><h2>Control flow</h2>
 <p>To make the logic that compiles <code>if</code>s actually run at compile time, we need to
 mark these words as immediate. To do that, we use <code>immediate</code>, which sets the
 immediate flag of the most recently compiled word:</p>
@@ -707,7 +633,7 @@ condition is in the middle of the loop:</p>
 : </span><span style="color:#a6e22e;">repeat </span><span style="color:#85817e;">( fwdjmp backjmp -- )
   </span><span style="color:#c9d1d9;">compile (branch) &lt;br &gt;br
 </span><span style="color:#f92672;">; immediate
-</span></code></pre><h2 id="comparisons">Comparisons</h2>
+</span></code></pre></section><section id="comparisons"><h2>Comparisons</h2>
 <p>Branching is not that useful without any way to compare things. One common concern
 among all comparison words is turning a processor flag into a Forth boolean.
 Recall that, in Forth, booleans have all bits either set or unset:</p>
@@ -750,7 +676,7 @@ of purely logical operators — the bitwise ones work just fine.</p>
 </span><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">and </span><span style="color:#c9d1d9;">ax pop, ax bx andw-rr, next,
 </span><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">xor </span><span style="color:#c9d1d9;">ax pop, ax bx xorw-rr, next,
 </span><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">invert </span><span style="color:#c9d1d9;">bx notw-r, next,
-</span></code></pre><h2 id="yay-loops-what-now">Yay, loops! What now?</h2>
+</span></code></pre></section><section id="yay-loops-what-now"><h2>Yay, loops! What now?</h2>
 <p>So far, many words that could improve the workflow of editing the code in memory
 just weren't possible to define, as they inherently use a loop. This changes
 now. Firstly, let's define <code>type</code>, which prints a string:</p>
@@ -922,7 +848,7 @@ vocabularies.<sup class="footnote-reference"><a href="#vocab">7</a></sup></p>
   drop
 </span><span style="color:#f92672;">;
 : </span><span style="color:#a6e22e;">words </span><span style="color:#c9d1d9;">latest @ words-in </span><span style="color:#f92672;">;
-</span></code></pre><h2 id="parsing">Parsing</h2>
+</span></code></pre></section><section id="parsing"><h2>Parsing</h2>
 <p>I will eventually need to replace the codegolfed outer interpreter with one
 written in Forth. This will let me add things like proper handling of undefined
 words, the familiar <code>ok</code> prompt, but also vocabularies and exception
@@ -983,7 +909,7 @@ following token — we can use this as character literals.</p>
 the result.</p>
 <pre style="background-color:#272822;">
 <code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">( </span><span style="color:#e6db74;">[char] ) </span><span style="color:#c9d1d9;">parse 2drop </span><span style="color:#f92672;">; immediate
-</span></code></pre><h2 id="bare-metal">Bare metal</h2>
+</span></code></pre></section><section id="bare-metal"><h2>Bare metal</h2>
 <p>Once the Miniforth bootsector was ready, I decided to do all my development and
 testing on a bare metal computer. All in all, I don't regret this decision, but
 getting to the point where I could save code on disk did take a few tries. I did
@@ -1020,7 +946,7 @@ getting the code over doesn't take long.</p>
 into a line per definition. Thanks to Python's <code>difflib</code>, it even preserves any
 formatting adjustments made manually when extracting an updated version of a
 block.</p>
-<h2 id="what-s-next">What's next?</h2>
+</section><section id="what-s-next"><h2>What's next?</h2>
 <p>Now that we have branches, many things become available as the potential next
 step. One important goal is to write a text editor, but some other improvements
 to our Forth will probably have to come first.</p>
@@ -1073,8 +999,7 @@ handler for exceptions that aren't caught. There's probably a way to make this
 particular aspect work without a new outer interpreter, but the other benefits
 are still there, so there isn't much point trying to figure this out.</p>
 </div>
-
-</div>
+</section>
 
 <div id="previous-next">
 
@@ -1094,28 +1019,9 @@ are still there, so there isn't much point trying to figure this out.</p>
 <div style="clear: both;"></div>
 </div>
 
-<script type="text/javascript">
-    window.addEventListener('load', function() {
-        for (const ref of document.getElementsByClassName('footnote-reference')) {
-            const hash = ref.children[0].hash.substring(1);
-            const refhash = 'ref:' + hash;
-            ref.id = refhash;
-        }
-
-        for (const footnote of document.getElementsByClassName('footnote-definition')) {
-            const hash = footnote.id;
-            const refhash = 'ref:' + hash;
-            const backlink = document.createElement('a');
-            backlink.href = '#' + refhash;
-            backlink.className = 'footnote-backlink';
-            backlink.innerText = '↩';
-            const paras = footnote.children;
-            const lastPara = paras[paras.length - 1];
-            lastPara.appendChild(backlink);
-        }
-    });
-</script>
-
+<noscript>
+    This is where the comments would load if you enabled JavaScript.
+</noscript>
 <script src="https://utteranc.es/client.js"
         repo="NieDzejkob/niedzejkob.p4.team"
         issue-term="pathname"
@@ -1124,19 +1030,116 @@ are still there, so there isn't much point trying to figure this out.</p>
         async>
 </script>
 
+            </article>
+            
+
+<nav>
+    <h4>Table of contents</h4>
+    <ul>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#s-the-workflow">s: — the workflow</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#system-variables">System variables</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#custom-variables">Custom variables</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#improving-on-s">Improving on s:</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#forth-style-assemblers">Forth-style assemblers</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#x86-instruction-encoding">x86 instruction encoding</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#modr-m">ModR&#x2F;M</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#disk-i-o">Disk I&#x2F;O</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#precautions">Precautions</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#jumps">Jumps</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#branches">Branches</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#control-flow">Control flow</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#comparisons">Comparisons</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#yay-loops-what-now">Yay, loops! What now?</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#parsing">Parsing</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#bare-metal">Bare metal</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#what-s-next">What&#x27;s next?</a>
+            
+        </li>
+        
+    </ul>
+</nav>
+
+
         </main>
         <footer>
             <div class="main-column">
                 <span class="social-links" data-license="CC-BY 4.0 https://fontawesome.com/license">
-                    <a href="https://twitter.com/NieDzejkob" target="_blank"><svg width="2rem" height="2rem" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="twitter" class="svg-inline--fa fa-twitter fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"></path></svg>
+                    <a href="https://twitter.com/NieDzejkob" target="_blank"><svg width="32" height="32" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="twitter" class="svg-inline--fa fa-twitter fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><path fill="currentColor" d="M459.37 151.716c.325 4.548.325 9.097.325 13.645 0 138.72-105.583 298.558-298.558 298.558-59.452 0-114.68-17.219-161.137-47.106 8.447.974 16.568 1.299 25.34 1.299 49.055 0 94.213-16.568 130.274-44.832-46.132-.975-84.792-31.188-98.112-72.772 6.498.974 12.995 1.624 19.818 1.624 9.421 0 18.843-1.3 27.614-3.573-48.081-9.747-84.143-51.98-84.143-102.985v-1.299c13.969 7.797 30.214 12.67 47.431 13.319-28.264-18.843-46.781-51.005-46.781-87.391 0-19.492 5.197-37.36 14.294-52.954 51.655 63.675 129.3 105.258 216.365 109.807-1.624-7.797-2.599-15.918-2.599-24.04 0-57.828 46.782-104.934 104.934-104.934 30.213 0 57.502 12.67 76.67 33.137 23.715-4.548 46.456-13.32 66.599-25.34-7.798 24.366-24.366 44.833-46.132 57.827 21.117-2.273 41.584-8.122 60.426-16.243-14.292 20.791-32.161 39.308-52.628 54.253z"></path></svg>
 </a>
-                    <a href="https://github.com/NieDzejkob" target="_blank"><svg width="2rem" height="2rem" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="github" class="svg-inline--fa fa-github fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentColor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg>
+                    <a href="https://github.com/NieDzejkob" target="_blank"><svg width="32" height="32" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="github" class="svg-inline--fa fa-github fa-w-16" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 496 512"><path fill="currentColor" d="M165.9 397.4c0 2-2.3 3.6-5.2 3.6-3.3.3-5.6-1.3-5.6-3.6 0-2 2.3-3.6 5.2-3.6 3-.3 5.6 1.3 5.6 3.6zm-31.1-4.5c-.7 2 1.3 4.3 4.3 4.9 2.6 1 5.6 0 6.2-2s-1.3-4.3-4.3-5.2c-2.6-.7-5.5.3-6.2 2.3zm44.2-1.7c-2.9.7-4.9 2.6-4.6 4.9.3 2 2.9 3.3 5.9 2.6 2.9-.7 4.9-2.6 4.6-4.6-.3-1.9-3-3.2-5.9-2.9zM244.8 8C106.1 8 0 113.3 0 252c0 110.9 69.8 205.8 169.5 239.2 12.8 2.3 17.3-5.6 17.3-12.1 0-6.2-.3-40.4-.3-61.4 0 0-70 15-84.7-29.8 0 0-11.4-29.1-27.8-36.6 0 0-22.9-15.7 1.6-15.4 0 0 24.9 2 38.6 25.8 21.9 38.6 58.6 27.5 72.9 20.9 2.3-16 8.8-27.1 16-33.7-55.9-6.2-112.3-14.3-112.3-110.5 0-27.5 7.6-41.3 23.6-58.9-2.6-6.5-11.1-33.3 2.6-67.9 20.9-6.5 69 27 69 27 20-5.6 41.5-8.5 62.8-8.5s42.8 2.9 62.8 8.5c0 0 48.1-33.6 69-27 13.7 34.7 5.2 61.4 2.6 67.9 16 17.7 25.8 31.5 25.8 58.9 0 96.5-58.9 104.2-114.8 110.5 9.2 7.9 17 22.9 17 46.4 0 33.7-.3 75.4-.3 83.6 0 6.5 4.6 14.4 17.3 12.1C428.2 457.8 496 362.9 496 252 496 113.3 383.5 8 244.8 8zM97.2 352.9c-1.3 1-1 3.3.7 5.2 1.6 1.6 3.9 2.3 5.2 1 1.3-1 1-3.3-.7-5.2-1.6-1.6-3.9-2.3-5.2-1zm-10.8-8.1c-.7 1.3.3 2.9 2.3 3.9 1.6 1 3.6.7 4.3-.7.7-1.3-.3-2.9-2.3-3.9-2-.6-3.6-.3-4.3.7zm32.4 35.6c-1.6 1.3-1 4.3 1.3 6.2 2.3 2.3 5.2 2.6 6.5 1 1.3-1.3.7-4.3-1.3-6.2-2.2-2.3-5.2-2.6-6.5-1zm-11.4-14.7c-1.6 1-1.6 3.6 0 5.9 1.6 2.3 4.3 3.3 5.6 2.3 1.6-1.3 1.6-3.9 0-6.2-1.4-2.3-4-3.3-5.6-2z"></path></svg>
 </a>
-                    <a href="https://keybase.io/niedzejkob" target="_blank"><svg width="2rem" height="2rem" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="keybase" class="svg-inline--fa fa-keybase fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentColor" d="M286.17 419a18 18 0 1 0 18 18 18 18 0 0 0-18-18zm111.92-147.6c-9.5-14.62-39.37-52.45-87.26-73.71q-9.1-4.06-18.38-7.27a78.43 78.43 0 0 0-47.88-104.13c-12.41-4.1-23.33-6-32.41-5.77-.6-2-1.89-11 9.4-35L198.66 32l-5.48 7.56c-8.69 12.06-16.92 23.55-24.34 34.89a51 51 0 0 0-8.29-1.25c-41.53-2.45-39-2.33-41.06-2.33-50.61 0-50.75 52.12-50.75 45.88l-2.36 36.68c-1.61 27 19.75 50.21 47.63 51.85l8.93.54a214 214 0 0 0-46.29 35.54C14 304.66 14 374 14 429.77v33.64l23.32-29.8a148.6 148.6 0 0 0 14.56 37.56c5.78 10.13 14.87 9.45 19.64 7.33 4.21-1.87 10-6.92 3.75-20.11a178.29 178.29 0 0 1-15.76-53.13l46.82-59.83-24.66 74.11c58.23-42.4 157.38-61.76 236.25-38.59 34.2 10.05 67.45.69 84.74-23.84.72-1 1.2-2.16 1.85-3.22a156.09 156.09 0 0 1 2.8 28.43c0 23.3-3.69 52.93-14.88 81.64-2.52 6.46 1.76 14.5 8.6 15.74 7.42 1.57 15.33-3.1 18.37-11.15C429 443 434 414 434 382.32c0-38.58-13-77.46-35.91-110.92zM142.37 128.58l-15.7-.93-1.39 21.79 13.13.78a93 93 0 0 0 .32 19.57l-22.38-1.34a12.28 12.28 0 0 1-11.76-12.79L107 119c1-12.17 13.87-11.27 13.26-11.32l29.11 1.73a144.35 144.35 0 0 0-7 19.17zm148.42 172.18a10.51 10.51 0 0 1-14.35-1.39l-9.68-11.49-34.42 27a8.09 8.09 0 0 1-11.13-1.08l-15.78-18.64a7.38 7.38 0 0 1 1.34-10.34l34.57-27.18-14.14-16.74-17.09 13.45a7.75 7.75 0 0 1-10.59-1s-3.72-4.42-3.8-4.53a7.38 7.38 0 0 1 1.37-10.34L214 225.19s-18.51-22-18.6-22.14a9.56 9.56 0 0 1 1.74-13.42 10.38 10.38 0 0 1 14.3 1.37l81.09 96.32a9.58 9.58 0 0 1-1.74 13.44zM187.44 419a18 18 0 1 0 18 18 18 18 0 0 0-18-18z"></path></svg>
+                    <a href="https://keybase.io/niedzejkob" target="_blank"><svg width="32" height="32" aria-hidden="true" focusable="false" data-prefix="fab" data-icon="keybase" class="svg-inline--fa fa-keybase fa-w-14" role="img" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><path fill="currentColor" d="M286.17 419a18 18 0 1 0 18 18 18 18 0 0 0-18-18zm111.92-147.6c-9.5-14.62-39.37-52.45-87.26-73.71q-9.1-4.06-18.38-7.27a78.43 78.43 0 0 0-47.88-104.13c-12.41-4.1-23.33-6-32.41-5.77-.6-2-1.89-11 9.4-35L198.66 32l-5.48 7.56c-8.69 12.06-16.92 23.55-24.34 34.89a51 51 0 0 0-8.29-1.25c-41.53-2.45-39-2.33-41.06-2.33-50.61 0-50.75 52.12-50.75 45.88l-2.36 36.68c-1.61 27 19.75 50.21 47.63 51.85l8.93.54a214 214 0 0 0-46.29 35.54C14 304.66 14 374 14 429.77v33.64l23.32-29.8a148.6 148.6 0 0 0 14.56 37.56c5.78 10.13 14.87 9.45 19.64 7.33 4.21-1.87 10-6.92 3.75-20.11a178.29 178.29 0 0 1-15.76-53.13l46.82-59.83-24.66 74.11c58.23-42.4 157.38-61.76 236.25-38.59 34.2 10.05 67.45.69 84.74-23.84.72-1 1.2-2.16 1.85-3.22a156.09 156.09 0 0 1 2.8 28.43c0 23.3-3.69 52.93-14.88 81.64-2.52 6.46 1.76 14.5 8.6 15.74 7.42 1.57 15.33-3.1 18.37-11.15C429 443 434 414 434 382.32c0-38.58-13-77.46-35.91-110.92zM142.37 128.58l-15.7-.93-1.39 21.79 13.13.78a93 93 0 0 0 .32 19.57l-22.38-1.34a12.28 12.28 0 0 1-11.76-12.79L107 119c1-12.17 13.87-11.27 13.26-11.32l29.11 1.73a144.35 144.35 0 0 0-7 19.17zm148.42 172.18a10.51 10.51 0 0 1-14.35-1.39l-9.68-11.49-34.42 27a8.09 8.09 0 0 1-11.13-1.08l-15.78-18.64a7.38 7.38 0 0 1 1.34-10.34l34.57-27.18-14.14-16.74-17.09 13.45a7.75 7.75 0 0 1-10.59-1s-3.72-4.42-3.8-4.53a7.38 7.38 0 0 1 1.37-10.34L214 225.19s-18.51-22-18.6-22.14a9.56 9.56 0 0 1 1.74-13.42 10.38 10.38 0 0 1 14.3 1.37l81.09 96.32a9.58 9.58 0 0 1-1.74 13.44zM187.44 419a18 18 0 1 0 18 18 18 18 0 0 0-18-18z"></path></svg>
 </a>
                 </span>
             </div>
         </footer>
     </body>
+    <script type="text/javascript" src="/enhance.js" async></script>
     <script data-goatcounter="https://niedzejkob.goatcounter.com/count" async src="https://niedzejkob.p4.team/count.js"></script>
 </html>

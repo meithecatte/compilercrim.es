@@ -255,7 +255,7 @@ LIT:
 
 ## The dictionary
 
-FORTH needs a way to locate the implementation of the words the user types in.
+We need a way to locate the implementation of the words the user types in.
 This is the role of the *dictionary*. I use a structure similar to many other
 small-scale FORTHs — a singly linked list of word headers, directly prepended
 before the code of each word. Out of tradition, the head of the list is kept
@@ -676,7 +676,7 @@ the outer interpreter is executing. This significantly helps with register
 starvation within these comparatively complex parts of the system. These
 registers are set up just before jumping to a word, and saved after it returns.
 
-## Keyboard input
+### Keyboard input
 
 After initialization is completed, the code falls through to `ReadLine`, the
 routine for reading in an input line from the keyboard. We will also jump back
@@ -744,7 +744,7 @@ Finally, [Ralf Brown's Interrupt List][RBIL] mentions that some BIOSes clobber
 BP when the printed character causes the screen to scroll. This does not concern
 us, as we do not use this register at all.
 
-## Parsing
+### Parsing
 
 After we read in a line, we need to parse it into words. This is done on demand
 — each word is executed (or compiled, depending on the state), as soon as it is
@@ -839,7 +839,7 @@ after the terminator.
     jmp short .takeloop
 ```
 
-## Dictionary Lookup
+### Dictionary Lookup
 
 After a word is parsed, we try to look it up in the dictionary. For each entry,
 we need to compare the length of the name, and if it matches, the name itself.
@@ -892,7 +892,7 @@ This part shows another advantage of not splitting the interpreter into reusable
 chunks — we can easily exit into two different codepaths, based on the result of
 the lookup.
 
-## Should we execute it?
+### Should we execute it?
 
 The system can be in two possible states:
  - interpreting — all words should be executed
@@ -935,7 +935,7 @@ defcode RBRACK, "]"
     dec byte[STATE]
 ```
 
-## Executing the word
+### Executing the word
 
 If we decided to execute the word, we retrieve `BX` and `DI`, and set up `SI`
 so that `NEXT` will jump back to `.executed`:
@@ -955,7 +955,7 @@ RetSP equ $+1
     jmp short InterpreterLoop
 ```
 
-## Handling numbers
+### Handling numbers
 
 There is no `F_IMMEDIATE` flag for numbers, so we just need to check the state
 to decide.  It's a simple comparison, but if we're clever enough, you can save a
@@ -999,7 +999,7 @@ or any immediate bytes:
     ; ...
 ```
 
-## Compiling things
+### Compiling things
 
 The output pointer for the compilation process is called `HERE`. It starts out
 just after the decompressed data. The function that writes out a word into this
