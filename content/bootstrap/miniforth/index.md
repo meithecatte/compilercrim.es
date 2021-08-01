@@ -345,7 +345,7 @@ eats the instructions we want to jump over. That is, instead of
 
 you write
 
-```asm
+```lst
 3c      db 0x3c ; skip the stosb below by comparing its opcode with AL
     .write:
 aa      stosb
@@ -452,6 +452,8 @@ SENTINEL = SPECIAL_BYTE + b'\xef\xbe\xad\xde'
 with open('raw.bin', 'rb') as f:
     data = f.read()
 
+# Recognize the reserved space by an arbitrary, but relatively large threshold
+# of 20 repeated \xcc bytes.
 output_offset = data.index(b'\xcc' * 20)
 chunks = data[output_offset:].lstrip(b'\xcc').split(SENTINEL)
 

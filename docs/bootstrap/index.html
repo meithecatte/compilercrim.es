@@ -10,7 +10,7 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
         <title>Bootstrapping</title>
-        <link rel="stylesheet" href="https://niedzejkob.p4.team/style.css?0"/>
+        <link rel="stylesheet" href="https://niedzejkob.p4.team/style.css?1"/>
         <link rel="icon" href="https://niedzejkob.p4.team/icon.png"/>
         <link rel="canonical" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;"/>
         <link rel="alternate" type="application/rss+xml" title="NieDżejkob&#x27;s ramblings" href="/rss.xml">
@@ -50,11 +50,10 @@ in progress
 
 </p>
 
-<section>
 <p>What if all software suddenly disappeared? What's the minimum
 you'd need to bootstrap a practical system? I decided to start
 with a one sector (512-byte) seed and find out how far I can get.</p>
-</section>
+
 
 
   
@@ -66,8 +65,7 @@ June 10, 2021
 &middot; 39 minute read
 </p>
 
-  <section>
-<p>Software is full of circular dependencies if you look deep enough. Compilers
+  <p>Software is full of circular dependencies if you look deep enough. Compilers
 written in the language they compile are the most obvious example, but not the
 only one. To compile a kernel, you need a running kernel. Linkers, build
 systems, shells.  Even text editors, if you want to write the code instead of
@@ -87,8 +85,7 @@ June 22, 2021
 &middot; 36 minute read
 </p>
 
-  <section>
-<p>The set of words available after Miniforth boots is quite bare-bones. One
+  <p>The set of words available after Miniforth boots is quite bare-bones. One
 reader even <a href="https://www.reddit.com/r/Forth/comments/nxgg20/fitting_a_forth_in_512_bytes/h1eq4ok">claimed</a> that, since there's no branches, it is not
 Turing-complete, and therefore not worthy of being called a Forth! Today is the
 day we prove them wrong. 
@@ -103,8 +100,7 @@ June 29, 2021
 &middot; 8 minute read
 </p>
 
-  <section>
-<p><a href="https://niedzejkob.p4.team/bootstrap/branches/">Last time,</a> we started from the barebones <a href="https://niedzejkob.p4.team/bootstrap/miniforth/">Miniforth kernel</a>, and
+  <p><a href="https://niedzejkob.p4.team/bootstrap/branches/">Last time,</a> we started from the barebones <a href="https://niedzejkob.p4.team/bootstrap/miniforth/">Miniforth kernel</a>, and
 implemented branches by writing additional primitive words in assembly. For
 pragmatic reasons, that is the road I will be pursuing further, but I noticed
 that it is also possible to implement branches in pure Forth. I believe that

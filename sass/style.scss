@@ -257,7 +257,7 @@ nav {
     margin-left: 1rem;
     margin-right: 1rem;
     max-height: calc(100vh - 2rem);
-    min-width: $toc-width;
+    width: $toc-width;
     overflow-y: auto;
 
     ul {

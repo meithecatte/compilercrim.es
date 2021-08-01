@@ -9,7 +9,7 @@ variables:
   word_begin: '(?<=^|\s)'
   word_end: '(?=\s|$)'
   word: '\S+'
-  word_declaration: (?i)constant|variable|value|create|vocabulary|defer|:code
+  word_declaration: (?i)constant|variable|value|create|vocabulary|defer|:code|end-exception|str|uint
 
 contexts:
   prototype:
@@ -35,6 +35,8 @@ contexts:
     - match: '{{word_begin}}\]{{word_end}}'
       scope: keyword
     - match: '{{word_begin}}immediate{{word_end}}'
+      scope: keyword
+    - match: '{{word_begin}}exception{{word_end}}'
       scope: keyword
 
   match-comment:
