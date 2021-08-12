@@ -149,21 +149,33 @@ table {
     }
 }
 
-#previous-article, #next-article {
+.previous-article, .next-article, #get-notified {
     background: var(--shaded);
     padding: 1rem;
     display: block;
     margin: 0.5rem;
 }
 
-#previous-article {
+#get-notified h1 {
+    font-size: 1.6rem;
+    font-weight: normal;
+}
+
+.previous-article {
     float: left;
     margin-left: 0;
 }
 
-#next-article {
+.next-article {
     float: right;
     margin-right: 0;
+}
+
+.series-info .previous-next {
+    .previous-article, .next-article {
+        padding: 0;
+        padding-top: 1rem;
+    }
 }
 
 pre {

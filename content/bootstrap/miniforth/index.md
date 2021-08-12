@@ -1349,18 +1349,17 @@ that would significantly simplify the bootstrap, while taking few enough bytes
 that it seems remotely within the reach of code golf. This is largely thanks to
 Ilya Kurdyukov's help — without it, I wouldn't have been able to fit `s:` in.
 
-I've found an old PC I can use for my experiments. It boots Miniforth just fine:
+I've found an old PC I can use for my experiments. It boots Miniforth just fine,
+so I'll be using it from now on.[^future]
 
 ![A photo of the corner of a monitor. We see the calculation "6969 4242 100 + +
 u-dot", which results in "ACAB". Then the "1 load" command is issued, to which the
 system describes "Hello, world!"](./hardware.jpg)
 
-I will be documenting my journey of building upon Miniforth in future posts on
-this blog. If that sounds like your cup of tea (and it probably does if you've
-read this far), consider subscribing to the RSS feed or [following me on
-Twitter][twitter-me] to get notified about new posts. Also, if you feel like
-this work is worth a dollar or two, [I accept tips][tipjar]&nbsp;:slightly_smiling_face:
+If you'd like to see how to bootstrap on top of Miniforth's minimal set of
+primitives, see the [next post in this series][next].
 
+{{ get_notified() }}
 
 ---
 
@@ -1406,6 +1405,9 @@ this work is worth a dollar or two, [I accept tips][tipjar]&nbsp;:slightly_smili
   is fair game, though. Proving this fact is left as [an exercise to the
   reader][reader-exercise].[^exercise]
 
+[^future]: A note from the future: I've since switched to dual-booting it on my
+  laptop.
+
 [^exercise]: Seriously though, try to devise an infallible strategy for turning
   a stack effect into a sequence of words that implement it. It's a nice
   problem.
@@ -1431,4 +1433,4 @@ this work is worth a dollar or two, [I accept tips][tipjar]&nbsp;:slightly_smili
 [BDA]: https://www.matrix-bios.nl/system/bda.html
 [RBIL]: http://www.ctyme.com/rbrown.htm
 [reader-exercise]: https://abstrusegoose.com/12
-[tipjar]: https://github.com/sponsors/NieDzejkob
+[next]: @/bootstrap/branches/index.md

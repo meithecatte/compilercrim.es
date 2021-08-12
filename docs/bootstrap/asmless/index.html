@@ -47,7 +47,7 @@ look. ">
 
 <p class="page-metadata">
 June 29, 2021
-&middot; 8 minute read
+&middot; 7 minute read
 </p>
 
 
@@ -58,6 +58,25 @@ June 29, 2021
     series, in which I start from a 512-byte seed and try to bootstrap a
 practical system.
   
+  
+<div class="previous-next">
+
+<div class="previous-article">
+    Previous post:<br>
+    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;">No branches? No problem — a Forth assembler</a>
+</div>
+
+
+
+<div class="next-article">
+    Next post:<br>
+    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;">How Forth implements exceptions</a>
+</div>
+
+
+<div style="clear: both;"></div>
+</div>
+
 </div>
 
 
@@ -93,9 +112,9 @@ followed by the branch target's address:</p>
 return stack to repoint the return address:</p>
 <pre style="background-color:#272822;">
 <code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">(branch)
-  </span><span style="color:#c9d1d9;">r&gt;  </span><span style="color:#85817e;">\ pop the return address, which points at the cell containing jump target
-  </span><span style="color:#c9d1d9;">@   </span><span style="color:#85817e;">\ fetch the jump target
-  </span><span style="color:#c9d1d9;">&gt;r  </span><span style="color:#85817e;">\ make it the new return address
+  </span><span style="font-style:italic;color:#36a9df;">r&gt;  </span><span style="color:#85817e;">\ pop the return address, which points at the cell containing jump target
+  </span><span style="color:#ffd866;">@   </span><span style="color:#85817e;">\ fetch the jump target
+  </span><span style="font-style:italic;color:#36a9df;">&gt;r  </span><span style="color:#85817e;">\ make it the new return address
 </span><span style="color:#f92672;">;
 </span></code></pre></section><section id="choosing-between-values"><h2>Choosing between values</h2>
 <p>Clearly, the difficulty in a conditional branch boils down to choosing between
@@ -106,10 +125,10 @@ boolean flag to decide between a value of our choice and 0.<sup class="footnote-
 absolute address. In this case, the implementation would look like this:</p>
 <pre style="background-color:#272822;">
 <code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">(0branch)
-  </span><span style="color:#c9d1d9;">0=              </span><span style="color:#85817e;">( should-jump )
-  </span><span style="color:#c9d1d9;">r&gt; dup cell+    </span><span style="color:#85817e;">( should-jump addr-of-offset retaddr-if-false )
-  </span><span style="color:#c9d1d9;">&gt;r @ and r&gt;     </span><span style="color:#85817e;">( offset|0 retaddr-if-false )
-  </span><span style="color:#c9d1d9;">+ &gt;r
+  </span><span style="color:#e6db74;">0=              </span><span style="color:#85817e;">( should-jump )
+  </span><span style="font-style:italic;color:#36a9df;">r&gt; </span><span style="color:#66d9ef;">dup </span><span style="color:#c9d1d9;">cell+    </span><span style="color:#85817e;">( should-jump addr-of-offset retaddr-if-false )
+  </span><span style="font-style:italic;color:#36a9df;">&gt;r </span><span style="color:#ffd866;">@ </span><span style="color:#e6db74;">and </span><span style="font-style:italic;color:#36a9df;">r&gt;     </span><span style="color:#85817e;">( offset|0 retaddr-if-false )
+  </span><span style="color:#e6db74;">+ </span><span style="font-style:italic;color:#36a9df;">&gt;r
 </span><span style="color:#f92672;">;
 </span></code></pre>
 <p>Sadly, we don't have <code>and</code> or <code>0=</code>. However, this is still a useful starting
@@ -121,15 +140,15 @@ computing what we need bit by bit, and shifting in the result:</p>
 <p><img src="https://niedzejkob.p4.team/bootstrap/asmless/shifting.svg" alt="" /></p>
 <p>Shifting left is easy enough, as that's just multiplication by two:</p>
 <pre style="background-color:#272822;">
-<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">2* </span><span style="color:#c9d1d9;">dup + </span><span style="color:#f92672;">;
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">2* </span><span style="color:#66d9ef;">dup </span><span style="color:#e6db74;">+ </span><span style="color:#f92672;">;
 </span></code></pre>
 <p>However, getting a bit to the least-significant position is trickier. If we
 leverage a memory access, though, we can extract the higher byte of a
 value:<sup class="footnote-reference"><a href="#little-endian">4</a></sup></p>
 <pre style="background-color:#272822;">
 <code class="language-fth" data-lang="fth"><span style="color:#f92672;">variable </span><span style="color:#a6e22e;">x
-</span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">lobyte </span><span style="color:#c9d1d9;">x ! x c@ </span><span style="color:#f92672;">;
-: </span><span style="color:#a6e22e;">hibyte </span><span style="color:#c9d1d9;">x ! x </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">+ c@ </span><span style="color:#f92672;">;
+</span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">lobyte </span><span style="color:#c9d1d9;">x </span><span style="color:#ffd866;">! </span><span style="color:#c9d1d9;">x </span><span style="color:#ffd866;">c@ </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">hibyte </span><span style="color:#c9d1d9;">x </span><span style="color:#ffd866;">! </span><span style="color:#c9d1d9;">x </span><span style="color:#ae81ff;">1 </span><span style="color:#e6db74;">+ </span><span style="color:#ffd866;">c@ </span><span style="color:#f92672;">;
 </span></code></pre>
 <p>This is essentially an 8-bit right shift. Let's use this to check if a number is
 zero. We'd need to OR all the bits together, but we don't have <code>or</code> either.
@@ -137,17 +156,17 @@ Addition is somewhat similar, though, so let's count the bits in a value.</p>
 <p><code>s ( c v -- c' v' )</code> handles one iteration of the &quot;loop&quot; — it will shift out a
 bit out of the 8-bit wide value <code>v</code>, and add it to the counter <code>c</code>.</p>
 <pre style="background-color:#272822;">
-<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">s </span><span style="color:#c9d1d9;">2* dup &gt;r hibyte + r&gt; lobyte </span><span style="color:#f92672;">;
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">s </span><span style="color:#c9d1d9;">2* </span><span style="color:#66d9ef;">dup </span><span style="font-style:italic;color:#36a9df;">&gt;r </span><span style="color:#c9d1d9;">hibyte </span><span style="color:#e6db74;">+ </span><span style="font-style:italic;color:#36a9df;">r&gt; </span><span style="color:#c9d1d9;">lobyte </span><span style="color:#f92672;">;
 </span></code></pre>
 <p>Running this 8 times will count the bits in a byte, so that's what <code>nb</code>
 (<code>n</code>umber of <code>b</code>its) does:</p>
 <pre style="background-color:#272822;">
-<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">nb </span><span style="color:#ae81ff;">0 </span><span style="color:#c9d1d9;">swap s s s s s s s s drop </span><span style="color:#f92672;">;
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">nb </span><span style="color:#ae81ff;">0 </span><span style="color:#66d9ef;">swap </span><span style="color:#c9d1d9;">s s s s s s s s </span><span style="color:#66d9ef;">drop </span><span style="color:#f92672;">;
 </span></code></pre>
 <p><code>nbw</code> (<code>n</code>umber of <code>b</code>its in a <code>w</code>ord) does the same for a full 16-bit value, by
 invoking <code>nb</code> on each half:</p>
 <pre style="background-color:#272822;">
-<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">nbw </span><span style="color:#c9d1d9;">dup hibyte nb swap lobyte nb + </span><span style="color:#f92672;">;
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">nbw </span><span style="color:#66d9ef;">dup </span><span style="color:#c9d1d9;">hibyte nb </span><span style="color:#66d9ef;">swap </span><span style="color:#c9d1d9;">lobyte nb </span><span style="color:#e6db74;">+ </span><span style="color:#f92672;">;
 </span></code></pre>
 <p>How do we turn this into a comparison with zero? We iterate <code>nb</code> a few times:</p>
 <ul>
@@ -166,10 +185,10 @@ array called the <code>b</code>ranch <code>b</code>uffer:</p>
 <pre style="background-color:#272822;">
 <code class="language-fth" data-lang="fth"><span style="color:#f92672;">create </span><span style="color:#a6e22e;">bb </span><span style="color:#ae81ff;">2 </span><span style="color:#c9d1d9;">cells allot
 </span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">(0branch)
-  </span><span style="color:#c9d1d9;">r&gt; dup              </span><span style="color:#85817e;">\ two copies
-  </span><span style="color:#c9d1d9;">@ bb !              </span><span style="color:#85817e;">\ bb[0] = return address if 0 on the stack
-  </span><span style="color:#c9d1d9;">cell+ bb cell+ !    </span><span style="color:#85817e;">\ bb[1] = return address if something else on the stack
-  </span><span style="color:#c9d1d9;">1bit cells bb + @ &gt;r
+  </span><span style="font-style:italic;color:#36a9df;">r&gt; </span><span style="color:#66d9ef;">dup              </span><span style="color:#85817e;">\ two copies
+  </span><span style="color:#ffd866;">@ </span><span style="color:#c9d1d9;">bb </span><span style="color:#ffd866;">!              </span><span style="color:#85817e;">\ bb[0] = return address if 0 on the stack
+  </span><span style="color:#c9d1d9;">cell+ bb cell+ </span><span style="color:#ffd866;">!    </span><span style="color:#85817e;">\ bb[1] = return address if something else on the stack
+  </span><span style="color:#c9d1d9;">1bit cells bb </span><span style="color:#e6db74;">+ </span><span style="color:#ffd866;">@ </span><span style="font-style:italic;color:#36a9df;">&gt;r
 </span><span style="color:#f92672;">;
 </span></code></pre></section><section id="other-solutions-a-time-memory-tradeoff"><h2>Other solutions: a time-memory tradeoff</h2>
 <p>While elegant, our solution is quite inefficient, executing thousands of
@@ -180,13 +199,13 @@ better.</p>
 have any way to loop, we'll need to repeat things manually. Since 255 = 3 × 5
 × 17, it could look like this:</p>
 <pre style="background-color:#272822;">
-<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">x </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">c, </span><span style="color:#f92672;">;      </span><span style="color:#85817e;">\ write 1 one
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">x </span><span style="color:#ae81ff;">1 </span><span style="color:#ffd866;">c, </span><span style="color:#f92672;">;      </span><span style="color:#85817e;">\ write 1 one
 </span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">y </span><span style="color:#c9d1d9;">x x x </span><span style="color:#f92672;">;     </span><span style="color:#85817e;">\ write 3 ones
 </span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">z </span><span style="color:#c9d1d9;">y y y y y </span><span style="color:#f92672;">; </span><span style="color:#85817e;">\ write 15 ones
-</span><span style="color:#f92672;">create </span><span style="color:#a6e22e;">tab </span><span style="color:#ae81ff;">0 </span><span style="color:#c9d1d9;">c,
-z z z z z z z z z z z z z z z z z     </span><span style="color:#85817e;">\ 17 times
-</span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">1bit-half </span><span style="color:#c9d1d9;">tab + c@ </span><span style="color:#f92672;">;
-: </span><span style="color:#a6e22e;">1bit </span><span style="color:#c9d1d9;">dup hibyte 1bit-half swap lobyte 1bit-half + 1bit-half </span><span style="color:#f92672;">;
+</span><span style="color:#f92672;">create </span><span style="color:#a6e22e;">tab </span><span style="color:#ae81ff;">0 </span><span style="color:#ffd866;">c,
+</span><span style="color:#c9d1d9;">z z z z z z z z z z z z z z z z z     </span><span style="color:#85817e;">\ 17 times
+</span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">1bit-half </span><span style="color:#c9d1d9;">tab </span><span style="color:#e6db74;">+ </span><span style="color:#ffd866;">c@ </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">1bit </span><span style="color:#66d9ef;">dup </span><span style="color:#c9d1d9;">hibyte 1bit-half </span><span style="color:#66d9ef;">swap </span><span style="color:#c9d1d9;">lobyte 1bit-half </span><span style="color:#e6db74;">+ </span><span style="color:#c9d1d9;">1bit-half </span><span style="color:#f92672;">;
 </span></code></pre></section><section id="is-that-all"><h2>Is that all?</h2>
 <p>Yup, we're done. The <a href="https://github.com/NieDzejkob/miniforth/blob/purity/block2.fth">rest of the code</a> needed to define <code>if</code>, <code>then</code>,
 and other control-flow words looks exactly like in the previous post.</p>
@@ -198,9 +217,14 @@ control structure, and that's all <a href="https://esolangs.org/wiki/Brainfuck">
 artificially limiting my usage of assembly. Next on our agenda, we've got
 Forth's exception handling mechanisms, and how to extend them for better error
 messages than the bare minimum usually encountered in Forth.</p>
-<p>If this is your first time here and this journey of bootstrapping sounds
-interesting, you can subscribe to the RSS feed or <a href="https://twitter.com/NieDzejkob">follow me on
-Twitter</a> to get notified of future posts. See you next time!</p>
+<div id="get-notified">
+    <h1>Enjoyed this article?</h1>
+    <p>You might like my <a href="/">other posts</a>, too. If you'd like to be notified
+    of new ones, you can <a href="https://twitter.com/NieDzejkob">follow me on Twitter</a>
+    or subscribe to the <a href="/rss.xml">RSS feed</a>.</p>
+    <p>Please consider
+    <a href="https://github.com/sponsors/NieDzejkob">supporting my work</a>.</p>
+</div>
 <hr />
 <div class="footnote-definition" id="kernel"><sup class="footnote-definition-label">1</sup>
 <p>The word &quot;kernel&quot; is used here in the language implementation sense,
@@ -235,18 +259,24 @@ fully formal definition that captures what we usually mean by
 </div>
 </section>
 
-<div id="previous-next">
+<div class="previous-next">
 
-<div id="previous-article">
+<div class="previous-article">
     Previous post:<br>
     <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;">No branches? No problem — a Forth assembler</a>
 </div>
 
 
 
+<div class="next-article">
+    Next post:<br>
+    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;">How Forth implements exceptions</a>
+</div>
+
 
 <div style="clear: both;"></div>
 </div>
+
 
 <noscript>
     This is where the comments would load if you enabled JavaScript.

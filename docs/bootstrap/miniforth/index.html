@@ -61,6 +61,20 @@ June 10, 2021
     series, in which I start from a 512-byte seed and try to bootstrap a
 practical system.
   
+  
+<div class="previous-next">
+
+
+
+<div class="next-article">
+    Next post:<br>
+    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;">No branches? No problem — a Forth assembler</a>
+</div>
+
+
+<div style="clear: both;"></div>
+</div>
+
 </div>
 
 
@@ -156,8 +170,8 @@ now, as they can be built on top of Miniforth later on.</p>
 <p>To talk about the effect a word has on the state of the stack, we use a notation
 like this:</p>
 <pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#c9d1d9;">dup </span><span style="color:#85817e;">( a -- a a )
-</span><span style="color:#c9d1d9;">swap </span><span style="color:#85817e;">( a b -- b a )
+<code class="language-forth" data-lang="forth"><span style="color:#66d9ef;">dup </span><span style="color:#85817e;">( a -- a a )
+</span><span style="color:#66d9ef;">swap </span><span style="color:#85817e;">( a b -- b a )
 </span></code></pre>
 <p>The list before the <code>--</code> are the inputs, with the top of stack listed last.
 After the <code>--</code>, we list the outputs, which start at the same stack depth.
@@ -853,7 +867,7 @@ just jump to <code>[</code> and <code>]</code> — words that allow to temporari
 interpreted mode while compiling a word. The typical usecase is to eagerly
 calculate the value of a constant expression:</p>
 <pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">third-foo </span><span style="color:#f92672;">[ </span><span style="color:#c9d1d9;">foos </span><span style="color:#ae81ff;">3 </span><span style="color:#c9d1d9;">cells + </span><span style="color:#f92672;">] </span><span style="color:#c9d1d9;">literal @ </span><span style="color:#f92672;">;
+<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">third-foo </span><span style="color:#f92672;">[ </span><span style="color:#c9d1d9;">foos </span><span style="color:#ae81ff;">3 </span><span style="color:#c9d1d9;">cells </span><span style="color:#e6db74;">+ </span><span style="color:#f92672;">] </span><span style="color:#c9d1d9;">literal </span><span style="color:#ffd866;">@ </span><span style="color:#f92672;">;
 </span></code></pre>
 <p>Since the two values of <code>STATE</code> differ only by 1, we can switch between them
 with <code>inc</code> and <code>dec</code>. This has the disadvantage that they are no longer
@@ -1207,13 +1221,19 @@ sector, I can pretty much call it feature-complete — I can't think of anything
 that would significantly simplify the bootstrap, while taking few enough bytes
 that it seems remotely within the reach of code golf. This is largely thanks to
 Ilya Kurdyukov's help — without it, I wouldn't have been able to fit <code>s:</code> in.</p>
-<p>I've found an old PC I can use for my experiments. It boots Miniforth just fine:</p>
+<p>I've found an old PC I can use for my experiments. It boots Miniforth just fine,
+so I'll be using it from now on.<sup class="footnote-reference"><a href="#future">10</a></sup></p>
 <p><img src="./hardware.jpg" alt="A photo of the corner of a monitor. We see the calculation &quot;6969 4242 100 + + u-dot&quot;, which results in &quot;ACAB&quot;. Then the &quot;1 load&quot; command is issued, to which the system describes &quot;Hello, world!&quot;" /></p>
-<p>I will be documenting my journey of building upon Miniforth in future posts on
-this blog. If that sounds like your cup of tea (and it probably does if you've
-read this far), consider subscribing to the RSS feed or <a href="https://twitter.com/NieDzejkob">following me on
-Twitter</a> to get notified about new posts. Also, if you feel like
-this work is worth a dollar or two, <a href="https://github.com/sponsors/NieDzejkob">I accept tips</a> 🙂</p>
+<p>If you'd like to see how to bootstrap on top of Miniforth's minimal set of
+primitives, see the <a href="https://niedzejkob.p4.team/bootstrap/branches/">next post in this series</a>.</p>
+<div id="get-notified">
+    <h1>Enjoyed this article?</h1>
+    <p>You might like my <a href="/">other posts</a>, too. If you'd like to be notified
+    of new ones, you can <a href="https://twitter.com/NieDzejkob">follow me on Twitter</a>
+    or subscribe to the <a href="/rss.xml">RSS feed</a>.</p>
+    <p>Please consider
+    <a href="https://github.com/sponsors/NieDzejkob">supporting my work</a>.</p>
+</div>
 <hr />
 <div class="footnote-definition" id="cycle"><sup class="footnote-definition-label">1</sup>
 <p>A graph theorist would have many strong words to describe this,
@@ -1263,20 +1283,24 @@ uses <code>div word[BASE]</code>, so that the result is still 16-bit.</p>
 <p>This does not include words like <code>PICK</code> — you would need
 loops for that. Anything definable as <code>( &lt;list of names&gt; -- &lt;list of names&gt; )</code>
 is fair game, though. Proving this fact is left as <a href="https://abstrusegoose.com/12">an exercise to the
-reader</a>.<sup class="footnote-reference"><a href="#exercise">10</a></sup></p>
+reader</a>.<sup class="footnote-reference"><a href="#exercise">11</a></sup></p>
 </div>
-<div class="footnote-definition" id="exercise"><sup class="footnote-definition-label">10</sup>
+<div class="footnote-definition" id="future"><sup class="footnote-definition-label">10</sup>
+<p>A note from the future: I've since switched to dual-booting it on my
+laptop.</p>
+</div>
+<div class="footnote-definition" id="exercise"><sup class="footnote-definition-label">11</sup>
 <p>Seriously though, try to devise an infallible strategy for turning
 a stack effect into a sequence of words that implement it. It's a nice
 problem.</p>
 </div>
 </section>
 
-<div id="previous-next">
+<div class="previous-next">
 
 
 
-<div id="next-article">
+<div class="next-article">
     Next post:<br>
     <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;">No branches? No problem — a Forth assembler</a>
 </div>
@@ -1284,6 +1308,7 @@ problem.</p>
 
 <div style="clear: both;"></div>
 </div>
+
 
 <noscript>
     This is where the comments would load if you enabled JavaScript.

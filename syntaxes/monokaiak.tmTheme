@@ -42,7 +42,7 @@
 			<key>name</key>
 			<string>String</string>
 			<key>scope</key>
-			<string>string</string>
+			<string>string, punctuation.definition.string</string>
 			<key>settings</key>
 			<dict>
 				<key>foreground</key>
@@ -219,6 +219,45 @@
 				<string></string>
 				<key>foreground</key>
 				<string>#66D9EF</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>name</key>
+			<string>Return stack manipulation</string>
+			<key>scope</key>
+			<string>support.function.forth.rstack</string>
+			<key>settings</key>
+			<dict>
+				<key>fontStyle</key>
+				<string>italic</string>
+				<key>foreground</key>
+				<string>#36A9DF</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>name</key>
+			<string>Memory access</string>
+			<key>scope</key>
+			<string>support.function.forth.memory</string>
+			<key>settings</key>
+			<dict>
+				<key>fontStyle</key>
+				<string></string>
+				<key>foreground</key>
+				<string>#FFD866</string>
+			</dict>
+		</dict>
+		<dict>
+			<key>name</key>
+			<string>Arithmetic</string>
+			<key>scope</key>
+			<string>support.function.forth.arith</string>
+			<key>settings</key>
+			<dict>
+				<key>fontStyle</key>
+				<string></string>
+				<key>foreground</key>
+				<string>#E6DB74</string>
 			</dict>
 		</dict>
 		<dict>

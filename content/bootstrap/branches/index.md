@@ -55,7 +55,7 @@ code we put there. The `InputPtr` is defined to be at `A02`, so let's define
 `run`, which pokes a value of our choice at that address:
 
 ```forth
-: >in A02 ;  ; run >in ! ;
+: >in A02 ;  : run >in ! ;
 ```
 
 `>in` is a traditional name for the input buffer pointer, so I went with
@@ -63,7 +63,7 @@ that.[^to-in] To make sure it is also available on subsequent boots, I save this
 piece of code in memory:
 
 ```forth
-1000 s: : >in A02 ;  ; run >in ! ;
+1000 s: : >in A02 ;  : run >in ! ;
 ```
 
 This is a good time to peek at the current pointer to the source buffer, with
@@ -1190,11 +1190,9 @@ any merit to limiting yourself like that, but it *is* an interesting problem.
 I'll explain my solution in a week's time, along with any substantially
 different ones found by readers like you. I've created a [separate discussion
 thread][asmless-discussion] for this problem, so please keep any spoilers out of
-the comments below the article.
+the comments below the article :slightly_smiling_face:
 
-If you'd like to be notified of my future posts, consider subscribing to the RSS
-feed or [following me on Twitter][twitter]. Also, if you feel like this work is
-worth a dollar or two, [I accept tips][tipjar]&nbsp;:slightly_smiling_face:
+{{ get_notified() }}
 
 ---
 

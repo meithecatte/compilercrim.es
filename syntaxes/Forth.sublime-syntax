@@ -10,6 +10,7 @@ variables:
   word_end: '(?=\s|$)'
   word: '\S+'
   word_declaration: (?i)constant|variable|value|create|vocabulary|defer|:code|end-exception|str|uint
+  word_keyword: "(?i)\\[\'\\]|\\[|\\]|immediate|exception|if|else|then|begin|until|again|while|repeat|case|endcase|of|endof"
 
 contexts:
   prototype:
@@ -22,6 +23,8 @@ contexts:
     - include: definition
 
   definition:
+    - include: match-postpone
+    - include: match-stack
     - include: match-number
     - include: match-string
     - include: match-import
@@ -29,14 +32,24 @@ contexts:
     - include: match-keywords
     - include: match-any-word
 
+  match-postpone:
+    - match: "{{word_begin}}(postpone|compile|\'|\\[\'\\]|\\[throw\\]){{word_end}}\\s+({{word}})"
+      captures:
+        1: keyword
+        2: variable.parameter.forth
+
+  match-stack:
+    - match: '{{word_begin}}(dup|swap|drop|over|2dup|2drop|nip|tuck|rot){{word_end}}'
+      scope: support.function.forth
+    - match: '{{word_begin}}(>r|r>|r@|rdrop|2r>|2>r){{word_end}}'
+      scope: support.function.forth.rstack
+    - match: '{{word_begin}}(@|!|c@|c!|2@|2!|,|c,){{word_end}}'
+      scope: support.function.forth.memory
+    - match: '{{word_begin}}(\+|-|\*|and|or|invert|negate|xor|0=|0<>|0<|0<=|0>|0>=|=|<>|u<|u<=|u>|u>=|<|<=|>|>=){{word_end}}'
+      scope: support.function.forth.arith
+
   match-keywords:
-    - match: '{{word_begin}}\[{{word_end}}'
-      scope: keyword
-    - match: '{{word_begin}}\]{{word_end}}'
-      scope: keyword
-    - match: '{{word_begin}}immediate{{word_end}}'
-      scope: keyword
-    - match: '{{word_begin}}exception{{word_end}}'
+    - match: '{{word_begin}}({{word_keyword}}){{word_end}}'
       scope: keyword
 
   match-comment:
@@ -66,6 +79,12 @@ contexts:
   # but we just assume that most users aren't that crazy.
   match-number:
     - match: '{{word_begin}}[0-9A-F]+{{word_end}}'
+      scope: constant.numeric.decimal.forth
+    - match: '{{word_begin}}\$[0-9A-Fa-f]+{{word_end}}'
+      scope: constant.numeric.decimal.forth
+    - match: '{{word_begin}}#[0-9]+{{word_end}}'
+      scope: constant.numeric.decimal.forth
+    - match: '{{word_begin}}%[01]+{{word_end}}'
       scope: constant.numeric.decimal.forth
 
   match-string:

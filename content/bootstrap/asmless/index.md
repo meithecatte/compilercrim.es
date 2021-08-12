@@ -185,9 +185,7 @@ artificially limiting my usage of assembly. Next on our agenda, we've got
 Forth's exception handling mechanisms, and how to extend them for better error
 messages than the bare minimum usually encountered in Forth.
 
-If this is your first time here and this journey of bootstrapping sounds
-interesting, you can subscribe to the RSS feed or [follow me on
-Twitter][twitter] to get notified of future posts. See you next time!
+{{ get_notified() }}
 
 ---
 
@@ -228,3 +226,4 @@ Twitter][twitter] to get notified of future posts. See you next time!
 [mov]: https://www.youtube.com/watch?v=R7EEoWg6Ekk
 [twitter]: https://twitter.com/NieDzejkob
 [block2]: https://github.com/NieDzejkob/miniforth/blob/purity/block2.fth
+[rss]: /rss.xml

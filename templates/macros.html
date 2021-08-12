@@ -48,5 +48,26 @@ completed
   {% else %}
     series.
   {% endif %}
+  {{ macros::series_nav(page=page) }}
+</div>
+{% endmacro %}
+
+{% macro series_nav(page) %}
+<div class="previous-next">
+{% if page.earlier %}
+<div class="previous-article">
+    Previous post:<br>
+    <a href="{{ page.earlier.permalink }}">{{ page.earlier.title }}</a>
+</div>
+{% endif %}
+
+{% if page.later %}
+<div class="next-article">
+    Next post:<br>
+    <a href="{{ page.later.permalink }}">{{ page.later.title }}</a>
+</div>
+{% endif %}
+
+<div style="clear: both;"></div>
 </div>
 {% endmacro %}
