@@ -365,3 +365,4 @@ exception bubbles up to the top-level. See you there!
 [asm]: @/bootstrap/branches/index.md#forth-style-assemblers
 [tos-bx]: /bootstrap/miniforth/#tos-bx
 [execute-pure]: https://github.com/NieDzejkob/2klinux/blob/b4f435cd0c265b9bee28d02be6d1fc177f3847b3/image-files/stage1.frt#L700-L702
+[next post]: @/bootstrap/exception-context/index.md
