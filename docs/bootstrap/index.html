@@ -113,20 +113,25 @@ look.
   <h1 class="title"><a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;">How Forth implements exceptions</a></h1>
   
 <p class="page-metadata">
-August 11, 2021
-&middot; 5 minute read
+September 20, 2021
+&middot; 12 minute read
 </p>
 
-  
+  <p>Considering Forth's low-level nature, some might consider it surprising how
+well-suited it is to handling exceptions. But indeed, ANS Forth does specify a
+simple exception handling mechanism. As Forth doesn't have a typesystem capable
+of supporting a mechanism like Rust's <code>Result</code>, exceptions are the preferred
+error handling strategy. Let's take a closer look at how they're used, and how
+they're implemented.  
   <a class="read-more button" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;#continue-reading">Read more</a>
   </div>
   
   <div class="article-preview">
-  <h1 class="title"><a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;">A better exception model for Forth</a></h1>
+  <h1 class="title"><a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;">Contextful exceptions with Forth metaprogramming</a></h1>
   
 <p class="page-metadata">
-August 11, 2021
-&middot; 12 minute read
+September 20, 2021
+&middot; 13 minute read
 </p>
 
   <p>A typical Forth system provides a simple exception handling mechanism, in which

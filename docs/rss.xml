@@ -7,10 +7,10 @@
         <generator>Zola</generator>
         <language>en</language>
         <atom:link href="https://niedzejkob.p4.team/rss.xml" rel="self" type="application/rss+xml"/>
-        <lastBuildDate>Wed, 11 Aug 2021 12:00:01 +0000</lastBuildDate>
+        <lastBuildDate>Mon, 20 Sep 2021 12:00:01 +0000</lastBuildDate>
         <item>
-            <title>A better exception model for Forth</title>
-            <pubDate>Wed, 11 Aug 2021 12:00:01 +0000</pubDate>
+            <title>Contextful exceptions with Forth metaprogramming</title>
+            <pubDate>Mon, 20 Sep 2021 12:00:01 +0000</pubDate>
             <link>https://niedzejkob.p4.team/bootstrap/exception-context/</link>
             <guid>https://niedzejkob.p4.team/bootstrap/exception-context/</guid>
             <description>&lt;p&gt;A typical Forth system provides a simple exception handling mechanism, in which
@@ -21,137 +21,15 @@ more context. </description>
         </item>
         <item>
             <title>How Forth implements exceptions</title>
-            <pubDate>Wed, 11 Aug 2021 12:00:00 +0000</pubDate>
+            <pubDate>Mon, 20 Sep 2021 12:00:00 +0000</pubDate>
             <link>https://niedzejkob.p4.team/bootstrap/throw-catch/</link>
             <guid>https://niedzejkob.p4.team/bootstrap/throw-catch/</guid>
-            <description>&lt;section&gt;&lt;p&gt;Considering Forth&#x27;s low-level nature, some might consider it surprising how
-well-suited it is to handling exceptions. But ANS Forth specifies a nice and
-simple mechanism which can be implemented quite elegantly. Let&#x27;s take a closer
-look.&lt;&#x2F;p&gt;
-&lt;&#x2F;section&gt;&lt;section id=&quot;a-user-s-perspective&quot;&gt;&lt;h2&gt;A user&#x27;s perspective&lt;&#x2F;h2&gt;
-&lt;p&gt;The exception mechanism consists of two words: &lt;code&gt;catch&lt;&#x2F;code&gt; and &lt;code&gt;throw&lt;&#x2F;code&gt;.
-Unlike other control flow, &lt;code&gt;catch&lt;&#x2F;code&gt; wants an execution token at the top of
-the stack. If executing it doesn&#x27;t throw anything, &lt;code&gt;catch&lt;&#x2F;code&gt; will push a &lt;code&gt;0&lt;&#x2F;code&gt; to
-indicate that:&lt;&#x2F;p&gt;
-&lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-forth&quot; data-lang=&quot;forth&quot;&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;42 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;&amp;#39; &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;dup &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c9d1d9;&quot;&gt;catch .s &lt;&#x2F;span&gt;&lt;span style=&quot;color:#85817e;&quot;&gt;( &amp;lt;3&amp;gt; 42 42 0  ok )
-&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
-&lt;p&gt;On the other hand, if &lt;code&gt;throw&lt;&#x2F;code&gt; is executed, it takes a numeric argument which is
-then returned by &lt;code&gt;catch&lt;&#x2F;code&gt;.&lt;&#x2F;p&gt;
-&lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-forth&quot; data-lang=&quot;forth&quot;&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;welp &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;7 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c9d1d9;&quot;&gt;throw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;;
-&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;1 2 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;&amp;#39; &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;welp &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c9d1d9;&quot;&gt;catch .s &lt;&#x2F;span&gt;&lt;span style=&quot;color:#85817e;&quot;&gt;( &amp;lt;3&amp;gt; 1 2 7  ok )
-&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
-&lt;p&gt;One potential issue involves the stack layout at the moment the exception is
-thrown. After all, a lot of code could&#x27;ve been executed before we reached a
-&lt;code&gt;throw&lt;&#x2F;code&gt;. This is why &lt;code&gt;catch&lt;&#x2F;code&gt; saves the current stack depth before executing the
-xt passed as argument — if an exception gets thrown, the stack depth will get
-restored:&lt;&#x2F;p&gt;
-&lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-forth&quot; data-lang=&quot;forth&quot;&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;welp &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;3 4 5 7 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c9d1d9;&quot;&gt;throw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;;
-&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;1 2 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;&amp;#39; &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;welp &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c9d1d9;&quot;&gt;catch .s &lt;&#x2F;span&gt;&lt;span style=&quot;color:#85817e;&quot;&gt;( &amp;lt;3&amp;gt; 1 2 7  ok )
-&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
-&lt;p&gt;This does mean that uninitialized stack entries might get created:&lt;&#x2F;p&gt;
-&lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-forth&quot; data-lang=&quot;forth&quot;&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;welp &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;2drop 2drop &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;7 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c9d1d9;&quot;&gt;throw &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;;
-&lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;1 2 3 4 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;&amp;#39; &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;welp &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c9d1d9;&quot;&gt;catch .s &lt;&#x2F;span&gt;&lt;span style=&quot;color:#85817e;&quot;&gt;( &amp;lt;5&amp;gt; 140620924927952 7 140620924967784 56 7  ok )
-&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
-&lt;p&gt;Apart from a reserved range, there aren&#x27;t any rules as
-to how this number should be chosen.&lt;&#x2F;p&gt;
-&lt;blockquote&gt;
-&lt;p&gt;The THROW values &lt;code&gt;{-255...-1}&lt;&#x2F;code&gt; shall be used only as assigned by this standard. The values &lt;code&gt;{-4095...-256}&lt;&#x2F;code&gt; shall be used only as assigned by a system.&lt;&#x2F;p&gt;
-&lt;p&gt;Programs shall not define values for use with THROW in the range &lt;code&gt;{-4095...-1}&lt;&#x2F;code&gt;.&lt;&#x2F;p&gt;
-&lt;&#x2F;blockquote&gt;
-&lt;p&gt;This &lt;em&gt;xt&lt;&#x2F;em&gt; will then be executed, and any exceptions will be caught.
-If an exception &lt;em&gt;is&lt;&#x2F;em&gt; caught, the identifying number passed to &lt;code&gt;THROW&lt;&#x2F;code&gt; is left
-at the top of the stack. Otherwise, a &lt;code&gt;0&lt;&#x2F;code&gt; is pushed, to signify that nothing was
-caught.&lt;&#x2F;p&gt;
-&lt;p&gt;Let&#x27;s take a look at a simple example of how this can be used. First, we&#x27;ll need
-to choose an integer that&#x27;ll signify our exception&#x27;s type. ANS Forth doesn&#x27;t
-specify any mechanism for allocating those, so let&#x27;s just choose a number:&lt;&#x2F;p&gt;
-&lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-forth&quot; data-lang=&quot;forth&quot;&gt;&lt;span style=&quot;color:#c9d1d9;&quot;&gt;-42 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;constant &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;exn:its-odd
-&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
-&lt;p&gt;Now, we&#x27;ll need something that&#x27;ll throw our exception. For a simple example,
-let&#x27;s say we want a word &lt;code&gt;halve&lt;&#x2F;code&gt;, that will divide a number by two, or throw an
-exception if it&#x27;s odd:&lt;&#x2F;p&gt;
-&lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-forth&quot; data-lang=&quot;forth&quot;&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;halve &lt;&#x2F;span&gt;&lt;span style=&quot;color:#85817e;&quot;&gt;( n -- n&#x2F;2 )
-  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dup &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;1 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;and &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;if
-    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c9d1d9;&quot;&gt;exn:its-odd throw
-  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;then &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c9d1d9;&quot;&gt;2&#x2F;
-&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;;
-&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
-&lt;p&gt;Then, let&#x27;s say &lt;code&gt;print-half&lt;&#x2F;code&gt; wants to use &lt;code&gt;halve&lt;&#x2F;code&gt;, but catch the exception if
-the input was wrong:&lt;&#x2F;p&gt;
-&lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-forth&quot; data-lang=&quot;forth&quot;&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;print-half &lt;&#x2F;span&gt;&lt;span style=&quot;color:#85817e;&quot;&gt;( n -- )
-  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;[&amp;#39;] &lt;&#x2F;span&gt;&lt;span style=&quot;font-style:italic;color:#fd971f;&quot;&gt;halve &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c9d1d9;&quot;&gt;catch &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;if
-    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;drop &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;.&amp;quot; :(&amp;quot;
-  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;else
-    &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c9d1d9;&quot;&gt;.
-  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;then
-;
-&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
-&lt;p&gt;If we test it in, say, Gforth, we&#x27;ll see that it behaves as we&#x27;d expect:&lt;&#x2F;p&gt;
-&lt;pre&gt;
-&lt;b&gt;42 try-halve&lt;&#x2F;b&gt; 21  ok
-&lt;b&gt;1337 try-halve&lt;&#x2F;b&gt; :( ok
-&lt;&#x2F;pre&gt;
-&lt;p&gt;That&#x27;s all quite simple, but there&#x27;s actually a smart aspect of this design.
-Namely, if an exception is caught, the stack depth is reset to be the same as
-when &lt;code&gt;catch&lt;&#x2F;code&gt; started executing. The stack effect used by the standard explains
-this nicely:&lt;&#x2F;p&gt;
-&lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-forth&quot; data-lang=&quot;forth&quot;&gt;&lt;span style=&quot;color:#c9d1d9;&quot;&gt;catch &lt;&#x2F;span&gt;&lt;span style=&quot;color:#85817e;&quot;&gt;( i*x xt -- j*x 0 | i*x n )
-&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
-&lt;p&gt;Note that to describe the case where a &lt;code&gt;0&lt;&#x2F;code&gt; is pushed (and therefore no exception
-occured), a &lt;code&gt;j&lt;&#x2F;code&gt; is used instead of &lt;code&gt;i&lt;&#x2F;code&gt; as the count, to signify that the stack
-depth might be different.&lt;&#x2F;p&gt;
-&lt;p&gt;This stack adjustment will merely move the stack pointer, so it can either drop
-values or create unpredictable ones (though some implementations will choose to
-explicitly push zeroes). This means that the only good thing we can do is drop
-them.&lt;&#x2F;p&gt;
-&lt;p&gt;However, the key is that the number of cells we need to drop is known.
-If we called a word that takes 3 arguments, it probably did something to those
-stack slots, but &lt;em&gt;nothing beneath them should&#x27;ve been changed&lt;&#x2F;em&gt;. This is why our
-implementation of &lt;code&gt;print-half&lt;&#x2F;code&gt; has a &lt;code&gt;drop&lt;&#x2F;code&gt; — we need to discard the &lt;code&gt;n&lt;&#x2F;code&gt; argument
-passed to &lt;code&gt;halve&lt;&#x2F;code&gt;.&lt;&#x2F;p&gt;
-&lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-forth&quot; data-lang=&quot;forth&quot;&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;print-half &lt;&#x2F;span&gt;&lt;span style=&quot;color:#85817e;&quot;&gt;( n -- )
-  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c9d1d9;&quot;&gt;[&amp;#39;] halve catch if
-    &lt;b&gt;drop&lt;&#x2F;b&gt; .&amp;quot; &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;:(&lt;&#x2F;span&gt;&lt;span style=&quot;color:#c9d1d9;&quot;&gt;&amp;quot;
-  else
-    .
-  then
-&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;;
-&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
-&lt;p&gt;You might also wonder, what happens if someone tries to throw a &lt;code&gt;0&lt;&#x2F;code&gt;? Wouldn&#x27;t
-that be ambiguous? I suppose it wouldn&#x27;t be surprising if Forth adopted a &amp;quot;we&#x27;re
-all adults here&amp;quot; stance here, trusting the programmer to not do that. However,
-&lt;code&gt;0 throw&lt;&#x2F;code&gt; has been specified to be a no-op. This leads to an idiom for
-conditionally throwing exceptions without an explicit &lt;code&gt;if&lt;&#x2F;code&gt;:&lt;&#x2F;p&gt;
-&lt;pre style=&quot;background-color:#272822;&quot;&gt;
-&lt;code class=&quot;language-forth&quot; data-lang=&quot;forth&quot;&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;: &lt;&#x2F;span&gt;&lt;span style=&quot;color:#a6e22e;&quot;&gt;halve &lt;&#x2F;span&gt;&lt;span style=&quot;color:#85817e;&quot;&gt;( n -- n&#x2F;2 )
-  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#66d9ef;&quot;&gt;dup &lt;&#x2F;span&gt;&lt;span style=&quot;color:#ae81ff;&quot;&gt;1 &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;and 0&amp;lt;&amp;gt;  &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c9d1d9;&quot;&gt;exn:its-odd &lt;&#x2F;span&gt;&lt;span style=&quot;color:#e6db74;&quot;&gt;and &lt;&#x2F;span&gt;&lt;span style=&quot;color:#c9d1d9;&quot;&gt;throw
-  2&#x2F;
-&lt;&#x2F;span&gt;&lt;span style=&quot;color:#f92672;&quot;&gt;;
-&lt;&#x2F;span&gt;&lt;&#x2F;code&gt;&lt;&#x2F;pre&gt;
-&lt;p&gt;This works since, in Forth, the canonical value for &lt;code&gt;true&lt;&#x2F;code&gt; has all the bits set
-(unlike C, which only sets the lowest bit), so &lt;code&gt;true exn:its-odd and&lt;&#x2F;code&gt; evaluates
-to &lt;code&gt;exn:its-odd&lt;&#x2F;code&gt;.&lt;&#x2F;p&gt;
-&lt;hr &#x2F;&gt;
-&lt;div class=&quot;footnote-definition&quot; id=&quot;xt&quot;&gt;&lt;sup class=&quot;footnote-definition-label&quot;&gt;1&lt;&#x2F;sup&gt;
-&lt;p&gt;The fun thing about working with a language as old as Forth, is that
-terminology has developed that is completely different from what names the
-mainstream languages use for equivalent concepts. That is, while &lt;em&gt;execution
-token&lt;&#x2F;em&gt; is a perfectly fine name in isolation, everybody else calls it a
-&lt;em&gt;function pointer&lt;&#x2F;em&gt;, and it kinda sucks that I have to write footnotes like
-these if I want to be understood by the merely Forth-curious, while
-simultaneously avoiding odd looks from the Forth veterans. One of these days
-I&#x27;ll simply write a glossary and pepper in a lot of links to it everywhere...&lt;&#x2F;p&gt;
-&lt;&#x2F;div&gt;
-&lt;&#x2F;section&gt;</description>
+            <description>&lt;p&gt;Considering Forth&#x27;s low-level nature, some might consider it surprising how
+well-suited it is to handling exceptions. But indeed, ANS Forth does specify a
+simple exception handling mechanism. As Forth doesn&#x27;t have a typesystem capable
+of supporting a mechanism like Rust&#x27;s &lt;code&gt;Result&lt;&#x2F;code&gt;, exceptions are the preferred
+error handling strategy. Let&#x27;s take a closer look at how they&#x27;re used, and how
+they&#x27;re implemented.  </description>
         </item>
         <item>
             <title>Compiling Rust is NP-hard</title>

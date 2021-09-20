@@ -67,9 +67,11 @@ of the form
 (_ or _ or ...) and (_ or _ or ...) and ...
 ```
 
-where the `_` are filled in with variables and their negations.
+where the `_` are filled in with variables and their negations. This makes the
+structure of the formula much more uniform, and as such — way easier to work
+with.
 
-Our previous example would look like this when transformed:
+Our previous unsatisfiable example would look like this when transformed:
 
 ```c++
 A and B and (A or B) and (!A or !B)
@@ -231,15 +233,14 @@ mostly write about my [bootstrapping] project, in which I wrote a seed binary of
 environment on top of it. I suppose that makes it the smallest possible
 self-hosting operating system.
 
-Also, if you'd like to be notified about new articles, you can [follow me on
-Twitter][twitter], or subscribe to the RSS feed.
-
 Finally, SAT is a surprisingly deep and interesting field. Even though it's an
 NP-complete problem, modern solvers can handle practical problems with several
 thousands of variables. If you'd like to learn more, I can recommend [Knuth's
-lecture on the topic][knuth], as well as [Jannis's blog series on
+lecture on the topic][knuth], as well as [Jannis Harder's blog series on
 Varisat][varisat]. The [Handbook of Satisfiability][handbook] is good as a
 reference, too.
+
+{{ get_notified() }}
 
 ---
 

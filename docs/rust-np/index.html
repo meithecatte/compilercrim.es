@@ -100,8 +100,10 @@ of the form</p>
 <pre style="background-color:#272822;">
 <code><span style="color:#c9d1d9;">(_ or _ or ...) and (_ or _ or ...) and ...
 </span></code></pre>
-<p>where the <code>_</code> are filled in with variables and their negations.</p>
-<p>Our previous example would look like this when transformed:</p>
+<p>where the <code>_</code> are filled in with variables and their negations. This makes the
+structure of the formula much more uniform, and as such — way easier to work
+with.</p>
+<p>Our previous unsatisfiable example would look like this when transformed:</p>
 <pre style="background-color:#272822;">
 <code class="language-c++" data-lang="c++"><span style="color:#c9d1d9;">A </span><span style="color:#f92672;">and</span><span style="color:#c9d1d9;"> B </span><span style="color:#f92672;">and </span><span style="color:#c9d1d9;">(A </span><span style="color:#f92672;">or</span><span style="color:#c9d1d9;"> B) </span><span style="color:#f92672;">and </span><span style="color:#c9d1d9;">(</span><span style="color:#f92672;">!</span><span style="color:#c9d1d9;">A </span><span style="color:#f92672;">or !</span><span style="color:#c9d1d9;">B)
 </span></code></pre>
@@ -239,14 +241,22 @@ mostly write about my <a href="https://niedzejkob.p4.team/bootstrap/">bootstrapp
 512 bytes, flashed it into a bootsector, and am now building up to a comfortable
 environment on top of it. I suppose that makes it the smallest possible
 self-hosting operating system.</p>
-<p>Also, if you'd like to be notified about new articles, you can <a href="https://twitter.com/NieDzejkob">follow me on
-Twitter</a>, or subscribe to the RSS feed.</p>
 <p>Finally, SAT is a surprisingly deep and interesting field. Even though it's an
 NP-complete problem, modern solvers can handle practical problems with several
 thousands of variables. If you'd like to learn more, I can recommend <a href="https://www.youtube.com/watch?v=g4lhrVPDUG0">Knuth's
-lecture on the topic</a>, as well as <a href="https://jix.one/blog/">Jannis's blog series on
+lecture on the topic</a>, as well as <a href="https://jix.one/blog/">Jannis Harder's blog series on
 Varisat</a>. The <a href="https://ebooks.iospress.nl/volume/handbook-of-satisfiability-second-edition">Handbook of Satisfiability</a> is good as a
 reference, too.</p>
+<div id="get-notified">
+    <h1>Enjoyed this article?</h1>
+    <p>You might like my <a href="/">other posts</a>, too. If you'd like to be notified
+    of new ones, you can <a href="https://twitter.com/NieDzejkob">follow me on Twitter</a>
+    or subscribe to the <a href="/rss.xml">RSS feed</a>.</p>
+    <p>Thanks to
+      <a href="https://github.com/michcioperz">Michał Sidor</a>
+      for supporting my work.
+    <a href="https://github.com/sponsors/NieDzejkob">Wanna join them?</a></p>
+</div>
 <hr />
 <div class="footnote-definition" id="clausal"><sup class="footnote-definition-label">1</sup>
 <p>To be specific, <a href="https://en.wikipedia.org/wiki/Conjunctive_normal_form#Conversion_into_CNF">some formulas</a> will grow exponentially

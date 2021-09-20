@@ -19,6 +19,13 @@
 
         <meta property="og:title" content="How Forth implements exceptions">
         
+            <meta property="og:description" content="Considering Forth&#x27;s low-level nature, some might consider it surprising how
+well-suited it is to handling exceptions. But indeed, ANS Forth does specify a
+simple exception handling mechanism. As Forth doesn&#x27;t have a typesystem capable
+of supporting a mechanism like Rust&#x27;s Result, exceptions are the preferred
+error handling strategy. Let&#x27;s take a closer look at how they&#x27;re used, and how
+they&#x27;re implemented.  ">
+        
         <meta property="og:url" content="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;">
         <meta property="og:image" content="https://niedzejkob.p4.team/icon.png">
     </head>
@@ -39,8 +46,8 @@
 </h1>
 
 <p class="page-metadata">
-August 11, 2021
-&middot; 5 minute read
+September 20, 2021
+&middot; 12 minute read
 </p>
 
 
@@ -63,7 +70,7 @@ practical system.
 
 <div class="next-article">
     Next post:<br>
-    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;">A better exception model for Forth</a>
+    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;">Contextful exceptions with Forth metaprogramming</a>
 </div>
 
 
@@ -76,131 +83,282 @@ practical system.
 
 
 <section><p>Considering Forth's low-level nature, some might consider it surprising how
-well-suited it is to handling exceptions. But ANS Forth specifies a nice and
-simple mechanism which can be implemented quite elegantly. Let's take a closer
-look.</p>
+well-suited it is to handling exceptions. But indeed, ANS Forth does specify a
+simple exception handling mechanism. As Forth doesn't have a typesystem capable
+of supporting a mechanism like Rust's <code>Result</code>, exceptions are the preferred
+error handling strategy. Let's take a closer look at how they're used, and how
+they're implemented.  <span id="continue-reading"></span></p>
+<p><img src="https://niedzejkob.p4.team/bootstrap/throw-catch/quote.png" alt="A Pokémon Red textbox saying &quot;Aww! It appeared to be caught!&quot;" /></p>
 </section><section id="a-user-s-perspective"><h2>A user's perspective</h2>
-<p>The exception mechanism consists of two words: <code>catch</code> and <code>throw</code>.
-Unlike other control flow, <code>catch</code> wants an execution token at the top of
-the stack. If executing it doesn't throw anything, <code>catch</code> will push a <code>0</code> to
-indicate that:</p>
+<p>The exception mechanism consists of two user-facing words: <code>catch</code> and <code>throw</code>.
+Unlike other control flow words, which act as additional syntax, <code>catch</code> merely
+wants an execution token<sup class="footnote-reference"><a href="#xt">1</a></sup> at the top of the stack, which usually means that
+<code>[']</code> will be used to obtain one just before the call to <code>catch</code> (though outside
+of a definition, <code>'</code> is used instead).</p>
+<p>If <code>execute</code>ing the execution token passed to <code>catch</code> it doesn't throw anything,
+<code>catch</code> will push a <code>0</code> to indicate success:</p>
 <pre style="background-color:#272822;">
 <code class="language-forth" data-lang="forth"><span style="color:#ae81ff;">42 </span><span style="color:#f92672;">&#39; </span><span style="font-style:italic;color:#fd971f;">dup </span><span style="color:#c9d1d9;">catch .s </span><span style="color:#85817e;">( &lt;3&gt; 42 42 0  ok )
 </span></code></pre>
-<p>On the other hand, if <code>throw</code> is executed, it takes a numeric argument which is
-then returned by <code>catch</code>.</p>
+<p>On the other hand, if <code>throw</code> <em>is</em> executed, <code>throw</code>'s argument is left on the
+stack to indicate the exception's type:</p>
 <pre style="background-color:#272822;">
 <code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">welp </span><span style="color:#ae81ff;">7 </span><span style="color:#c9d1d9;">throw </span><span style="color:#f92672;">;
 </span><span style="color:#ae81ff;">1 2 </span><span style="color:#f92672;">&#39; </span><span style="font-style:italic;color:#fd971f;">welp </span><span style="color:#c9d1d9;">catch .s </span><span style="color:#85817e;">( &lt;3&gt; 1 2 7  ok )
 </span></code></pre>
-<p>One potential issue involves the stack layout at the moment the exception is
-thrown. After all, a lot of code could've been executed before we reached a
-<code>throw</code>. This is why <code>catch</code> saves the current stack depth before executing the
-xt passed as argument — if an exception gets thrown, the stack depth will get
-restored:</p>
+<p>The stack elements below this exception code are not just what was there when
+<code>throw</code> was ran, though — if there's more than one possible <code>throw</code> location,
+the layout of the stack would become unpredictable. That is why <code>catch</code>
+remembers the stack depth, such that <code>throw</code> may restore it. As a result,
+if our <code>welp</code> pushes additional elements onto the stack, they'll get discarded:</p>
 <pre style="background-color:#272822;">
 <code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">welp </span><span style="color:#ae81ff;">3 4 5 7 </span><span style="color:#c9d1d9;">throw </span><span style="color:#f92672;">;
 </span><span style="color:#ae81ff;">1 2 </span><span style="color:#f92672;">&#39; </span><span style="font-style:italic;color:#fd971f;">welp </span><span style="color:#c9d1d9;">catch .s </span><span style="color:#85817e;">( &lt;3&gt; 1 2 7  ok )
 </span></code></pre>
-<p>This does mean that uninitialized stack entries might get created:</p>
+<p>and if it consumes some stack items, their place will be filled by uninitialized
+slots when the stack pointer is moved:</p>
 <pre style="background-color:#272822;">
 <code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">welp </span><span style="color:#66d9ef;">2drop 2drop </span><span style="color:#ae81ff;">7 </span><span style="color:#c9d1d9;">throw </span><span style="color:#f92672;">;
 </span><span style="color:#ae81ff;">1 2 3 4 </span><span style="color:#f92672;">&#39; </span><span style="font-style:italic;color:#fd971f;">welp </span><span style="color:#c9d1d9;">catch .s </span><span style="color:#85817e;">( &lt;5&gt; 140620924927952 7 140620924967784 56 7  ok )
 </span></code></pre>
-<p>Apart from a reserved range, there aren't any rules as
-to how this number should be chosen.</p>
-<blockquote>
-<p>The THROW values <code>{-255...-1}</code> shall be used only as assigned by this standard. The values <code>{-4095...-256}</code> shall be used only as assigned by a system.</p>
-<p>Programs shall not define values for use with THROW in the range <code>{-4095...-1}</code>.</p>
-</blockquote>
-<p>This <em>xt</em> will then be executed, and any exceptions will be caught.
-If an exception <em>is</em> caught, the identifying number passed to <code>THROW</code> is left
-at the top of the stack. Otherwise, a <code>0</code> is pushed, to signify that nothing was
-caught.</p>
-<p>Let's take a look at a simple example of how this can be used. First, we'll need
-to choose an integer that'll signify our exception's type. ANS Forth doesn't
-specify any mechanism for allocating those, so let's just choose a number:</p>
+<p>The way to think about it is to consider the stack effect of <code>' foo catch</code> as a
+whole. For example, if <code>foo</code> has a stack effect of <code>( a b c -- d )</code>, then
+<code>' foo catch</code> has <code>( a b c -- d 0 | x1 x2 x3 exn )</code>, where the <code>x?</code> are
+the slots taken up by the arguments <code>a b c</code>, which could've been replaced with
+pretty much any value, and thus can only be dropped.</p>
+<p>What's key here is that the <em>amount</em> of items on the stack becomes known, and
+now we can safely discard what could've been touched by <code>foo</code>, to access
+anything we might've been storing below.</p>
+<p>Let's take a look at a fuller example of how this can all be used. Suppose we
+have a <code>/</code> word that implements division, but crashes if you attempt to divide
+by zero. Let's wrap it with a quick check that throws an exception instead.</p>
+<p>First, we'll need to choose an integer that'll signify our exception's type.
+There aren't any conventions as to how this should be done, except for some
+reserved values:</p>
+<ul>
+<li><code>0</code> is used by <code>catch</code> to signify &quot;no exception&quot;</li>
+<li>values in the range <code>{-255...-1}</code> are reserved for errors defined by the
+standard</li>
+<li>values in the range <code>{-4095...-256}</code> are reserved for errors defined by the
+Forth implementation</li>
+</ul>
+<p>Since the standard assigns an identifier for &quot;division by zero&quot;, we might as
+well use it.</p>
 <pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#c9d1d9;">-42 </span><span style="color:#f92672;">constant </span><span style="color:#a6e22e;">exn:its-odd
+<code class="language-forth" data-lang="forth"><span style="color:#c9d1d9;">-10 </span><span style="color:#f92672;">constant </span><span style="color:#a6e22e;">exn:div0
 </span></code></pre>
-<p>Now, we'll need something that'll throw our exception. For a simple example,
-let's say we want a word <code>halve</code>, that will divide a number by two, or throw an
-exception if it's odd:</p>
+<p>I couldn't actually find any guidance on how these are typically picked for
+application-specific exceptions. If I had to guess, one'd start with small
+positive integers, rather than at <code>-4096</code> going down. For what it's worth,
+[Miniforth's extended exception mechanism][exception-context] sidesteps this by
+using memory addresses as identifiers.</p>
+<p>Anyway, throwing an exception looks exactly like what you'd expect:</p>
 <pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">halve </span><span style="color:#85817e;">( n -- n/2 )
-  </span><span style="color:#66d9ef;">dup </span><span style="color:#ae81ff;">1 </span><span style="color:#e6db74;">and </span><span style="color:#f92672;">if
-    </span><span style="color:#c9d1d9;">exn:its-odd throw
-  </span><span style="color:#f92672;">then </span><span style="color:#c9d1d9;">2/
+<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">/ </span><span style="color:#85817e;">( a b -- a/b )
+  </span><span style="color:#66d9ef;">dup </span><span style="color:#e6db74;">0= </span><span style="color:#f92672;">if
+    </span><span style="color:#c9d1d9;">exn:div0 throw
+  </span><span style="color:#f92672;">then </span><span style="color:#c9d1d9;">/ </span><span style="color:#85817e;">( previous, unguarded definition of / — not recursion )
 </span><span style="color:#f92672;">;
 </span></code></pre>
-<p>Then, let's say <code>print-half</code> wants to use <code>halve</code>, but catch the exception if
-the input was wrong:</p>
+<p>You could then use it like so:</p>
 <pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">print-half </span><span style="color:#85817e;">( n -- )
-  </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">halve </span><span style="color:#c9d1d9;">catch </span><span style="color:#f92672;">if
-    </span><span style="color:#66d9ef;">drop </span><span style="color:#e6db74;">.&quot; :(&quot;
-  </span><span style="color:#f92672;">else
-    </span><span style="color:#c9d1d9;">.
-  </span><span style="color:#f92672;">then
-;
+<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">/. </span><span style="color:#85817e;">( a b -- )
+  </span><span style="color:#66d9ef;">over </span><span style="color:#c9d1d9;">. </span><span style="color:#e6db74;">.&quot; divided by &quot; </span><span style="color:#66d9ef;">dup </span><span style="color:#c9d1d9;">. </span><span style="color:#e6db74;">.&quot; is &quot;
+  </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">/ </span><span style="color:#c9d1d9;">catch </span><span style="color:#f92672;">if
+    </span><span style="color:#66d9ef;">2drop </span><span style="color:#85817e;">( / takes 2 arguments, so we need to drop 2 slots )
+    </span><span style="color:#e6db74;">.&quot; infinity&quot; </span><span style="color:#85817e;">( sad math pedant noises )
+  </span><span style="color:#f92672;">else </span><span style="color:#c9d1d9;">. </span><span style="color:#f92672;">then ;
 </span></code></pre>
-<p>If we test it in, say, Gforth, we'll see that it behaves as we'd expect:</p>
+<p>This works just as you'd expect it to:</p>
 <pre>
-<b>42 try-halve</b> 21  ok
-<b>1337 try-halve</b> :( ok
+<b>7 4 /.</b> 7 divided by 4 is 1  ok
+<b>7 0 /.</b> 7 divided by 0 is infinity ok
 </pre>
-<p>That's all quite simple, but there's actually a smart aspect of this design.
-Namely, if an exception is caught, the stack depth is reset to be the same as
-when <code>catch</code> started executing. The stack effect used by the standard explains
-this nicely:</p>
+<p>Of course, checking for a zero divisor explicitly would probably make more sense
+in this case, but a more realistic example would obscure the details of
+exception handling too much...</p>
+</section><section id="0-throw-and-its-uses"><h3><code>0 throw</code> and its uses</h3>
+<p>Before we look into the implementation of <code>throw</code> and <code>catch</code> themselves, I'd
+like to highlight one more special case. Specifically, <code>throw</code> checks whether
+the exception number is zero, and if it is, doesn't actually throw it — <code>0 throw</code> is always a no-op.</p>
+<p>There are a few aspects as to why this is the case. Firstly, actually throwing a
+zero would be confusing, as <code>catch</code> uses zero to signify that no exception was
+caught. But hold on, it's not exactly in character for Forth to check for this.
+There's plenty of other ways to fuck up already. They could've said &quot;it'll eat
+a sock if you try to do that&quot; and celebrated the performance win.</p>
+<p>And even if you do check, why make it a no-op? Shouldn't you throw a &quot;tried to
+throw a zero&quot; exception instead, to make sure the mistake is noticed?</p>
+<p>The answer, simply enough, is that it's not necessarily a mistake. There are
+some useful idioms that center around <code>0 throw</code> being a no-op.</p>
+<p>One concerns a more succint way for checking a condition:</p>
 <pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#c9d1d9;">catch </span><span style="color:#85817e;">( i*x xt -- j*x 0 | i*x n )
-</span></code></pre>
-<p>Note that to describe the case where a <code>0</code> is pushed (and therefore no exception
-occured), a <code>j</code> is used instead of <code>i</code> as the count, to signify that the stack
-depth might be different.</p>
-<p>This stack adjustment will merely move the stack pointer, so it can either drop
-values or create unpredictable ones (though some implementations will choose to
-explicitly push zeroes). This means that the only good thing we can do is drop
-them.</p>
-<p>However, the key is that the number of cells we need to drop is known.
-If we called a word that takes 3 arguments, it probably did something to those
-stack slots, but <em>nothing beneath them should've been changed</em>. This is why our
-implementation of <code>print-half</code> has a <code>drop</code> — we need to discard the <code>n</code> argument
-passed to <code>halve</code>.</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">print-half </span><span style="color:#85817e;">( n -- )
-  </span><span style="color:#c9d1d9;">[&#39;] halve catch if
-    <b>drop</b> .&quot; </span><span style="color:#e6db74;">:(</span><span style="color:#c9d1d9;">&quot;
-  else
-    .
-  then
-</span><span style="color:#f92672;">;
-</span></code></pre>
-<p>You might also wonder, what happens if someone tries to throw a <code>0</code>? Wouldn't
-that be ambiguous? I suppose it wouldn't be surprising if Forth adopted a &quot;we're
-all adults here&quot; stance here, trusting the programmer to not do that. However,
-<code>0 throw</code> has been specified to be a no-op. This leads to an idiom for
-conditionally throwing exceptions without an explicit <code>if</code>:</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">halve </span><span style="color:#85817e;">( n -- n/2 )
-  </span><span style="color:#66d9ef;">dup </span><span style="color:#ae81ff;">1 </span><span style="color:#e6db74;">and 0&lt;&gt;  </span><span style="color:#c9d1d9;">exn:its-odd </span><span style="color:#e6db74;">and </span><span style="color:#c9d1d9;">throw
-  2/
-</span><span style="color:#f92672;">;
+<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">/ </span><span style="color:#85817e;">( a b -- a/b )
+  </span><span style="color:#66d9ef;">dup </span><span style="color:#e6db74;">0= </span><span style="color:#c9d1d9;">exn:div0 </span><span style="color:#e6db74;">and </span><span style="color:#c9d1d9;">throw / </span><span style="color:#f92672;">;
 </span></code></pre>
 <p>This works since, in Forth, the canonical value for <code>true</code> has all the bits set
-(unlike C, which only sets the lowest bit), so <code>true exn:its-odd and</code> evaluates
-to <code>exn:its-odd</code>.</p>
+(unlike C, which only sets the lowest bit), so <code>true exn:div0 and</code> evaluates
+to <code>exn:div0</code>. Of course, when using this idiom, one must be careful to use a
+canonically-encoded flag, and not something that may return arbitrary values
+that happen to be truthy.</p>
+<p>The other idiom allows exposing an error-code based interface, that can be
+conveniently used as an exception-based one. For example, <code>allocate</code> (which
+allocates memory dynamically like C's <code>malloc</code>) has the stack effect
+<code>size -- ptr err</code>. If the caller wants to handle the allocation failure here
+and now, it can do</p>
+<pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">... allocate if ( it failed :/ ) exit then
+( happy path )
+</span></code></pre>
+<p>But throwing an exception when an error is returned only requires <code>allocate throw</code> --- if no error occurred, the <code>0</code> will get dropped.</p>
+</section><section id="the-internals"><h2>The internals</h2>
+<p>Now, how is this sausage made? <a href="https://github.com/nornagon/jonesforth"><code>jonesforth</code></a>, a very popular <a href="https://en.wikipedia.org/wiki/Literate_programming">literate
+programming</a> implementation of Forth, <a href="https://github.com/nornagon/jonesforth/blob/4f853252f715132e7716cbd44e5306cefb6a6fec/jonesforth.f#L1193">suggests</a> implementing
+exceptions by, essentially, having <code>throw</code> scan the return stack for a specific
+address within the implementation of <code>catch</code>. This feels like something one
+would come up with after studying the complex unwinding mechanisms in languages
+like C++ or Rust — they too unwind the stack, using some very complex support
+machinery spanning the entire toolchain. However, the reason they need to do
+that is to run the destructors of objects in the stack frames that are about to
+get discarded.</p>
+<p>Forth, as you're probably aware, does not have destructors. This allows for
+a much simpler solution — instead of scanning the return stack for the position
+where <code>catch</code> was most recently executed, we can just have <code>catch</code> save this position
+in a variable.</p>
+<pre style="background-color:#272822;">
+<code class="language-forth" data-lang="forth"><span style="color:#f92672;">variable </span><span style="color:#a6e22e;">catch-rp </span><span style="color:#85817e;">( return [stack] pointer at CATCH time )
+</span></code></pre>
+<p>Apart from the simplicity, this approach also has performance<sup class="footnote-reference"><a href="#ats">2</a></sup> and robustness
+advantages — remember that <code>&gt;r</code> and do-loops can also push things onto the
+return stack. It would be a great shame if such a value happened to equal the
+special marker address that's being scanned for...<sup class="footnote-reference"><a href="#sec">3</a></sup></p>
+<p>To support nested invocations of <code>catch</code>, we'll need to save the previous value
+of <code>catch-rp</code> on the stack. While we're at it, this is also a good place to save
+the parameter stack pointer. This effectively creates a linked list of &quot;exception
+handling frames&quot;, allocated on the return stack:</p>
+<p><img src="https://niedzejkob.p4.team/bootstrap/throw-catch/catch-rstack1.svg" alt="The catch-rp variable points into the return stack, just above its own saved value." /></p>
+<p>Note that the &quot;return to <code>catch</code>&quot; entry is <em>above</em> the data pushed by <code>catch</code>.
+This is because the former only gets pushed once <code>catch</code> calls a non-assembly
+word — in this case, the <code>execute</code> that ultimately consumes the execution token.</p>
+</section><section id="some-assembly-required"><h3>Some assembly required</h3>
+<p>Since the stack pointers themselves aren't exposed as part of the Forth
+programming model, we'll need to write some words in assembly to manipulate
+them. The words for the return stack pointer are straight-forward:</p>
+<pre style="background-color:#272822;">
+<code class="language-forth" data-lang="forth"><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">rp@ </span><span style="color:#85817e;">( -- rp ) </span><span style="color:#c9d1d9;">bx push, di bx movw-rr, next,
+</span><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">rp! </span><span style="color:#85817e;">( rp -- ) </span><span style="color:#c9d1d9;">bx di movw-rr, bx pop, next,
+</span></code></pre>
+<p>(this syntax (as well as the implementation of the assembler) was explained
+<a href="https://niedzejkob.p4.team/bootstrap/branches/#forth-style-assemblers">in a previous article</a>)</p>
+<p>Manipulating the data stack pointer is a bit harder to keep track of, as the value
+of the stack pointer itself goes through the data stack. I ended up choosing the
+following rule: <code>sp@</code> pushes the pointer to the element that was at the top
+before <code>sp@</code> was executed. In particular, this means <code>sp@ @</code> does the same thing
+as <code>dup</code>:</p>
+<p><img src="https://niedzejkob.p4.team/bootstrap/throw-catch/spat.svg" alt="The saved stack pointer points to the value just above it on the stack" /></p>
+<p>This diagram bends the reality a little, as <a href="/bootstrap/miniforth/#tos-bx">the top of the stack is kept in
+<code>bx</code>, and not in memory</a>, as an optimization. Thus, we first need to
+store <code>bx</code> into memory:</p>
+<pre style="background-color:#272822;">
+<code class="language-forth" data-lang="forth"><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">sp@ </span><span style="color:#c9d1d9;">bx push, sp bx movw-rr, next,
+</span></code></pre>
+<p><code>sp!</code> works similarly, with the guiding principle that <code>sp@ sp!</code> should be a
+no-op:</p>
+<pre style="background-color:#272822;">
+<code class="language-forth" data-lang="forth"><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">sp! </span><span style="color:#c9d1d9;">bx sp movw-rr, bx pop, next,
+</span></code></pre>
+<p>Note that there aren't actually any implementation differences between
+<code>sp@</code>/<code>sp!</code> and their return stack counterparts (apart from using the <code>sp</code>
+register instead of <code>di</code>). You just need to think more about one than about the
+other...</p>
+<p>The last <code>:code</code> word we'll need is <code>execute</code>, which takes an execution token
+and jumps to it.</p>
+<pre style="background-color:#272822;">
+<code class="language-forth" data-lang="forth"><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">execute </span><span style="color:#c9d1d9;">bx ax movw-rr, bx pop, ax jmp-r,
+</span></code></pre>
+<p>Interestingly, <code>execute</code> doesn't actually <em>need</em> to be implemented in assembly.
+We could just as well do it in Forth with some assumptions on how the code gets
+compiled — write the execution token into the compiled representation of
+<code>execute</code> itself, just before we reach the point when it gets read:</p>
+<pre style="background-color:#272822;">
+<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">execute </span><span style="color:#f92672;">[ </span><span style="color:#c9d1d9;">here </span><span style="color:#ae81ff;">3 </span><span style="color:#c9d1d9;">cells </span><span style="color:#e6db74;">+ </span><span style="color:#f92672;">] literal </span><span style="color:#ffd866;">!
+  </span><span style="color:#85817e;">( any word can go here, so... ) </span><span style="color:#66d9ef;">drop </span><span style="color:#f92672;">; </span><span style="color:#85817e;">( chosen by a fair dice roll... )
+</span></code></pre>
+<p>This kind of trickery is unnecessarily clever in my opinion, though. It doesn't
+actually have any portability advantages, since it assumes so much about the
+Forth implementation it's running on, and on top of that, it's probably larger
+and slower. Still, it's interesting enough to mention, even if we don't actually
+use it in the end.</p>
+</section><section id="putting-it-all-together"><h3>Putting it all together</h3>
+<p>Let's take another look at how the return stack should look:</p>
+<p><img src="https://niedzejkob.p4.team/bootstrap/throw-catch/catch-rstack2.svg" alt="The saved sp is pushed first, then saved catch-rp, and then the return stack pointer is sampled and saved to catch-rp." /></p>
+<p>Let's construct that, then:</p>
+<pre style="background-color:#272822;">
+<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">catch </span><span style="color:#85817e;">( i*x xt -- j*x 0 | i*x n )
+  </span><span style="color:#c9d1d9;">sp@ </span><span style="font-style:italic;color:#36a9df;">&gt;r  </span><span style="color:#c9d1d9;">catch-rp </span><span style="color:#ffd866;">@ </span><span style="font-style:italic;color:#36a9df;">&gt;r
+  </span><span style="color:#c9d1d9;">rp@ catch-rp </span><span style="color:#ffd866;">!
+</span></code></pre>
+<p>Then, it's time to <code>execute</code>. It will only actually return if no exception is
+thrown, so next we handle the happy path by pushing a <code>0</code>:</p>
+<pre style="background-color:#272822;">
+<code class="language-forth" data-lang="forth"><span style="color:#c9d1d9;">  execute </span><span style="color:#ae81ff;">0
+</span></code></pre>
+<p>Finally, we pop what we pushed onto the return stack. The previous value of
+<code>catch-rp</code> does need to get restored, but the data stack pointer needs to get
+dropped, as we aren't supposed to restore the stack depth in this case.</p>
+<pre style="background-color:#272822;">
+<code class="language-forth" data-lang="forth"><span style="color:#c9d1d9;">  </span><span style="font-style:italic;color:#36a9df;">r&gt; </span><span style="color:#c9d1d9;">catch-rp </span><span style="color:#ffd866;">! </span><span style="font-style:italic;color:#36a9df;">rdrop </span><span style="color:#f92672;">;
+</span></code></pre>
+<p><code>throw</code> begins by making sure that the exception code is non-zero, and then
+rolls back the return stack to the saved location.</p>
+<pre style="background-color:#272822;">
+<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">throw  </span><span style="color:#66d9ef;">dup </span><span style="color:#f92672;">if
+  </span><span style="color:#c9d1d9;">catch-rp </span><span style="color:#ffd866;">@ </span><span style="color:#c9d1d9;">rp!
+</span></code></pre>
+<p>Restoring <code>catch-rp</code> happens just as you'd expect:</p>
+<pre style="background-color:#272822;">
+<code class="language-forth" data-lang="forth"><span style="color:#c9d1d9;">  </span><span style="font-style:italic;color:#36a9df;">r&gt; </span><span style="color:#c9d1d9;">catch-rp </span><span style="color:#ffd866;">!
+</span></code></pre>
+<p>The saved SP is somewhat harder. Firstly, we don't want to lose the exception
+code, so we'll need to save it on the return stack before restoring SP:</p>
+<pre style="background-color:#272822;">
+<code class="language-forth" data-lang="forth"><span style="color:#c9d1d9;">  </span><span style="font-style:italic;color:#36a9df;">r&gt; </span><span style="color:#66d9ef;">swap </span><span style="font-style:italic;color:#36a9df;">&gt;r </span><span style="color:#c9d1d9;">sp!
+</span></code></pre>
+<p>Secondly, when <code>sp@</code> was ran, the execution token was still on the stack — we
+need to remove that stack slot before pushing the exception code in its place:</p>
+<pre style="background-color:#272822;">
+<code class="language-forth" data-lang="forth"><span style="color:#c9d1d9;">  </span><span style="color:#66d9ef;">drop </span><span style="font-style:italic;color:#36a9df;">r&gt;
+</span><span style="color:#f92672;">else </span><span style="color:#85817e;">( the 0 throw case ) </span><span style="color:#66d9ef;">drop </span><span style="color:#f92672;">then ;
+</span></code></pre></section><section id="but-wait-there-s-more"><h2>But wait, there's more!</h2>
+<p>We've seen how the standard exception mechanism works in Forth. The facilities
+of throw-and-catch are provided, but in quite a rudimentary form.
+In my [next post], I explain how Miniforth builds upon this mechanism to attach
+<em>context</em> to the exceptions, resulting in actionable error messages when the
+exception bubbles up to the top-level. See you there!</p>
+<div id="get-notified">
+    <h1>Enjoyed this article?</h1>
+    <p>You might like my <a href="/">other posts</a>, too. If you'd like to be notified
+    of new ones, you can <a href="https://twitter.com/NieDzejkob">follow me on Twitter</a>
+    or subscribe to the <a href="/rss.xml">RSS feed</a>.</p>
+    <p>Thanks to
+      <a href="https://github.com/michcioperz">Michał Sidor</a>
+      for supporting my work.
+    <a href="https://github.com/sponsors/NieDzejkob">Wanna join them?</a></p>
+</div>
 <hr />
 <div class="footnote-definition" id="xt"><sup class="footnote-definition-label">1</sup>
-<p>The fun thing about working with a language as old as Forth, is that
-terminology has developed that is completely different from what names the
-mainstream languages use for equivalent concepts. That is, while <em>execution
-token</em> is a perfectly fine name in isolation, everybody else calls it a
-<em>function pointer</em>, and it kinda sucks that I have to write footnotes like
-these if I want to be understood by the merely Forth-curious, while
-simultaneously avoiding odd looks from the Forth veterans. One of these days
-I'll simply write a glossary and pepper in a lot of links to it everywhere...</p>
+<p>Forth-speak for &quot;function pointer&quot;.</p>
+</div>
+<div class="footnote-definition" id="ats"><sup class="footnote-definition-label">2</sup>
+<p>One would think that the performance of exceptions shouldn't ever become
+the bottleneck. I agree, though I would like to take this opportunity to point
+out a style of programming I've recently seen in which the performance of
+exception handling indeed matters. Namely, take a look at the examples in the
+Exceptions section of the <a href="http://ats-lang.github.io/DOCUMENT/INT2PROGINATS/PDF/main.pdf#12.44.1">ATS manual</a>. Viewer discretion advised.</p>
+</div>
+<div class="footnote-definition" id="sec"><sup class="footnote-definition-label">3</sup>
+<p>This could probably have some security implications, but hopefully
+nobody writes security-critical stuff in Forth anyway. Considering where we're
+at with C, though...</p>
 </div>
 </section>
 
@@ -215,7 +373,7 @@ I'll simply write a glossary and pepper in a lot of links to it everywhere...</p
 
 <div class="next-article">
     Next post:<br>
-    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;">A better exception model for Forth</a>
+    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;">Contextful exceptions with Forth metaprogramming</a>
 </div>
 
 
@@ -243,6 +401,36 @@ I'll simply write a glossary and pepper in a lot of links to it everywhere...</p
         
         <li>
             <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;#a-user-s-perspective">A user&#x27;s perspective</a>
+            
+            <ul>
+                
+                    <li>
+                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;#0-throw-and-its-uses">0 throw and its uses</a>
+                    </li>
+                
+            </ul>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;#the-internals">The internals</a>
+            
+            <ul>
+                
+                    <li>
+                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;#some-assembly-required">Some assembly required</a>
+                    </li>
+                
+                    <li>
+                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;#putting-it-all-together">Putting it all together</a>
+                    </li>
+                
+            </ul>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;#but-wait-there-s-more">But wait, there&#x27;s more!</a>
             
         </li>
         

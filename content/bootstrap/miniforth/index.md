@@ -217,7 +217,7 @@ EXIT:
     NEXT
 ```
 
-This is pretty much the execution strategy used by Miniforth, with one simple,
+<span id="tos-bx">This</span> is pretty much the execution strategy used by Miniforth, with one simple,
 but significant improvement — the value on top of the stack is stored in the
 `BX` register. This allows skipping a `push` and `pop` in many primitives:
 

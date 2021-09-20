@@ -1,6 +1,6 @@
 +++
-title = "A better exception model for Forth"
-date = "2021-08-11 12:00:01"
+title = "Contextful exceptions with Forth metaprogramming"
+date = "2021-09-20 12:00:01"
 +++
 
 A typical Forth system provides a simple exception handling mechanism, in which
@@ -12,27 +12,58 @@ more context. <!-- more -->
 Systems like Gforth do print the backtrace and map the integer thrown to a
 textual description (in a manner similar to Unix's errno), but information
 specific to a particular error is lost. For example, if an I/O error occurs,
-we'd like to include the underlying error code and perhaps the block number. If
-a file couldn't be found, we want its filename. So far, I couldn't find any
-existing Forth system that solves this.
+we'd like to include the underlying error code, the block number, and perhaps
+some device identifier. If a file couldn't be found, we want its filename. So
+far, I couldn't find any existing Forth system that solves this.
 
-In this post, I describe Miniforth's solution to this problem. I build it on
-top of the standard `catch` and `throw` words, so if you need a refresher on how
-they behave, or would like to see how they're implemented, see [this
-article of mine](@/bootstrap/throw-catch/index.md).
+In this post, I describe Miniforth's solution to this problem. We'll build a
+simple extension to the `throw`-and-`catch` mechanism to allow error messages
+like:
 
-## Finding the printing function
+```
+i/o-error
+in-block: 13
+error-code: 2
+```
+```
+unknown-word
+word: has-typpo
+```
+
+The latter example also illustrates why exceptions are on the critical path of
+the bootstrap — they'll be the mechanism by which the new outer interpreter
+reports unknown words. Granted, we could hack around this need, but some form of
+unwinding will be necessary anyway, as the error may occur within a parsing word
+like `'`, potentially deep within the user's program.
+
+Older Forth systems used a simpler strategy of `abort`ing into the top-level
+REPL upon the first error, which entailed clearing the return stack entirely and
+jumping to the entrypoint of the system. I decided that this simplification is
+not worth it, as I'll eventually need the full flexibility of exceptions —
+planning ahead, I'm modeling the eventual text editor after `vi`, and I'm
+considering making the commandline bound to `:` a Forth REPL (with an additional
+vocabulary activated for the commands specific to editing text). In that case,
+quitting the editor after the first typo wouldn't be very nice.
+
+The mechanism I describe here is built it on top of the standard `catch` and
+`throw` words, so if you need a refresher on how they behave, or would like to
+see how they're implemented, see [this article of mine](@/bootstrap/throw-catch/index.md).
+
+## The design
 
 The mechanism would be most flexible if the user could simply register an
-arbitrary snippet of code for printing a type of exceptions. However, most of
+arbitrary snippet of code for printing an exception type. However, most of
 the exceptions wouldn't actually use this flexibility fully. Therefore, the
 design has two main parts:
  - locating the word that prints a given exception, and
- - syntax that makes it easy to define a printing word with typical behavior.
+ - syntax for defining a typical printing word easily.
 
-Locating the printing function is a very similar problem to finding the string
-name for an integer error code like other systems do. As such, we *could* adapt
-Gforth's solution, creating a linked list much like the dictionary itself:
+### Finding the printing function
+
+Locating the printing handler is a very similar problem to finding a *string*
+description, which is something other systems do. As such, we *could* adapt
+Gforth's solution, creating a linked list much like the dictionary itself,
+mapping exception numbers to printing routines:
 
 ![A linked list with entries consisting of a link field, exception number and
 the code executed for a given exception.](gforth-like.svg)
@@ -49,9 +80,9 @@ function.
 ```
 
 That way, no extra data structures are necessary, saving both memory
-and execution time[^time]. The pointers also serve well as opaque tokens to be
-compared when we need to decide, after `catch`, whether to suppress or re-throw
-a particular exception.
+and execution time[^time]. Even when you don't want to print the exception, but,
+for example, check if the exception you've caught is one you want to handle,
+nothing stopping you from comparing these pointers like opaque tokens.
 
 ```forth
 : print-half ( n -- )
@@ -63,17 +94,12 @@ a particular exception.
 ```
 
 Of course, throwing the execution token like that will explode violently when
-someone throws a simple integer. However, if compatibility was desired, the two
-schemes could be merged somehow. For example, while the integers thrown are
-usually negative, a Forth system with 32-bit or wider addresses would never set
-the highest bit of an address. Extending this to a higher granularity, the
-system could decide whether to execute the thrown value by checking whether an
-address is mapped in memory.
-
-Another combination I'd be considering would be to reserve a single numeric
-identifier in the traditional system for all "fancy" exceptions, and then store
-the actual execution token in a `variable`. In this case a wrapper around
-`throw` would be necessary.
+someone throws a simple integer. If compatibility was desired, the two schemes
+could be merged somehow. The solution I like the most here is to reserve a
+single numeric identifier in the traditional system for all "fancy" exceptions,
+and then store the actual execution token in a `variable`. In this case a
+wrapper around `throw` would be necessary, but we can use this opportunity to
+merge the `[']` into it too:
 
 ```forth
 variable exn-xt
@@ -86,11 +112,11 @@ variable exn-xt
   then 2/ ;
 ```
 
-Either way, Miniforth settles for directly throwing execution tokens — these
-alternative solutions could be useful when integrating these ideas into other
-systems, though.
+Either way, Miniforth settles for directly throwing execution tokens — this
+alternative could be useful when integrating these ideas into other systems,
+though.
 
-## Defining the exceptions
+### Defining the exceptions
 
 To make defining the exceptions easier, Miniforth provides this syntax:
 
@@ -115,8 +141,10 @@ serves to separate names from values when the exception gets printed.  While it
 wouldn't be hard to make the code add a `:` by itself, I don't think that would
 be for the better — the naming convention means you don't have to worry about
 your field names conflicting with other Forth words. For example, the
-`unknown-word` exception includes a `word:` field. But `word` is already a
-well-known word that parses a token from the input stream.
+`unknown-word` exception includes a `word:` field, but `word` is already a
+well-known word that parses a token from the input stream. I must admit that I
+first considered much more complicated namespacing ideas before realizing that
+the colon can serve as a naming convention.
 
 ### Alternative designs
 
@@ -124,26 +152,27 @@ Of course, this is not the only possible way of attaching context. For one, we
 could change how `catch` affects the stack, and keep any values describing the
 exception on the stack, just below the execution token itself. However, `throw`
 purposefully resets the stack depth to what it was before `catch` was called to
-make stack manipulation possible after an exception gets caught. Changing this
-would introduce other problems to be solved, which is why I abandoned this
-approach.
+make stack manipulation possible after an exception gets caught. While you
+could, instead, keep track of the size of the exception being handled and manage
+the stack appropriately, I can't imagine that being pleasant.
 
-One could also consider using dynamically allocated exception structures. At
-first it might seem that this is utterly pointless, as only one exception is
-ever being thrown at a given time, and there isn't much point to holding onto it
-for extended periods of time. This is not entirely true, as one could imagine
-one exception containing a *cause* field, that would chain exceptions together:
+One could also consider using dynamically allocated exception structures. After
+all, that's pretty much what higher-level languages do. However, there is no
+point in holding onto an exception for later, and only one exception is ever
+being thrown at a given time. I do admit that one could chain exceptions
+together by having a *cause* field, like so:
 
 ```forth
 writeback-failed
-buffer-at: $1400       ( these fields come from writeback-failed itself )
-caused-by: io-error    ( the printing word for caused-by executes io-error )
-block-number: 13       ( these come from io-error )
-error-code: $47
+buffer-at: $1400
+caused-by:
+  io-error
+  block-number: 13
+  error-code: $47
 ```
 
-Still, a situation where two exceptions of the same type are present in a chain
-of causes is somewhat far-fetched, and, in my opinion, does not justify the
+Still, a situation where two exceptions of the same type are present in a causal
+chain is somewhat far-fetched, and, in my opinion, does not justify the
 increased complexity — making this work would need a dynamic allocator and
 a destructor mechanism for the exception objects.
 
@@ -172,7 +201,7 @@ path for the happy case afterwards, to discard the no-longer-needed context:
   then ;
 ```
 
-One caveat of storing context early is that, if you're not careful, a word
+This strategy does have the caveat that, if you're not careful, a word
 invoked between storing the context and throwing the exception could overwrite
 said context, i.e.
 
@@ -186,66 +215,64 @@ This is not a big issue in practice, though, as most often the definition of the
 exception and all the words that throw it are directly next to each other, so
 it's easy to notice if this can happen. I suppose recursion would have the
 highest chance of triggering this. If this issue occurs in a context other than
-a recursive word, your exceptions are probably needlessly general anyway.
+a recursive word, your exceptions are probably needlessly general anyway, and
+should be split into more granular types.
 
 ## The implementation
 
 Okay, so how do we implement this `exception`...`end-exception` structure? Most
 of the work is actually done by `end-exception` itself. This is because we need
-to generate the variables and their underlying storage, as well as the code of
-the printing function, and we can't do both at once — we'd quickly end up
-putting a variable's dictionary header in the middle of our code.[^skipping]
+to generate the variables with their underlying storage, as well as the code of
+the printing function of the exception, and we can't do both at once — we'd
+quickly end up putting a variable's dictionary header in the middle of our
+code.[^skipping]
 
 Therefore, the context variables themselves are defined first, and then
-`end-exception` walks the dictionary to process all the variables after they've
-been defined. For this purpose, a dictionary entry can be pointed at in two
-locations:
+`end-exception` *walks through the dictionary* to process all the variables,
+after they've been defined.
+
+While traversing the dictionary, we can point at an entry in two places:
 
 ![Diagram illustrates what is about to be described.](nt-and-xt.svg)
 
 The *name token* (`nt` for short) points to the very beginning of the header.
 This is the value stored in `latest` and the link fields, and it lets you know
-as much as the name itself.[^name-token] On the other hand, we have an
+as much as the name of the word itself.[^name-token] On the other hand, we have an
 *execution token* (`xt` for short), which directly points at the code of a word.
 This is the value we can pass to `execute`, compile into a definition with `,`,
 or in general do things where only the behavior matters. Notice that, due to the
 variable-length name field, we can only turn a name token into an execution
-token (`>body ( nt -- xt )`), but not the other way around.
+token (which is what `>body ( nt -- xt )` does), but not the other way around.
 
-Equipped with this knowledge, we can traverse the dictionary — `exception` saves
-the value of `latest`, which is the name token of the first word that *isn't*
-part of the exception context. As is typical for Forth control structures, we
-can just put this value on the stack:
+As we need to know when to stop our traversal, `exception` remembers the value of
+`latest`, thus saving the name token of the first word that *isn't* part of the
+exception context. Along the same lines as `if` or `begin`, we can just put
+this value on the stack:
 
 ```forth
 : exception ( -- dict-pos ) latest @ ;
 ```
 
-`latest` is also read by `end-exception`, as the very first thing done.
-This is because creating the printing word itself will change the value of
-`latest`.
+`end-exception` also begins by sampling `latest`, thus establishing the other
+end of the range through which we'll be iterating. Then, `:` is ran to parse the
+name that comes after `end-exception`, and create an appropriate word header.
 
 ```forth
 : end-exception ( dict-pos -- ) latest @ :
   ( ... )
 ```
 
-Note that `:` is not an immediate word, and as such, when it gets called by
-`end-exception`, it will parse out the token after `end-exception` and begin a
-definition with that name.
-
-The first thing this definition needs to do is print its own name. Since we'll
-also need to print the names of other words, let's factor that out.
-`print-name,` will append to the current definition (hence the `,` in the name)
-the action of printing the name corresponding to a name token:
+One repeating operation the printing word needs to do is printing the name of
+some word — either the exception name itself, or one of the variables. Let's
+factor that out into `print-name,`, which takes a name token, resolves it into a
+name with `header-name`, and compiles the action of printing this name.
 
 ```forth
 : print-name, ( nt -- )
   header-name postpone 2literal postpone type ;
 ```
 
-`end-exception` then passes the *newly updated* value of `latest` to
-`print-name,`:
+We can then use it to print the name which `:` just parsed:
 
 ```forth
 : end-exception ( dict-pos -- ) latest @ :
@@ -261,24 +288,31 @@ the printing word.](end-exception-latest.svg)
 
 The next step is to iterate over the dictionary and handle all the fields. As
 you can see from the diagram above, we need to stop iterating once the two
-pointers become equal, testing before handling each field.
+pointers become equal, testing *before* handling each field.
 
 ```forth,hide_lines=1
 : x
   begin ( end-pos cur-pos ) 2dup <> while
-    dup print-field, ( follow the link field ) @
-  repeat  2drop  postpone ;  ;
+    dup print-field, ( we'll see print-field, later )
+    ( follow the link field: ) @
+  repeat  2drop
 ```
 
-Notice how unlike `:`, the `;` that ends the definition being generated needs to
-be `postpone`d. This is because `;` is marked `immediate`, unlike `:`.
+Finally, we finish the printing word with a `;`. We need to postpone it, since
+it would otherwise end the definition of `end-exception` itself.
+
+```forth,hide_lines=1
+: x
+  postpone ;
+;
+```
 
 So, how does `print-field,` work? It first needs to print the name itself, which
-we can do with `print-name,`. But how does the value of the field get printed?
+we can do with `print-name,`. But how does the value of the field get shown?
+
 Since printing a string is very different from printing a number, the field
-needs to let us know how to print it. To do so, the exception variables have an
-extra field in their header, which contains the execution pointer that prints a
-field of this type.
+needs to somehow let us know how to print it. To do so, the exception variables have an
+extra field in their header that points to a word such as `: print-uint @ u. ;`.
 
 At first, it might seem like there is no room to extend the header like this,
 though. We have the link field, then immediately comes the name, and when *it*
@@ -286,45 +320,53 @@ ends, there's the code. However, we can put it *to the left* of the link field:
 
 ![The print xt is directly to the left of the location the nt points to.](printing-field.svg)
 
-As a side-effect of this layout, a normal defining word, such as `variable`, can
-be invoked after the print xt is written:
+As a side-effect of this layout, we don't actually need to write the entire
+header ourselves. After our additional field is written, we can just invoke
+`variable` or a similar defining word and have it complete the rest:
 
 ```forth
 : print-uint @ u. ; : uint ['] print-uint , variable ;
 : print-str 2@ type ; : str ['] print-str , 2variable ;
 ```
 
-This is then used by `print-field,`:
-
-```forth
-: print-field, ( nt -- )
-  dup print-name, postpone space
-  dup >body , ( push pointer to field )
-  1 cells - @ , ( call the printing xt )
-  postpone cr ;
-```
-
-This will generate roughly the following code:
+This is then used by `print-field,`. For a string variable called `word:`, it
+will generate the following code:
 
 ```forth
 s" word:" type space word: print-str cr
 ```
 
-## Closing remarks
+Here's how you go about generating that:
 
-These few lines are the core of the implementation. In [the repository][repo],
-you can find it in [`block13.fth`][block]. While it fits snugly within one
-block, not many types are included for the context variables.
+```forth
+: print-field, ( nt -- )
+  dup print-name, postpone space
+  dup >body ,                     ( e.g. word: )
+  1 cells - @ ,                   ( e.g. print-str )
+  postpone cr ;
+```
 
-If you want to play around with it, follow the instructions in the README to
-build a disk image and fire it up in QEMU. Typing `1 load` will load, among
-various other code, the exception handling.
+This concludes the crux of the implementation. The only thing that remains is to
+put an `execute` in the exception handling code of the interpreter, which we'll
+soon do when we pivot into the pure-Forth outer interpreter.
 
-As written, this code probably won't work on other Forth systems — after all,
-I'm making extensive use of the internal details of the dictionary. If I were to
-write this with a focus on portability, I'd probably end up using a separate
-linked list to store pairs of `(variable_nt, printing_xt)`. Not sure if there is
-a standard word for getting the name out of a name token, though.
+In fact, the code is there already in [the GitHub repository][repo], with the
+code from this article in [`block13.fth`][block] and the new outer interpreter
+in blocks 20–21. If you want to play around with it, follow the instructions in
+the README to build a disk image and fire it up in QEMU. Typing `1 load` will
+load, among various other code, the new interpreter and exception handling.
+
+If you like what you see, feel free to adapt this exception mechanism to your
+Forth system. Though, the code probably won't work exactly as written — after
+all, I'm making extensive use of the internal details of the dictionary. If I
+were to write this with a focus on portability, I'd probably end up using a
+separate linked list to store pairs of `(variable_nt, printing_xt)` (and words
+like `uint` would be extending it). Not sure what the standard's equivalent of
+`header-name` is, though.
+
+And even if you're not going to be adding context to your exceptions, I hope
+you've found this to be an interesting demonstration of Forth's metaprogramming
+capabilities.
 
 {{ get_notified() }}
 

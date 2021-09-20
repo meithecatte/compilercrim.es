@@ -10,7 +10,7 @@ variables:
   word_end: '(?=\s|$)'
   word: '\S+'
   word_declaration: (?i)constant|variable|value|create|vocabulary|defer|:code|end-exception|str|uint
-  word_keyword: "(?i)\\[\'\\]|\\[|\\]|immediate|exception|if|else|then|begin|until|again|while|repeat|case|endcase|of|endof"
+  word_keyword: "(?i)\\[\'\\]|\\[|\\]|immediate|exception|if|else|then|begin|until|again|while|repeat|case|endcase|of|endof|literal"
 
 contexts:
   prototype:

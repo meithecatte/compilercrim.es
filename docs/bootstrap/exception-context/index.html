@@ -9,7 +9,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
-        <title>A better exception model for Forth</title>
+        <title>Contextful exceptions with Forth metaprogramming</title>
         <link rel="stylesheet" href="https://niedzejkob.p4.team/style.css?1"/>
         <link rel="icon" href="https://niedzejkob.p4.team/icon.png"/>
         <link rel="canonical" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;"/>
@@ -17,7 +17,7 @@
         
 <meta property="og:type" content="article">
 
-        <meta property="og:title" content="A better exception model for Forth">
+        <meta property="og:title" content="Contextful exceptions with Forth metaprogramming">
         
             <meta property="og:description" content="A typical Forth system provides a simple exception handling mechanism, in which
 a single integer, that identifies the exception, is thrown. If we end up
@@ -41,12 +41,12 @@ more context. ">
             <article>
                 
 <h1 class="title">
-  A better exception model for Forth
+  Contextful exceptions with Forth metaprogramming
 </h1>
 
 <p class="page-metadata">
-August 11, 2021
-&middot; 12 minute read
+September 20, 2021
+&middot; 13 minute read
 </p>
 
 
@@ -84,25 +84,50 @@ more context. <span id="continue-reading"></span></p>
 <p>Systems like Gforth do print the backtrace and map the integer thrown to a
 textual description (in a manner similar to Unix's errno), but information
 specific to a particular error is lost. For example, if an I/O error occurs,
-we'd like to include the underlying error code and perhaps the block number. If
-a file couldn't be found, we want its filename. So far, I couldn't find any
-existing Forth system that solves this.</p>
-<p>In this post, I describe Miniforth's solution to this problem. I build it on
-top of the standard <code>catch</code> and <code>throw</code> words, so if you need a refresher on how
-they behave, or would like to see how they're implemented, see <a href="https://niedzejkob.p4.team/bootstrap/throw-catch/">this
-article of mine</a>.</p>
-</section><section id="finding-the-printing-function"><h2>Finding the printing function</h2>
+we'd like to include the underlying error code, the block number, and perhaps
+some device identifier. If a file couldn't be found, we want its filename. So
+far, I couldn't find any existing Forth system that solves this.</p>
+<p>In this post, I describe Miniforth's solution to this problem. We'll build a
+simple extension to the <code>throw</code>-and-<code>catch</code> mechanism to allow error messages
+like:</p>
+<pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">i/o-error
+in-block: 13
+error-code: 2
+</span></code></pre><pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">unknown-word
+word: has-typpo
+</span></code></pre>
+<p>The latter example also illustrates why exceptions are on the critical path of
+the bootstrap — they'll be the mechanism by which the new outer interpreter
+reports unknown words. Granted, we could hack around this need, but some form of
+unwinding will be necessary anyway, as the error may occur within a parsing word
+like <code>'</code>, potentially deep within the user's program.</p>
+<p>Older Forth systems used a simpler strategy of <code>abort</code>ing into the top-level
+REPL upon the first error, which entailed clearing the return stack entirely and
+jumping to the entrypoint of the system. I decided that this simplification is
+not worth it, as I'll eventually need the full flexibility of exceptions —
+planning ahead, I'm modeling the eventual text editor after <code>vi</code>, and I'm
+considering making the commandline bound to <code>:</code> a Forth REPL (with an additional
+vocabulary activated for the commands specific to editing text). In that case,
+quitting the editor after the first typo wouldn't be very nice.</p>
+<p>The mechanism I describe here is built it on top of the standard <code>catch</code> and
+<code>throw</code> words, so if you need a refresher on how they behave, or would like to
+see how they're implemented, see <a href="https://niedzejkob.p4.team/bootstrap/throw-catch/">this article of mine</a>.</p>
+</section><section id="the-design"><h2>The design</h2>
 <p>The mechanism would be most flexible if the user could simply register an
-arbitrary snippet of code for printing a type of exceptions. However, most of
+arbitrary snippet of code for printing an exception type. However, most of
 the exceptions wouldn't actually use this flexibility fully. Therefore, the
 design has two main parts:</p>
 <ul>
 <li>locating the word that prints a given exception, and</li>
-<li>syntax that makes it easy to define a printing word with typical behavior.</li>
+<li>syntax for defining a typical printing word easily.</li>
 </ul>
-<p>Locating the printing function is a very similar problem to finding the string
-name for an integer error code like other systems do. As such, we <em>could</em> adapt
-Gforth's solution, creating a linked list much like the dictionary itself:</p>
+</section><section id="finding-the-printing-function"><h3>Finding the printing function</h3>
+<p>Locating the printing handler is a very similar problem to finding a <em>string</em>
+description, which is something other systems do. As such, we <em>could</em> adapt
+Gforth's solution, creating a linked list much like the dictionary itself,
+mapping exception numbers to printing routines:</p>
 <p><img src="https://niedzejkob.p4.team/bootstrap/exception-context/gforth-like.svg" alt="A linked list with entries consisting of a link field, exception number and the code executed for a given exception." /></p>
 <p>An explicit mapping like that could indeed be the best way of locating the
 printing word, if one was looking for compatibility with existing programs
@@ -114,9 +139,9 @@ function.</p>
 &#39; </span><span style="font-style:italic;color:#fd971f;">my-exn </span><span style="color:#c9d1d9;">throw </span><span style="color:#85817e;">( prints Hello! )
 </span></code></pre>
 <p>That way, no extra data structures are necessary, saving both memory
-and execution time<sup class="footnote-reference"><a href="#time">1</a></sup>. The pointers also serve well as opaque tokens to be
-compared when we need to decide, after <code>catch</code>, whether to suppress or re-throw
-a particular exception.</p>
+and execution time<sup class="footnote-reference"><a href="#time">1</a></sup>. Even when you don't want to print the exception, but,
+for example, check if the exception you've caught is one you want to handle,
+nothing stopping you from comparing these pointers like opaque tokens.</p>
 <pre style="background-color:#272822;">
 <code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">print-half </span><span style="color:#85817e;">( n -- )
   </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">halve </span><span style="color:#c9d1d9;">catch </span><span style="color:#f92672;">case
@@ -126,16 +151,12 @@ a particular exception.</p>
   </span><span style="color:#f92672;">endcase ;
 </span></code></pre>
 <p>Of course, throwing the execution token like that will explode violently when
-someone throws a simple integer. However, if compatibility was desired, the two
-schemes could be merged somehow. For example, while the integers thrown are
-usually negative, a Forth system with 32-bit or wider addresses would never set
-the highest bit of an address. Extending this to a higher granularity, the
-system could decide whether to execute the thrown value by checking whether an
-address is mapped in memory.</p>
-<p>Another combination I'd be considering would be to reserve a single numeric
-identifier in the traditional system for all &quot;fancy&quot; exceptions, and then store
-the actual execution token in a <code>variable</code>. In this case a wrapper around
-<code>throw</code> would be necessary.</p>
+someone throws a simple integer. If compatibility was desired, the two schemes
+could be merged somehow. The solution I like the most here is to reserve a
+single numeric identifier in the traditional system for all &quot;fancy&quot; exceptions,
+and then store the actual execution token in a <code>variable</code>. In this case a
+wrapper around <code>throw</code> would be necessary, but we can use this opportunity to
+merge the <code>[']</code> into it too:</p>
 <pre style="background-color:#272822;">
 <code class="language-forth" data-lang="forth"><span style="color:#f92672;">variable </span><span style="color:#a6e22e;">exn-xt
 </span><span style="color:#c9d1d9;">-123 </span><span style="color:#f92672;">constant </span><span style="color:#a6e22e;">exn:fancy
@@ -146,10 +167,10 @@ the actual execution token in a <code>variable</code>. In this case a wrapper ar
     [throw] </span><span style="font-style:italic;color:#fd971f;">its-odd
   </span><span style="color:#f92672;">then </span><span style="color:#c9d1d9;">2/ </span><span style="color:#f92672;">;
 </span></code></pre>
-<p>Either way, Miniforth settles for directly throwing execution tokens — these
-alternative solutions could be useful when integrating these ideas into other
-systems, though.</p>
-</section><section id="defining-the-exceptions"><h2>Defining the exceptions</h2>
+<p>Either way, Miniforth settles for directly throwing execution tokens — this
+alternative could be useful when integrating these ideas into other systems,
+though.</p>
+</section><section id="defining-the-exceptions"><h3>Defining the exceptions</h3>
 <p>To make defining the exceptions easier, Miniforth provides this syntax:</p>
 <pre style="background-color:#272822;">
 <code class="language-forth" data-lang="forth"><span style="color:#f92672;">exception
@@ -169,30 +190,33 @@ serves to separate names from values when the exception gets printed.  While it
 wouldn't be hard to make the code add a <code>:</code> by itself, I don't think that would
 be for the better — the naming convention means you don't have to worry about
 your field names conflicting with other Forth words. For example, the
-<code>unknown-word</code> exception includes a <code>word:</code> field. But <code>word</code> is already a
-well-known word that parses a token from the input stream.</p>
+<code>unknown-word</code> exception includes a <code>word:</code> field, but <code>word</code> is already a
+well-known word that parses a token from the input stream. I must admit that I
+first considered much more complicated namespacing ideas before realizing that
+the colon can serve as a naming convention.</p>
 </section><section id="alternative-designs"><h3>Alternative designs</h3>
 <p>Of course, this is not the only possible way of attaching context. For one, we
 could change how <code>catch</code> affects the stack, and keep any values describing the
 exception on the stack, just below the execution token itself. However, <code>throw</code>
 purposefully resets the stack depth to what it was before <code>catch</code> was called to
-make stack manipulation possible after an exception gets caught. Changing this
-would introduce other problems to be solved, which is why I abandoned this
-approach.</p>
-<p>One could also consider using dynamically allocated exception structures. At
-first it might seem that this is utterly pointless, as only one exception is
-ever being thrown at a given time, and there isn't much point to holding onto it
-for extended periods of time. This is not entirely true, as one could imagine
-one exception containing a <em>cause</em> field, that would chain exceptions together:</p>
+make stack manipulation possible after an exception gets caught. While you
+could, instead, keep track of the size of the exception being handled and manage
+the stack appropriately, I can't imagine that being pleasant.</p>
+<p>One could also consider using dynamically allocated exception structures. After
+all, that's pretty much what higher-level languages do. However, there is no
+point in holding onto an exception for later, and only one exception is ever
+being thrown at a given time. I do admit that one could chain exceptions
+together by having a <em>cause</em> field, like so:</p>
 <pre style="background-color:#272822;">
 <code class="language-forth" data-lang="forth"><span style="color:#c9d1d9;">writeback-failed
-buffer-at: </span><span style="color:#ae81ff;">$1400       </span><span style="color:#85817e;">( these fields come from writeback-failed itself )
-</span><span style="color:#c9d1d9;">caused-by: io-error    </span><span style="color:#85817e;">( the printing word for caused-by executes io-error )
-</span><span style="color:#c9d1d9;">block-number: </span><span style="color:#ae81ff;">13       </span><span style="color:#85817e;">( these come from io-error )
-</span><span style="color:#c9d1d9;">error-code: </span><span style="color:#ae81ff;">$47
+buffer-at: </span><span style="color:#ae81ff;">$1400
+</span><span style="color:#c9d1d9;">caused-by:
+  io-error
+  block-number: </span><span style="color:#ae81ff;">13
+  </span><span style="color:#c9d1d9;">error-code: </span><span style="color:#ae81ff;">$47
 </span></code></pre>
-<p>Still, a situation where two exceptions of the same type are present in a chain
-of causes is somewhat far-fetched, and, in my opinion, does not justify the
+<p>Still, a situation where two exceptions of the same type are present in a causal
+chain is somewhat far-fetched, and, in my opinion, does not justify the
 increased complexity — making this work would need a dynamic allocator and
 a destructor mechanism for the exception objects.</p>
 <p>In the end, storing context in global variables has a very nice advantage: the
@@ -216,7 +240,7 @@ path for the happy case afterwards, to discard the no-longer-needed context:</p>
     </span><span style="color:#c9d1d9;">word: </span><span style="color:#ffd866;">2! </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">unknown-word </span><span style="color:#c9d1d9;">throw
   </span><span style="color:#f92672;">then ;
 </span></code></pre>
-<p>One caveat of storing context early is that, if you're not careful, a word
+<p>This strategy does have the caveat that, if you're not careful, a word
 invoked between storing the context and throwing the exception could overwrite
 said context, i.e.</p>
 <pre style="background-color:#272822;">
@@ -228,53 +252,51 @@ said context, i.e.</p>
 exception and all the words that throw it are directly next to each other, so
 it's easy to notice if this can happen. I suppose recursion would have the
 highest chance of triggering this. If this issue occurs in a context other than
-a recursive word, your exceptions are probably needlessly general anyway.</p>
+a recursive word, your exceptions are probably needlessly general anyway, and
+should be split into more granular types.</p>
 </section><section id="the-implementation"><h2>The implementation</h2>
 <p>Okay, so how do we implement this <code>exception</code>...<code>end-exception</code> structure? Most
 of the work is actually done by <code>end-exception</code> itself. This is because we need
-to generate the variables and their underlying storage, as well as the code of
-the printing function, and we can't do both at once — we'd quickly end up
-putting a variable's dictionary header in the middle of our code.<sup class="footnote-reference"><a href="#skipping">2</a></sup></p>
+to generate the variables with their underlying storage, as well as the code of
+the printing function of the exception, and we can't do both at once — we'd
+quickly end up putting a variable's dictionary header in the middle of our
+code.<sup class="footnote-reference"><a href="#skipping">2</a></sup></p>
 <p>Therefore, the context variables themselves are defined first, and then
-<code>end-exception</code> walks the dictionary to process all the variables after they've
-been defined. For this purpose, a dictionary entry can be pointed at in two
-locations:</p>
+<code>end-exception</code> <em>walks through the dictionary</em> to process all the variables,
+after they've been defined.</p>
+<p>While traversing the dictionary, we can point at an entry in two places:</p>
 <p><img src="https://niedzejkob.p4.team/bootstrap/exception-context/nt-and-xt.svg" alt="Diagram illustrates what is about to be described." /></p>
 <p>The <em>name token</em> (<code>nt</code> for short) points to the very beginning of the header.
 This is the value stored in <code>latest</code> and the link fields, and it lets you know
-as much as the name itself.<sup class="footnote-reference"><a href="#name-token">3</a></sup> On the other hand, we have an
+as much as the name of the word itself.<sup class="footnote-reference"><a href="#name-token">3</a></sup> On the other hand, we have an
 <em>execution token</em> (<code>xt</code> for short), which directly points at the code of a word.
 This is the value we can pass to <code>execute</code>, compile into a definition with <code>,</code>,
 or in general do things where only the behavior matters. Notice that, due to the
 variable-length name field, we can only turn a name token into an execution
-token (<code>&gt;body ( nt -- xt )</code>), but not the other way around.</p>
-<p>Equipped with this knowledge, we can traverse the dictionary — <code>exception</code> saves
-the value of <code>latest</code>, which is the name token of the first word that <em>isn't</em>
-part of the exception context. As is typical for Forth control structures, we
-can just put this value on the stack:</p>
+token (which is what <code>&gt;body ( nt -- xt )</code> does), but not the other way around.</p>
+<p>As we need to know when to stop our traversal, <code>exception</code> remembers the value of
+<code>latest</code>, thus saving the name token of the first word that <em>isn't</em> part of the
+exception context. Along the same lines as <code>if</code> or <code>begin</code>, we can just put
+this value on the stack:</p>
 <pre style="background-color:#272822;">
 <code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">exception </span><span style="color:#85817e;">( -- dict-pos ) </span><span style="color:#c9d1d9;">latest </span><span style="color:#ffd866;">@ </span><span style="color:#f92672;">;
 </span></code></pre>
-<p><code>latest</code> is also read by <code>end-exception</code>, as the very first thing done.
-This is because creating the printing word itself will change the value of
-<code>latest</code>.</p>
+<p><code>end-exception</code> also begins by sampling <code>latest</code>, thus establishing the other
+end of the range through which we'll be iterating. Then, <code>:</code> is ran to parse the
+name that comes after <code>end-exception</code>, and create an appropriate word header.</p>
 <pre style="background-color:#272822;">
 <code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">end-exception </span><span style="color:#85817e;">( dict-pos -- ) </span><span style="color:#c9d1d9;">latest </span><span style="color:#ffd866;">@ </span><span style="color:#c9d1d9;">:
   </span><span style="color:#85817e;">( ... )
 </span></code></pre>
-<p>Note that <code>:</code> is not an immediate word, and as such, when it gets called by
-<code>end-exception</code>, it will parse out the token after <code>end-exception</code> and begin a
-definition with that name.</p>
-<p>The first thing this definition needs to do is print its own name. Since we'll
-also need to print the names of other words, let's factor that out.
-<code>print-name,</code> will append to the current definition (hence the <code>,</code> in the name)
-the action of printing the name corresponding to a name token:</p>
+<p>One repeating operation the printing word needs to do is printing the name of
+some word — either the exception name itself, or one of the variables. Let's
+factor that out into <code>print-name,</code>, which takes a name token, resolves it into a
+name with <code>header-name</code>, and compiles the action of printing this name.</p>
 <pre style="background-color:#272822;">
 <code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">print-name, </span><span style="color:#85817e;">( nt -- )
   </span><span style="color:#c9d1d9;">header-name </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">2literal </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">type </span><span style="color:#f92672;">;
 </span></code></pre>
-<p><code>end-exception</code> then passes the <em>newly updated</em> value of <code>latest</code> to
-<code>print-name,</code>:</p>
+<p>We can then use it to print the name which <code>:</code> just parsed:</p>
 <pre style="background-color:#272822;">
 <code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">end-exception </span><span style="color:#85817e;">( dict-pos -- ) </span><span style="color:#c9d1d9;">latest </span><span style="color:#ffd866;">@ </span><span style="color:#c9d1d9;">:
   latest </span><span style="color:#ffd866;">@ </span><span style="color:#c9d1d9;">print-name,  </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">cr
@@ -284,60 +306,75 @@ pointers we got so far point to:</p>
 <p><img src="https://niedzejkob.p4.team/bootstrap/exception-context/end-exception-latest.svg" alt="The three values read from latest so far point to: the last word defined before the exception, the last field of the exception, and the printing word." /></p>
 <p>The next step is to iterate over the dictionary and handle all the fields. As
 you can see from the diagram above, we need to stop iterating once the two
-pointers become equal, testing before handling each field.</p>
+pointers become equal, testing <em>before</em> handling each field.</p>
 <pre style="background-color:#272822;">
 <code class="language-forth" data-lang="forth"><span style="color:#c9d1d9;">  </span><span style="color:#f92672;">begin </span><span style="color:#85817e;">( end-pos cur-pos ) </span><span style="color:#66d9ef;">2dup </span><span style="color:#e6db74;">&lt;&gt; </span><span style="color:#f92672;">while
-    </span><span style="color:#66d9ef;">dup </span><span style="color:#c9d1d9;">print-field, </span><span style="color:#85817e;">( follow the link field ) </span><span style="color:#ffd866;">@
-  </span><span style="color:#f92672;">repeat  </span><span style="color:#66d9ef;">2drop  </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">;  </span><span style="color:#f92672;">;
+    </span><span style="color:#66d9ef;">dup </span><span style="color:#c9d1d9;">print-field, </span><span style="color:#85817e;">( we&#39;ll see print-field, later )
+    ( follow the link field: ) </span><span style="color:#ffd866;">@
+  </span><span style="color:#f92672;">repeat  </span><span style="color:#66d9ef;">2drop
 </span></code></pre>
-<p>Notice how unlike <code>:</code>, the <code>;</code> that ends the definition being generated needs to
-be <code>postpone</code>d. This is because <code>;</code> is marked <code>immediate</code>, unlike <code>:</code>.</p>
+<p>Finally, we finish the printing word with a <code>;</code>. We need to postpone it, since
+it would otherwise end the definition of <code>end-exception</code> itself.</p>
+<pre style="background-color:#272822;">
+<code class="language-forth" data-lang="forth"><span style="color:#c9d1d9;">  </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">;
+</span><span style="color:#f92672;">;
+</span></code></pre>
 <p>So, how does <code>print-field,</code> work? It first needs to print the name itself, which
-we can do with <code>print-name,</code>. But how does the value of the field get printed?
-Since printing a string is very different from printing a number, the field
-needs to let us know how to print it. To do so, the exception variables have an
-extra field in their header, which contains the execution pointer that prints a
-field of this type.</p>
+we can do with <code>print-name,</code>. But how does the value of the field get shown?</p>
+<p>Since printing a string is very different from printing a number, the field
+needs to somehow let us know how to print it. To do so, the exception variables have an
+extra field in their header that points to a word such as <code>: print-uint @ u. ;</code>.</p>
 <p>At first, it might seem like there is no room to extend the header like this,
 though. We have the link field, then immediately comes the name, and when <em>it</em>
 ends, there's the code. However, we can put it <em>to the left</em> of the link field:</p>
 <p><img src="https://niedzejkob.p4.team/bootstrap/exception-context/printing-field.svg" alt="The print xt is directly to the left of the location the nt points to." /></p>
-<p>As a side-effect of this layout, a normal defining word, such as <code>variable</code>, can
-be invoked after the print xt is written:</p>
+<p>As a side-effect of this layout, we don't actually need to write the entire
+header ourselves. After our additional field is written, we can just invoke
+<code>variable</code> or a similar defining word and have it complete the rest:</p>
 <pre style="background-color:#272822;">
 <code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">print-uint </span><span style="color:#ffd866;">@ </span><span style="color:#c9d1d9;">u. </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">uint </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">print-uint </span><span style="color:#ffd866;">, </span><span style="color:#c9d1d9;">variable </span><span style="color:#f92672;">;
 : </span><span style="color:#a6e22e;">print-str </span><span style="color:#ffd866;">2@ </span><span style="color:#c9d1d9;">type </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">str </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">print-str </span><span style="color:#ffd866;">, </span><span style="color:#c9d1d9;">2variable </span><span style="color:#f92672;">;
 </span></code></pre>
-<p>This is then used by <code>print-field,</code>:</p>
+<p>This is then used by <code>print-field,</code>. For a string variable called <code>word:</code>, it
+will generate the following code:</p>
+<pre style="background-color:#272822;">
+<code class="language-forth" data-lang="forth"><span style="color:#e6db74;">s&quot; word:&quot; </span><span style="color:#c9d1d9;">type space word: print-str cr
+</span></code></pre>
+<p>Here's how you go about generating that:</p>
 <pre style="background-color:#272822;">
 <code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">print-field, </span><span style="color:#85817e;">( nt -- )
   </span><span style="color:#66d9ef;">dup </span><span style="color:#c9d1d9;">print-name, </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">space
-  </span><span style="color:#66d9ef;">dup </span><span style="color:#c9d1d9;">&gt;body </span><span style="color:#ffd866;">, </span><span style="color:#85817e;">( push pointer to field )
-  </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">cells </span><span style="color:#e6db74;">- </span><span style="color:#ffd866;">@ , </span><span style="color:#85817e;">( call the printing xt )
+  </span><span style="color:#66d9ef;">dup </span><span style="color:#c9d1d9;">&gt;body </span><span style="color:#ffd866;">,                     </span><span style="color:#85817e;">( e.g. word: )
+  </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">cells </span><span style="color:#e6db74;">- </span><span style="color:#ffd866;">@ ,                   </span><span style="color:#85817e;">( e.g. print-str )
   </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">cr </span><span style="color:#f92672;">;
 </span></code></pre>
-<p>This will generate roughly the following code:</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#e6db74;">s&quot; word:&quot; </span><span style="color:#c9d1d9;">type space word: print-str cr
-</span></code></pre></section><section id="closing-remarks"><h2>Closing remarks</h2>
-<p>These few lines are the core of the implementation. In <a href="https://github.com/NieDzejkob/miniforth">the repository</a>,
-you can find it in <a href="https://github.com/NieDzejkob/miniforth/blob/master/block13.fth"><code>block13.fth</code></a>. While it fits snugly within one
-block, not many types are included for the context variables.</p>
-<p>If you want to play around with it, follow the instructions in the README to
-build a disk image and fire it up in QEMU. Typing <code>1 load</code> will load, among
-various other code, the exception handling.</p>
-<p>As written, this code probably won't work on other Forth systems — after all,
-I'm making extensive use of the internal details of the dictionary. If I were to
-write this with a focus on portability, I'd probably end up using a separate
-linked list to store pairs of <code>(variable_nt, printing_xt)</code>. Not sure if there is
-a standard word for getting the name out of a name token, though.</p>
+<p>This concludes the crux of the implementation. The only thing that remains is to
+put an <code>execute</code> in the exception handling code of the interpreter, which we'll
+soon do when we pivot into the pure-Forth outer interpreter.</p>
+<p>In fact, the code is there already in <a href="https://github.com/NieDzejkob/miniforth">the GitHub repository</a>, with the
+code from this article in <a href="https://github.com/NieDzejkob/miniforth/blob/master/block13.fth"><code>block13.fth</code></a> and the new outer interpreter
+in blocks 20–21. If you want to play around with it, follow the instructions in
+the README to build a disk image and fire it up in QEMU. Typing <code>1 load</code> will
+load, among various other code, the new interpreter and exception handling.</p>
+<p>If you like what you see, feel free to adapt this exception mechanism to your
+Forth system. Though, the code probably won't work exactly as written — after
+all, I'm making extensive use of the internal details of the dictionary. If I
+were to write this with a focus on portability, I'd probably end up using a
+separate linked list to store pairs of <code>(variable_nt, printing_xt)</code> (and words
+like <code>uint</code> would be extending it). Not sure what the standard's equivalent of
+<code>header-name</code> is, though.</p>
+<p>And even if you're not going to be adding context to your exceptions, I hope
+you've found this to be an interesting demonstration of Forth's metaprogramming
+capabilities.</p>
 <div id="get-notified">
     <h1>Enjoyed this article?</h1>
     <p>You might like my <a href="/">other posts</a>, too. If you'd like to be notified
     of new ones, you can <a href="https://twitter.com/NieDzejkob">follow me on Twitter</a>
     or subscribe to the <a href="/rss.xml">RSS feed</a>.</p>
-    <p>Please consider
-    <a href="https://github.com/sponsors/NieDzejkob">supporting my work</a>.</p>
+    <p>Thanks to
+      <a href="https://github.com/michcioperz">Michał Sidor</a>
+      for supporting my work.
+    <a href="https://github.com/sponsors/NieDzejkob">Wanna join them?</a></p>
 </div>
 <hr />
 <div class="footnote-definition" id="time"><sup class="footnote-definition-label">1</sup>
@@ -388,14 +425,17 @@ will still point to the same word.</p>
     <ul>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;#finding-the-printing-function">Finding the printing function</a>
-            
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;#defining-the-exceptions">Defining the exceptions</a>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;#the-design">The design</a>
             
             <ul>
+                
+                    <li>
+                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;#finding-the-printing-function">Finding the printing function</a>
+                    </li>
+                
+                    <li>
+                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;#defining-the-exceptions">Defining the exceptions</a>
+                    </li>
                 
                     <li>
                         <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;#alternative-designs">Alternative designs</a>
@@ -407,11 +447,6 @@ will still point to the same word.</p>
         
         <li>
             <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;#the-implementation">The implementation</a>
-            
-        </li>
-        
-        <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;#closing-remarks">Closing remarks</a>
             
         </li>
         
