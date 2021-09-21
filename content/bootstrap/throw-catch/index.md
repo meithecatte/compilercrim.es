@@ -88,7 +88,7 @@ well use it.
 I couldn't actually find any guidance on how these are typically picked for
 application-specific exceptions. If I had to guess, one'd start with small
 positive integers, rather than at `-4096` going down. For what it's worth,
-[Miniforth's extended exception mechanism][exception-context] sidesteps this by
+[Miniforth's extended exception mechanism][next post] sidesteps this by
 using memory addresses as identifiers.
 
 Anyway, throwing an exception looks exactly like what you'd expect:
