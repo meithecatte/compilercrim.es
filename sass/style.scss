@@ -73,6 +73,10 @@ header a, .footnote-reference a, h1 a {
     text-decoration: none;
 }
 
+.footnote-reference + .footnote-reference::before {
+    content: ",";
+}
+
 footer {
     position: absolute;
     width: 100%;
