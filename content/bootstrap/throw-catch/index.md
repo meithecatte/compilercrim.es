@@ -176,7 +176,7 @@ programming] implementation of Forth, [suggests][jonesforth-impl] implementing
 exceptions by, essentially, having `throw` scan the return stack for a specific
 address within the implementation of `catch`. This feels like something one
 would come up with after studying the complex unwinding mechanisms in languages
-like C++ or Rust — they too unwind the stack, using some very complex support
+like C++ or Rust[^jones] — they too unwind the stack, using some very complex support
 machinery spanning the entire toolchain. However, the reason they need to do
 that is to run the destructors of objects in the stack frames that are about to
 get discarded.
@@ -347,6 +347,11 @@ exception bubbles up to the top-level. See you there!
 ---
 
 [^xt]: Forth-speak for "function pointer".
+
+[^jones]: This is not to say that `jonesforth` as a whole is bad. The foundation
+  of the system is solid, and it explains the concepts involved quite well. I
+  definitely recommend it as an introduction to Forth internals, and even
+  perhaps as a way of learning Forth itself.
 
 [^ats]: One would think that the performance of exceptions shouldn't ever become
   the bottleneck. I agree, though I would like to take this opportunity to point
