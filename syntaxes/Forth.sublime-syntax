@@ -33,7 +33,7 @@ contexts:
     - include: match-any-word
 
   match-postpone:
-    - match: "{{word_begin}}(postpone|compile|\'|\\[\'\\]|\\[throw\\]){{word_end}}\\s+({{word}})"
+    - match: "{{word_begin}}(postpone|compile|is|\'|\\[\'\\]|\\[throw\\]){{word_end}}\\s+({{word}})"
       captures:
         1: keyword
         2: variable.parameter.forth
