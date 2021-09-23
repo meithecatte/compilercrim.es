@@ -405,7 +405,7 @@ byte, and is sign-extended to 16 bits if necessary.
 
 There is one irregularity, in that if we try to encode a `[BP]` without any
 offset, what we get instead is a hardcoded address, such as `mov bx, [0x1234]`,
-which should come after the immediate byte.[^modrm-order] If you recall, the
+which should come after the ModR/M byte itself.[^modrm-order] If you recall, the
 lack of `[BP]` is why switching the return stack to use `DI` instead was
 beneficial.
 
