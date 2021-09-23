@@ -1,5 +1,5 @@
 +++
-title = "Fitting a FORTH in 512 bytes"
+title = "Fitting a Forth in 512 bytes"
 date = 2021-06-10
 +++
 
@@ -65,22 +65,22 @@ programs.
 What I would seek is a solution that minimizes typing in hand-assembled machine
 code. Ideally, it would be a programming language, but one that, unlike BASIC,
 can be extended at runtime. If you've read the title of this post, you already
-know what I settled on — as it turns out, it's possible to fit a barebones FORTH
+know what I settled on — as it turns out, it's possible to fit a barebones Forth
 in a bootsector. You can see the code in the [Miniforth repository on
 GitHub][miniforth], but I will include most of it here.
 
-The entire FORTH takes, at this moment, 504 bytes. As you might expect, the
+The entire Forth takes, at this moment, 504 bytes. As you might expect, the
 development process involved being on a perpetual lookout for byte-saving
 opportunities. However, when I published what I thought was quite tightly
 optimized code, [Ilya Kurdyukov][ilya] came along and managed to find 24 bytes
 to be saved! I promptly reinvested this saved space in [new
 features](#s-string-poke).
 
-## A primer on FORTH
+## A primer on Forth
 
-*If you've ever written anything in FORTH, you can safely skip this section.*
+*If you've ever written anything in Forth, you can safely skip this section.*
 
-FORTH is a stack-based language. For example, a number will push its value onto
+Forth is a stack-based language. For example, a number will push its value onto
 the stack, while the `+` *word* will pop two numbers and push their sum. A
 common debugging utility, but one not included in Miniforth, is the
 `.s` word, which prints the contents of the stack.
@@ -97,7 +97,7 @@ The user can define their own words with `:` and `;`. For example:
 </pre>
 
 This defines the word `double`, which does the same thing as `dup +`. `dup`, by
-the way, is one of FORTH's stack manipulation words. It duplicates the top
+the way, is one of Forth's stack manipulation words. It duplicates the top
 element on the stack:
 
 <pre>
@@ -122,9 +122,9 @@ This lets us succintly describe the common aspects of a word.
 
 ## Threaded code
 
-While some FORTH systems do include full-blown, optimizing compilers similar to
+While some Forth systems do include full-blown, optimizing compilers similar to
 those one'd see in a typical programming language, there is a much simpler
-strategy. After all, everything a FORTH word can do is execute other words, so a
+strategy. After all, everything a Forth word can do is execute other words, so a
 sequence of `call` instructions gets us very close:
 
 ```asm
@@ -258,7 +258,7 @@ LIT:
 
 We need a way to locate the implementation of the words the user types in.
 This is the role of the *dictionary*. I use a structure similar to many other
-small-scale FORTHs — a singly linked list of word headers, directly prepended
+small-scale Forths — a singly linked list of word headers, directly prepended
 before the code of each word. Out of tradition, the head of the list is kept
 in a variable called `LATEST`.
 
@@ -281,7 +281,7 @@ If a word is marked as `IMMEDIATE`, it will be executed immediately, even if
 we're currently compiling a definition. For example, this is used to implement
 `;`.  If a word is marked as `HIDDEN`, it is ignored when searching through the
 dictionary. Apart from being used as a rudimentary encapsulation mechanism, this
-can be used to implement the traditional FORTH semantics where a word definition
+can be used to implement the traditional Forth semantics where a word definition
 can refer to the previous word with the same name (and `RECURSE` is used when
 you want the definition currently being compiled). However, towards the end of
 development, I have removed the code that actually does this from the default
@@ -290,7 +290,7 @@ implementation of `:` and `;`.
 ## Compression
 
 It is usually not worth it to use compression when both the decompressor and its
-payload have to fit in merely 512 bytes. However, in a FORTH implementation, one
+payload have to fit in merely 512 bytes. However, in a Forth implementation, one
 thing that's repeated very often is the implementation of `NEXT`.
 
 ```lst
@@ -568,7 +568,7 @@ be3412    mov si, 0x1234
 This is why Miniforth stores most of its variables in the immediate fields of
 instructions (a practice known as self-modifying code). Of course, this means
 that the address of these variables will change on every edit of the code, which
-is problematic, since we will be wanting to access these variables in FORTH
+is problematic, since we will be wanting to access these variables in Forth
 code. The typical way of exposing a variable is to create a word that pushes its
 address. However, that's way too expensive with our constraints. What I settled
 on is pushing the addresses onto the stack at startup. This can be done with
@@ -651,17 +651,17 @@ use by user code:
 
 ```asm
     mov [DRIVE_NUMBER], dl
-    push dx ; for FORTH code
+    push dx ; for Forth code
 ```
 
 ## The outer interpreter
 
-At this point, we reach the *outer interpreter* - the part of a FORTH system
+At this point, we reach the *outer interpreter* - the part of a Forth system
 that processes user input. The name "*outer* interpreter" distinguishes it from
 the *inner* interpreter, which is the component that coordinates the execution
 within a defined word, and consists of `NEXT`, `DOCOL`, `EXIT`, and `LIT`.
 
-Normally, a FORTH would expose the building blocks of its outer interpreter as
+Normally, a Forth would expose the building blocks of its outer interpreter as
 words in the dictionary, such as
 - `REFILL` (read a line of input from the currently executing source),
 - `WORD` (parse a word from the input stream),
@@ -684,7 +684,7 @@ registers are set up just before jumping to a word, and saved after it returns.
 After initialization is completed, the code falls through to `ReadLine`, the
 routine for reading in an input line from the keyboard. We will also jump back
 here later, when the current line of input is exhausted. The input buffer is at
-`0x500`, directly after the [BDA]. While the idiomatic string format for FORTH
+`0x500`, directly after the [BDA]. While the idiomatic string format for Forth
 uses a separate length field, this buffer is NULL-terminated, as that is easier
 to handle when parsing. The pointer to the unparsed fragment of the input is
 stored in `InputPtr`, which is the only variable which does *not* use the
@@ -1006,7 +1006,7 @@ or any immediate bytes:
 
 The output pointer for the compilation process is called `HERE`. It starts out
 just after the decompressed data. The function that writes out a word into this
-area is called `COMMA`, since the FORTH word that does this is `,`.
+area is called `COMMA`, since the Forth word that does this is `,`.
 
 ```asm
 COMMA:
@@ -1080,7 +1080,7 @@ don't need a `NEXT` at all.
 
 Since we don't want to type in disk routines on every boot, we need to include
 a way to run source code loaded from disk. A filesystem would be its own beast,
-but FORTH tradition has a minimalistic solution: the disk is simply divided
+but Forth tradition has a minimalistic solution: the disk is simply divided
 into 1 KiB blocks, in which source code is stored, formatted as 16 lines of 64
 characters. Then `load ( blknum -- )` will execute the block with the specified
 number.
@@ -1266,7 +1266,7 @@ Choosing the primitives to include in Miniforth is perhaps the biggest tradeoff
 to be made. I am fully expecting that some more primitive words will need to be
 defined at runtime by poking in opcodes. After all, there aren't any branching
 words. However, I'm pretty certain that these opcodes will be able to be
-generated by a simple FORTH assembler, rather than simply hardcoded.
+generated by a simple Forth assembler, rather than simply hardcoded.
 
 Arithmetic as basic as `+` is indispensible. I am defining both `+` and `-`,
 though, if I wanted to fit in something more important, I could keep only `-`

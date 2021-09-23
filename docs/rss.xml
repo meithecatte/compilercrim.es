@@ -64,7 +64,7 @@ Turing-complete, and therefore not worthy of being called a Forth! Today is the
 day we prove them wrong. </description>
         </item>
         <item>
-            <title>Fitting a FORTH in 512 bytes</title>
+            <title>Fitting a Forth in 512 bytes</title>
             <pubDate>Thu, 10 Jun 2021 00:00:00 +0000</pubDate>
             <link>https://niedzejkob.p4.team/bootstrap/miniforth/</link>
             <guid>https://niedzejkob.p4.team/bootstrap/miniforth/</guid>

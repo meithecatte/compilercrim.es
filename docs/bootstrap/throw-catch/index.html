@@ -216,7 +216,7 @@ programming</a> implementation of Forth, <a href="https://github.com/nornagon/jo
 exceptions by, essentially, having <code>throw</code> scan the return stack for a specific
 address within the implementation of <code>catch</code>. This feels like something one
 would come up with after studying the complex unwinding mechanisms in languages
-like C++ or Rust — they too unwind the stack, using some very complex support
+like C++ or Rust<sup class="footnote-reference"><a href="#jones">2</a></sup> — they too unwind the stack, using some very complex support
 machinery spanning the entire toolchain. However, the reason they need to do
 that is to run the destructors of objects in the stack frames that are about to
 get discarded.</p>
@@ -227,10 +227,10 @@ in a variable.</p>
 <pre style="background-color:#272822;">
 <code class="language-forth" data-lang="forth"><span style="color:#f92672;">variable </span><span style="color:#a6e22e;">catch-rp </span><span style="color:#85817e;">( return [stack] pointer at CATCH time )
 </span></code></pre>
-<p>Apart from the simplicity, this approach also has performance<sup class="footnote-reference"><a href="#ats">2</a></sup> and robustness
+<p>Apart from the simplicity, this approach also has performance<sup class="footnote-reference"><a href="#ats">3</a></sup> and robustness
 advantages — remember that <code>&gt;r</code> and do-loops can also push things onto the
 return stack. It would be a great shame if such a value happened to equal the
-special marker address that's being scanned for...<sup class="footnote-reference"><a href="#sec">3</a></sup></p>
+special marker address that's being scanned for...<sup class="footnote-reference"><a href="#sec">4</a></sup></p>
 <p>To support nested invocations of <code>catch</code>, we'll need to save the previous value
 of <code>catch-rp</code> on the stack. While we're at it, this is also a good place to save
 the parameter stack pointer. This effectively creates a linked list of &quot;exception
@@ -348,14 +348,20 @@ exception bubbles up to the top-level. See you there!</p>
 <div class="footnote-definition" id="xt"><sup class="footnote-definition-label">1</sup>
 <p>Forth-speak for &quot;function pointer&quot;.</p>
 </div>
-<div class="footnote-definition" id="ats"><sup class="footnote-definition-label">2</sup>
+<div class="footnote-definition" id="jones"><sup class="footnote-definition-label">2</sup>
+<p>This is not to say that <code>jonesforth</code> as a whole is bad. The foundation
+of the system is solid, and it explains the concepts involved quite well. I
+definitely recommend it as an introduction to Forth internals, and even
+perhaps as a way of learning Forth itself.</p>
+</div>
+<div class="footnote-definition" id="ats"><sup class="footnote-definition-label">3</sup>
 <p>One would think that the performance of exceptions shouldn't ever become
 the bottleneck. I agree, though I would like to take this opportunity to point
 out a style of programming I've recently seen in which the performance of
 exception handling indeed matters. Namely, take a look at the examples in the
 Exceptions section of the <a href="http://ats-lang.github.io/DOCUMENT/INT2PROGINATS/PDF/main.pdf#12.44.1">ATS manual</a>. Viewer discretion advised.</p>
 </div>
-<div class="footnote-definition" id="sec"><sup class="footnote-definition-label">3</sup>
+<div class="footnote-definition" id="sec"><sup class="footnote-definition-label">4</sup>
 <p>This could probably have some security implications, but hopefully
 nobody writes security-critical stuff in Forth anyway. Considering where we're
 at with C, though...</p>

@@ -9,7 +9,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
-        <title>Fitting a FORTH in 512 bytes</title>
+        <title>Fitting a Forth in 512 bytes</title>
         <link rel="stylesheet" href="https://niedzejkob.p4.team/style.css?1"/>
         <link rel="icon" href="https://niedzejkob.p4.team/icon.png"/>
         <link rel="canonical" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;"/>
@@ -17,7 +17,7 @@
         
 <meta property="og:type" content="article">
 
-        <meta property="og:title" content="Fitting a FORTH in 512 bytes">
+        <meta property="og:title" content="Fitting a Forth in 512 bytes">
         
             <meta property="og:description" content="Software is full of circular dependencies if you look deep enough. Compilers
 written in the language they compile are the most obvious example, but not the
@@ -45,7 +45,7 @@ challenge.  ">
             <article>
                 
 <h1 class="title">
-  Fitting a FORTH in 512 bytes
+  Fitting a Forth in 512 bytes
 </h1>
 
 <p class="page-metadata">
@@ -135,18 +135,18 @@ programs.</p>
 <p>What I would seek is a solution that minimizes typing in hand-assembled machine
 code. Ideally, it would be a programming language, but one that, unlike BASIC,
 can be extended at runtime. If you've read the title of this post, you already
-know what I settled on — as it turns out, it's possible to fit a barebones FORTH
+know what I settled on — as it turns out, it's possible to fit a barebones Forth
 in a bootsector. You can see the code in the <a href="https://github.com/NieDzejkob/miniforth/tree/post1">Miniforth repository on
 GitHub</a>, but I will include most of it here.</p>
-<p>The entire FORTH takes, at this moment, 504 bytes. As you might expect, the
+<p>The entire Forth takes, at this moment, 504 bytes. As you might expect, the
 development process involved being on a perpetual lookout for byte-saving
 opportunities. However, when I published what I thought was quite tightly
 optimized code, <a href="https://twitter.com/ilyakurdyukov">Ilya Kurdyukov</a> came along and managed to find 24 bytes
 to be saved! I promptly reinvested this saved space in <a href="https://niedzejkob.p4.team/bootstrap/miniforth/#s-string-poke">new
 features</a>.</p>
-</section><section id="a-primer-on-forth"><h2>A primer on FORTH</h2>
-<p><em>If you've ever written anything in FORTH, you can safely skip this section.</em></p>
-<p>FORTH is a stack-based language. For example, a number will push its value onto
+</section><section id="a-primer-on-forth"><h2>A primer on Forth</h2>
+<p><em>If you've ever written anything in Forth, you can safely skip this section.</em></p>
+<p>Forth is a stack-based language. For example, a number will push its value onto
 the stack, while the <code>+</code> <em>word</em> will pop two numbers and push their sum. A
 common debugging utility, but one not included in Miniforth, is the
 <code>.s</code> word, which prints the contents of the stack.</p>
@@ -159,7 +159,7 @@ common debugging utility, but one not included in Miniforth, is the
 <b>3 double .</b> 6  ok
 </pre>
 <p>This defines the word <code>double</code>, which does the same thing as <code>dup +</code>. <code>dup</code>, by
-the way, is one of FORTH's stack manipulation words. It duplicates the top
+the way, is one of Forth's stack manipulation words. It duplicates the top
 element on the stack:</p>
 <pre>
 <b>42 dup .s</b> &lt;2&gt; 42 42  ok
@@ -177,9 +177,9 @@ like this:</p>
 After the <code>--</code>, we list the outputs, which start at the same stack depth.
 This lets us succintly describe the common aspects of a word.</p>
 </section><section id="threaded-code"><h2>Threaded code</h2>
-<p>While some FORTH systems do include full-blown, optimizing compilers similar to
+<p>While some Forth systems do include full-blown, optimizing compilers similar to
 those one'd see in a typical programming language, there is a much simpler
-strategy. After all, everything a FORTH word can do is execute other words, so a
+strategy. After all, everything a Forth word can do is execute other words, so a
 sequence of <code>call</code> instructions gets us very close:</p>
 <pre style="background-color:#272822;">
 <code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">DOUBLE:
@@ -295,7 +295,7 @@ LIT:
 </span></code></pre></section><section id="the-dictionary"><h2>The dictionary</h2>
 <p>We need a way to locate the implementation of the words the user types in.
 This is the role of the <em>dictionary</em>. I use a structure similar to many other
-small-scale FORTHs — a singly linked list of word headers, directly prepended
+small-scale Forths — a singly linked list of word headers, directly prepended
 before the code of each word. Out of tradition, the head of the list is kept
 in a variable called <code>LATEST</code>.</p>
 <p><img src="https://niedzejkob.p4.team/bootstrap/miniforth/dictionary.svg" alt="The first two bytes of each header are the link field, which points at the beginning of the previously defined word. At the end of this list, there is a NULL to indicate the first word that was defined, and therefore the last one in the list. After each link field is one byte signifying the length of the name. This is then followed by the actual name, and the machine code implementation is directly afterwards." /></p>
@@ -309,14 +309,14 @@ in a variable called <code>LATEST</code>.</p>
 we're currently compiling a definition. For example, this is used to implement
 <code>;</code>.  If a word is marked as <code>HIDDEN</code>, it is ignored when searching through the
 dictionary. Apart from being used as a rudimentary encapsulation mechanism, this
-can be used to implement the traditional FORTH semantics where a word definition
+can be used to implement the traditional Forth semantics where a word definition
 can refer to the previous word with the same name (and <code>RECURSE</code> is used when
 you want the definition currently being compiled). However, towards the end of
 development, I have removed the code that actually does this from the default
 implementation of <code>:</code> and <code>;</code>.</p>
 </section><section id="compression"><h2>Compression</h2>
 <p>It is usually not worth it to use compression when both the decompressor and its
-payload have to fit in merely 512 bytes. However, in a FORTH implementation, one
+payload have to fit in merely 512 bytes. However, in a Forth implementation, one
 thing that's repeated very often is the implementation of <code>NEXT</code>.</p>
 <pre style="background-color:#272822;">
 <code class="language-lst" data-lang="lst"><span style="color:#85817e;">ad      </span><span style="color:#f92672;">lodsw
@@ -557,7 +557,7 @@ memory:</p>
 <p>This is why Miniforth stores most of its variables in the immediate fields of
 instructions (a practice known as self-modifying code). Of course, this means
 that the address of these variables will change on every edit of the code, which
-is problematic, since we will be wanting to access these variables in FORTH
+is problematic, since we will be wanting to access these variables in Forth
 code. The typical way of exposing a variable is to create a word that pushes its
 address. However, that's way too expensive with our constraints. What I settled
 on is pushing the addresses onto the stack at startup. This can be done with
@@ -631,13 +631,13 @@ number from which we were booted. It is then poked into the implementation of
 use by user code:</p>
 <pre style="background-color:#272822;">
 <code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">    </span><span style="color:#f92672;">mov </span><span style="color:#c9d1d9;">[</span><span style="color:#a6e22e;">DRIVE_NUMBER</span><span style="color:#c9d1d9;">], </span><span style="font-style:italic;color:#fd971f;">dl
-    </span><span style="color:#f92672;">push </span><span style="font-style:italic;color:#fd971f;">dx</span><span style="color:#85817e;"> ; for FORTH code
+    </span><span style="color:#f92672;">push </span><span style="font-style:italic;color:#fd971f;">dx</span><span style="color:#85817e;"> ; for Forth code
 </span></code></pre></section><section id="the-outer-interpreter"><h2>The outer interpreter</h2>
-<p>At this point, we reach the <em>outer interpreter</em> - the part of a FORTH system
+<p>At this point, we reach the <em>outer interpreter</em> - the part of a Forth system
 that processes user input. The name &quot;<em>outer</em> interpreter&quot; distinguishes it from
 the <em>inner</em> interpreter, which is the component that coordinates the execution
 within a defined word, and consists of <code>NEXT</code>, <code>DOCOL</code>, <code>EXIT</code>, and <code>LIT</code>.</p>
-<p>Normally, a FORTH would expose the building blocks of its outer interpreter as
+<p>Normally, a Forth would expose the building blocks of its outer interpreter as
 words in the dictionary, such as</p>
 <ul>
 <li><code>REFILL</code> (read a line of input from the currently executing source),</li>
@@ -658,7 +658,7 @@ registers are set up just before jumping to a word, and saved after it returns.<
 <p>After initialization is completed, the code falls through to <code>ReadLine</code>, the
 routine for reading in an input line from the keyboard. We will also jump back
 here later, when the current line of input is exhausted. The input buffer is at
-<code>0x500</code>, directly after the <a href="https://www.matrix-bios.nl/system/bda.html">BDA</a>. While the idiomatic string format for FORTH
+<code>0x500</code>, directly after the <a href="https://www.matrix-bios.nl/system/bda.html">BDA</a>. While the idiomatic string format for Forth
 uses a separate length field, this buffer is NULL-terminated, as that is easier
 to handle when parsing. The pointer to the unparsed fragment of the input is
 stored in <code>InputPtr</code>, which is the only variable which does <em>not</em> use the
@@ -935,7 +935,7 @@ or any immediate bytes:</p>
 </span></code></pre></section><section id="compiling-things"><h3>Compiling things</h3>
 <p>The output pointer for the compilation process is called <code>HERE</code>. It starts out
 just after the decompressed data. The function that writes out a word into this
-area is called <code>COMMA</code>, since the FORTH word that does this is <code>,</code>.</p>
+area is called <code>COMMA</code>, since the Forth word that does this is <code>,</code>.</p>
 <pre style="background-color:#272822;">
 <code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">COMMA:
 HERE </span><span style="color:#66d9ef;">equ </span><span style="color:#a6e22e;">$</span><span style="color:#c9d1d9;">+</span><span style="color:#ae81ff;">1
@@ -999,7 +999,7 @@ don't need a <code>NEXT</code> at all.</p>
 </section><section id="loading-code-from-disk"><h2>Loading code from disk</h2>
 <p>Since we don't want to type in disk routines on every boot, we need to include
 a way to run source code loaded from disk. A filesystem would be its own beast,
-but FORTH tradition has a minimalistic solution: the disk is simply divided
+but Forth tradition has a minimalistic solution: the disk is simply divided
 into 1 KiB blocks, in which source code is stored, formatted as 16 lines of 64
 characters. Then <code>load ( blknum -- )</code> will execute the block with the specified
 number.</p>
@@ -1153,7 +1153,7 @@ skip any leading whitespace, this is even guaranteed to be properly spaced.</p>
 to be made. I am fully expecting that some more primitive words will need to be
 defined at runtime by poking in opcodes. After all, there aren't any branching
 words. However, I'm pretty certain that these opcodes will be able to be
-generated by a simple FORTH assembler, rather than simply hardcoded.</p>
+generated by a simple Forth assembler, rather than simply hardcoded.</p>
 <p>Arithmetic as basic as <code>+</code> is indispensible. I am defining both <code>+</code> and <code>-</code>,
 though, if I wanted to fit in something more important, I could keep only <code>-</code>
 and later define <code>: negate 0 swap - ;</code> and <code>: + negate - ;</code>.</p>
@@ -1331,7 +1331,7 @@ problem.</p>
     <ul>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#a-primer-on-forth">A primer on FORTH</a>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#a-primer-on-forth">A primer on Forth</a>
             
         </li>
         

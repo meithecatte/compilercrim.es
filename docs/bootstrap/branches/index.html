@@ -61,7 +61,7 @@ practical system.
 
 <div class="previous-article">
     Previous post:<br>
-    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;">Fitting a FORTH in 512 bytes</a>
+    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;">Fitting a Forth in 512 bytes</a>
 </div>
 
 
@@ -378,7 +378,7 @@ that can be either 8 or 16 bit. Said offset comes directly after the ModR/M
 byte, and is sign-extended to 16 bits if necessary.</p>
 <p>There is one irregularity, in that if we try to encode a <code>[BP]</code> without any
 offset, what we get instead is a hardcoded address, such as <code>mov bx, [0x1234]</code>,
-which should come after the immediate byte.<sup class="footnote-reference"><a href="#modrm-order">4</a></sup> If you recall, the
+which should come after the ModR/M byte itself.<sup class="footnote-reference"><a href="#modrm-order">4</a></sup> If you recall, the
 lack of <code>[BP]</code> is why switching the return stack to use <code>DI</code> instead was
 beneficial.</p>
 <p>A peculiar aspect of this encoding is that register-to-register operations can
@@ -1029,7 +1029,7 @@ are still there, so there isn't much point trying to figure this out.</p>
 
 <div class="previous-article">
     Previous post:<br>
-    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;">Fitting a FORTH in 512 bytes</a>
+    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;">Fitting a Forth in 512 bytes</a>
 </div>
 
 
