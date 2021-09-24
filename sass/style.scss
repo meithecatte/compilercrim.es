@@ -239,7 +239,7 @@ hr {
 pre code {
     background: none !important;
     padding: 0;
-    white-space: inherit;
+    white-space: pre;
 }
 
 
@@ -249,6 +249,7 @@ pre code {
 
 pre, pre code {
     font-size: .85rem;
+    overflow-x: scroll;
 }
 
 code {

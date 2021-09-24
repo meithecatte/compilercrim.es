@@ -7,7 +7,26 @@
         <generator>Zola</generator>
         <language>en</language>
         <atom:link href="https://niedzejkob.p4.team/rss.xml" rel="self" type="application/rss+xml"/>
-        <lastBuildDate>Mon, 20 Sep 2021 12:00:01 +0000</lastBuildDate>
+        <lastBuildDate>Sat, 25 Sep 2021 00:00:00 +0000</lastBuildDate>
+        <item>
+            <title>Terminating the terminal case of Linux</title>
+            <pubDate>Sat, 25 Sep 2021 00:00:00 +0000</pubDate>
+            <link>https://niedzejkob.p4.team/amos-nerdsniped-me/</link>
+            <guid>https://niedzejkob.p4.team/amos-nerdsniped-me/</guid>
+            <description>&lt;p&gt;I remember it like it was yesterday. It was a very calm and pleasant evening,
+when, all of a sudden, Amos, known also as &lt;em&gt;fasterthanlime&lt;&#x2F;em&gt;,
+&lt;a href=&quot;https:&#x2F;&#x2F;twitter.com&#x2F;fasterthanlime&#x2F;status&#x2F;1441475975074795520&quot;&gt;published&lt;&#x2F;a&gt; an article entitled &lt;a href=&quot;https:&#x2F;&#x2F;fasterthanli.me&#x2F;articles&#x2F;a-terminal-case-of-linux&quot;&gt;&amp;quot;A terminal case of
+Linux&amp;quot;&lt;&#x2F;a&gt;. With a wonderfully punny title, he explains his adventure of
+getting colored terminal output out of a Linux process.&lt;&#x2F;p&gt;
+&lt;blockquote&gt;
+&lt;p&gt;🤔 I sure do envy Amos&#x27;s relationship with Cool Bear. I&#x27;d look into
+getting such a sidekick myself, but the dorm I&#x27;m about to move into doesn&#x27;t
+allow keeping pets, and definitely not ones sentient enough to throw a party.&lt;&#x2F;p&gt;
+&lt;&#x2F;blockquote&gt;
+&lt;p&gt;After a journey through the bowels of libc, the Land of Terrible Truths, and as
+is in Amos&#x27;s style, many underlying details of the problem, we arrive at a
+program that does what we&#x27;ve set out to do. Well, almost. </description>
+        </item>
         <item>
             <title>Contextful exceptions with Forth metaprogramming</title>
             <pubDate>Mon, 20 Sep 2021 12:00:01 +0000</pubDate>

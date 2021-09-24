@@ -14,9 +14,11 @@
 {{ macros::part_of_series(series=get_section(path=page.ancestors[1])) }}
 {% endif %}
 
-
 {{ page.content | safe }}
+
+{% if page.ancestors[1] %}
 {{ macros::series_nav(page=page) }}
+{% endif %}
 
 <noscript>
     This is where the comments would load if you enabled JavaScript.
