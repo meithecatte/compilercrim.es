@@ -827,11 +827,11 @@ the typical <code>addr len</code> representation:</p>
   </span><span style="color:#66d9ef;">dup </span><span style="color:#c9d1d9;">1+ </span><span style="color:#66d9ef;">swap </span><span style="color:#ffd866;">c@
 </span><span style="color:#f92672;">;
 </span></code></pre>
-<p>Given a pointer to a dictionary header, <code>header-name</code> will extract the name out
+<p>Given a pointer to a dictionary header, <code>&gt;name</code> will extract the name out
 of it:</p>
 <pre style="background-color:#272822;">
 <code class="language-fth" data-lang="fth"><span style="color:#ae81ff;">1F </span><span style="color:#f92672;">constant </span><span style="color:#a6e22e;">lenmask
-</span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">header-name </span><span style="color:#85817e;">( header-ptr -- addr len )
+</span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">&gt;name </span><span style="color:#85817e;">( header-ptr -- addr len )
   </span><span style="color:#c9d1d9;">cell+     </span><span style="color:#85817e;">\ skip link pointer
   </span><span style="color:#c9d1d9;">count lenmask </span><span style="color:#e6db74;">and
 </span><span style="color:#f92672;">;
@@ -843,12 +843,12 @@ garbage names <a href="/bootstrap/miniforth/#docol-compression">introduced by ou
   </span><span style="color:#c9d1d9;">cell+ </span><span style="color:#ffd866;">c@ </span><span style="color:#ae81ff;">40 </span><span style="color:#e6db74;">and 0=
 </span><span style="color:#f92672;">;
 </span></code></pre>
-<p>Our last helper words are <code>space</code>, which simply prints a space, and <code>bl</code> (stands
+<p>Our last helper words are <code>space</code>, which simply prints a space, and <code>#bl</code> (stands
 for <em>blank</em>), which is the constant that stores the ASCII value of the
 space.<sup class="footnote-reference"><a href="#bl-constant">6</a></sup></p>
 <pre style="background-color:#272822;">
-<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">bl </span><span style="color:#ae81ff;">20 </span><span style="color:#f92672;">;
-: </span><span style="color:#a6e22e;">space </span><span style="color:#c9d1d9;">bl emit </span><span style="color:#f92672;">;
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">#bl </span><span style="color:#ae81ff;">20 </span><span style="color:#f92672;">;
+: </span><span style="color:#a6e22e;">space </span><span style="color:#c9d1d9;">#bl emit </span><span style="color:#f92672;">;
 </span></code></pre>
 <p>All of this is then used by <code>words-in</code>, which takes a pointer to the first word
 in a list. This will make it easy to adapt once our Forth gains support for
@@ -857,12 +857,11 @@ vocabularies.<sup class="footnote-reference"><a href="#vocab">7</a></sup></p>
 <code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">words-in </span><span style="color:#85817e;">( dictionary-ptr -- )
   </span><span style="color:#f92672;">begin </span><span style="color:#66d9ef;">dup </span><span style="color:#f92672;">while </span><span style="color:#85817e;">\ loop until NULL
     </span><span style="color:#66d9ef;">dup </span><span style="color:#c9d1d9;">visible? </span><span style="color:#f92672;">if
-      </span><span style="color:#66d9ef;">dup </span><span style="color:#c9d1d9;">header-name type space
+      </span><span style="color:#66d9ef;">dup </span><span style="color:#c9d1d9;">&gt;name type space
     </span><span style="color:#f92672;">then
     </span><span style="color:#ffd866;">@
   </span><span style="color:#f92672;">repeat
-  </span><span style="color:#66d9ef;">drop
-</span><span style="color:#f92672;">;
+  </span><span style="color:#66d9ef;">drop </span><span style="color:#f92672;">;
 : </span><span style="color:#a6e22e;">words </span><span style="color:#c9d1d9;">latest </span><span style="color:#ffd866;">@ </span><span style="color:#c9d1d9;">words-in </span><span style="color:#f92672;">;
 </span></code></pre></section><section id="parsing"><h2>Parsing</h2>
 <p>I will eventually need to replace the codegolfed outer interpreter with one
@@ -915,7 +914,7 @@ separator anymore.</p>
 <p>This is then used by <code>char</code>, which returns the first character of the
 following token — we can use this as character literals.</p>
 <pre style="background-color:#272822;">
-<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">char </span><span style="color:#c9d1d9;">bl token </span><span style="color:#66d9ef;">drop </span><span style="color:#ffd866;">c@ </span><span style="color:#f92672;">;
+<code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">char </span><span style="color:#c9d1d9;">#bl token </span><span style="color:#66d9ef;">drop </span><span style="color:#ffd866;">c@ </span><span style="color:#f92672;">;
 </span></code></pre>
 <p>However, to include such a literal in a compiled word, we need <code>[char]</code>:</p>
 <pre style="background-color:#272822;">

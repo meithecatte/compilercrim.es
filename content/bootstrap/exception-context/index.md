@@ -242,7 +242,7 @@ as much as the name of the word itself.[^name-token] On the other hand, we have 
 This is the value we can pass to `execute`, compile into a definition with `,`,
 or in general do things where only the behavior matters. Notice that, due to the
 variable-length name field, we can only turn a name token into an execution
-token (which is what `>body ( nt -- xt )` does), but not the other way around.
+token (which is what `>xt ( nt -- xt )` does), but not the other way around.
 
 As we need to know when to stop our traversal, `exception` remembers the value of
 `latest`, thus saving the name token of the first word that *isn't* part of the
@@ -265,11 +265,11 @@ name that comes after `end-exception`, and create an appropriate word header.
 One repeating operation the printing word needs to do is printing the name of
 some word — either the exception name itself, or one of the variables. Let's
 factor that out into `print-name,`, which takes a name token, resolves it into a
-name with `header-name`, and compiles the action of printing this name.
+name with `>name`, and compiles the action of printing this name.
 
 ```forth
 : print-name, ( nt -- )
-  header-name postpone 2literal postpone type ;
+  >name postpone 2literal postpone type ;
 ```
 
 We can then use it to print the name which `:` just parsed:
@@ -341,7 +341,7 @@ Here's how you go about generating that:
 ```forth
 : print-field, ( nt -- )
   dup print-name, postpone space
-  dup >body ,                     ( e.g. word: )
+  dup >xt ,                     ( e.g. word: )
   1 cells - @ ,                   ( e.g. print-str )
   postpone cr ;
 ```
@@ -351,7 +351,7 @@ put an `execute` in the exception handling code of the interpreter, which we'll
 soon do when we pivot into the pure-Forth outer interpreter.
 
 In fact, the code is there already in [the GitHub repository][repo], with the
-code from this article in [`block13.fth`][block] and the new outer interpreter
+code from this article in [`block14.fth`][block] and the new outer interpreter
 in blocks 20–21. If you want to play around with it, follow the instructions in
 the README to build a disk image and fire it up in QEMU. Typing `1 load` will
 load, among various other code, the new interpreter and exception handling.
@@ -361,8 +361,7 @@ Forth system. Though, the code probably won't work exactly as written — after
 all, I'm making extensive use of the internal details of the dictionary. If I
 were to write this with a focus on portability, I'd probably end up using a
 separate linked list to store pairs of `(variable_nt, printing_xt)` (and words
-like `uint` would be extending it). Not sure what the standard's equivalent of
-`header-name` is, though.
+like `uint` would be extending it).
 
 And even if you're not going to be adding context to your exceptions, I hope
 you've found this to be an interesting demonstration of Forth's metaprogramming
@@ -383,4 +382,4 @@ capabilities.
   will still point to the same word.
 
 [repo]: https://github.com/NieDzejkob/miniforth
-[block]: https://github.com/NieDzejkob/miniforth/blob/master/block13.fth
+[block]: https://github.com/NieDzejkob/miniforth/blob/master/block14.fth

@@ -995,12 +995,12 @@ the typical `addr len` representation:
 ;
 ```
 
-Given a pointer to a dictionary header, `header-name` will extract the name out
+Given a pointer to a dictionary header, `>name` will extract the name out
 of it:
 
 ```fth
 1F constant lenmask
-: header-name ( header-ptr -- addr len )
+: >name ( header-ptr -- addr len )
   cell+     \ skip link pointer
   count lenmask and
 ;
@@ -1015,13 +1015,13 @@ garbage names [introduced by our compression tricks][docol-compression].
 ;
 ```
 
-Our last helper words are `space`, which simply prints a space, and `bl` (stands
+Our last helper words are `space`, which simply prints a space, and `#bl` (stands
 for *blank*), which is the constant that stores the ASCII value of the
 space.[^bl-constant]
 
 ```fth
-: bl 20 ;
-: space bl emit ;
+: #bl 20 ;
+: space #bl emit ;
 ```
 
 All of this is then used by `words-in`, which takes a pointer to the first word
@@ -1032,12 +1032,11 @@ vocabularies.[^vocab]
 : words-in ( dictionary-ptr -- )
   begin dup while \ loop until NULL
     dup visible? if
-      dup header-name type space
+      dup >name type space
     then
     @
   repeat
-  drop
-;
+  drop ;
 : words latest @ words-in ;
 ```
 
@@ -1108,7 +1107,7 @@ This is then used by `char`, which returns the first character of the
 following token — we can use this as character literals.
 
 ```fth
-: char bl token drop c@ ;
+: char #bl token drop c@ ;
 ```
 
 However, to include such a literal in a compiled word, we need `[char]`:

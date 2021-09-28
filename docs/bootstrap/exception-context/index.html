@@ -272,7 +272,7 @@ as much as the name of the word itself.<sup class="footnote-reference"><a href="
 This is the value we can pass to <code>execute</code>, compile into a definition with <code>,</code>,
 or in general do things where only the behavior matters. Notice that, due to the
 variable-length name field, we can only turn a name token into an execution
-token (which is what <code>&gt;body ( nt -- xt )</code> does), but not the other way around.</p>
+token (which is what <code>&gt;xt ( nt -- xt )</code> does), but not the other way around.</p>
 <p>As we need to know when to stop our traversal, <code>exception</code> remembers the value of
 <code>latest</code>, thus saving the name token of the first word that <em>isn't</em> part of the
 exception context. Along the same lines as <code>if</code> or <code>begin</code>, we can just put
@@ -290,10 +290,10 @@ name that comes after <code>end-exception</code>, and create an appropriate word
 <p>One repeating operation the printing word needs to do is printing the name of
 some word — either the exception name itself, or one of the variables. Let's
 factor that out into <code>print-name,</code>, which takes a name token, resolves it into a
-name with <code>header-name</code>, and compiles the action of printing this name.</p>
+name with <code>&gt;name</code>, and compiles the action of printing this name.</p>
 <pre style="background-color:#272822;">
 <code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">print-name, </span><span style="color:#85817e;">( nt -- )
-  </span><span style="color:#c9d1d9;">header-name </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">2literal </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">type </span><span style="color:#f92672;">;
+  </span><span style="color:#c9d1d9;">&gt;name </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">2literal </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">type </span><span style="color:#f92672;">;
 </span></code></pre>
 <p>We can then use it to print the name which <code>:</code> just parsed:</p>
 <pre style="background-color:#272822;">
@@ -343,7 +343,7 @@ will generate the following code:</p>
 <pre style="background-color:#272822;">
 <code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">print-field, </span><span style="color:#85817e;">( nt -- )
   </span><span style="color:#66d9ef;">dup </span><span style="color:#c9d1d9;">print-name, </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">space
-  </span><span style="color:#66d9ef;">dup </span><span style="color:#c9d1d9;">&gt;body </span><span style="color:#ffd866;">,                     </span><span style="color:#85817e;">( e.g. word: )
+  </span><span style="color:#66d9ef;">dup </span><span style="color:#c9d1d9;">&gt;xt </span><span style="color:#ffd866;">,                     </span><span style="color:#85817e;">( e.g. word: )
   </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">cells </span><span style="color:#e6db74;">- </span><span style="color:#ffd866;">@ ,                   </span><span style="color:#85817e;">( e.g. print-str )
   </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">cr </span><span style="color:#f92672;">;
 </span></code></pre>
@@ -351,7 +351,7 @@ will generate the following code:</p>
 put an <code>execute</code> in the exception handling code of the interpreter, which we'll
 soon do when we pivot into the pure-Forth outer interpreter.</p>
 <p>In fact, the code is there already in <a href="https://github.com/NieDzejkob/miniforth">the GitHub repository</a>, with the
-code from this article in <a href="https://github.com/NieDzejkob/miniforth/blob/master/block13.fth"><code>block13.fth</code></a> and the new outer interpreter
+code from this article in <a href="https://github.com/NieDzejkob/miniforth/blob/master/block14.fth"><code>block14.fth</code></a> and the new outer interpreter
 in blocks 20–21. If you want to play around with it, follow the instructions in
 the README to build a disk image and fire it up in QEMU. Typing <code>1 load</code> will
 load, among various other code, the new interpreter and exception handling.</p>
@@ -360,8 +360,7 @@ Forth system. Though, the code probably won't work exactly as written — after
 all, I'm making extensive use of the internal details of the dictionary. If I
 were to write this with a focus on portability, I'd probably end up using a
 separate linked list to store pairs of <code>(variable_nt, printing_xt)</code> (and words
-like <code>uint</code> would be extending it). Not sure what the standard's equivalent of
-<code>header-name</code> is, though.</p>
+like <code>uint</code> would be extending it).</p>
 <p>And even if you're not going to be adding context to your exceptions, I hope
 you've found this to be an interesting demonstration of Forth's metaprogramming
 capabilities.</p>
