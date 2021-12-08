@@ -75,7 +75,7 @@ practical system.
 
 
 
-<section><p>A typical Forth system provides a simple exception handling mechanism, in which
+<p>A typical Forth system provides a simple exception handling mechanism, in which
 a single integer, that identifies the exception, is thrown. If we end up
 catching the exception, this scheme works reasonably well. However, if it
 bubbles up to the very top and gets printed to the user, we'd like to show a bit
@@ -89,13 +89,12 @@ far, I couldn't find any existing Forth system that solves this.</p>
 <p>In this post, I describe Miniforth's solution to this problem. We'll build a
 simple extension to the <code>throw</code>-and-<code>catch</code> mechanism to allow error messages
 like:</p>
-<pre style="background-color:#272822;">
-<code><span style="color:#c9d1d9;">i/o-error
-in-block: 13
-error-code: 2
-</span></code></pre><pre style="background-color:#272822;">
-<code><span style="color:#c9d1d9;">unknown-word
-word: has-typpo
+<pre style="background-color:#272822;color:#c9d1d9;"><code><span>i/o-error
+</span><span>in-block: 13
+</span><span>error-code: 2
+</span></code></pre>
+<pre style="background-color:#272822;color:#c9d1d9;"><code><span>unknown-word
+</span><span>word: has-typpo
 </span></code></pre>
 <p>The latter example also illustrates why exceptions are on the critical path of
 the bootstrap — they'll be the mechanism by which the new outer interpreter
@@ -113,7 +112,7 @@ quitting the editor after the first typo wouldn't be very nice.</p>
 <p>The mechanism I describe here is built it on top of the standard <code>catch</code> and
 <code>throw</code> words, so if you need a refresher on how they behave, or would like to
 see how they're implemented, see <a href="https://niedzejkob.p4.team/bootstrap/throw-catch/">this article of mine</a>.</p>
-</section><section id="the-design"><h2>The design</h2>
+<section><h2 id="the-design">The design</h2>
 <p>The mechanism would be most flexible if the user could simply register an
 arbitrary snippet of code for printing an exception type. However, most of
 the exceptions wouldn't actually use this flexibility fully. Therefore, the
@@ -122,32 +121,30 @@ design has two main parts:</p>
 <li>locating the word that prints a given exception, and</li>
 <li>syntax for defining a typical printing word easily.</li>
 </ul>
-</section><section id="finding-the-printing-function"><h3>Finding the printing function</h3>
+</section><section><h3 id="finding-the-printing-function">Finding the printing function</h3>
 <p>Locating the printing handler is a very similar problem to finding a <em>string</em>
 description, which is something other systems do. As such, we <em>could</em> adapt
 Gforth's solution, creating a linked list much like the dictionary itself,
 mapping exception numbers to printing routines:</p>
-<p><img src="https://niedzejkob.p4.team/bootstrap/exception-context/gforth-like.svg" alt="A linked list with entries consisting of a link field, exception number and the code executed for a given exception." /></p>
+<p><img src="gforth-like.svg" alt="A linked list with entries consisting of a link field, exception number and the code executed for a given exception." /></p>
 <p>An explicit mapping like that could indeed be the best way of locating the
 printing word, if one was looking for compatibility with existing programs
 throwing integers willy-nilly. However, that is not a goal for Miniforth,
 which allows a simpler solution — directly throw the pointer to the printing
 function.</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">my-exn </span><span style="color:#e6db74;">.&quot; Hello!&quot; </span><span style="color:#c9d1d9;">cr </span><span style="color:#f92672;">;
-&#39; </span><span style="font-style:italic;color:#fd971f;">my-exn </span><span style="color:#c9d1d9;">throw </span><span style="color:#85817e;">( prints Hello! )
+<pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">my-exn </span><span style="color:#e6db74;">.&quot; Hello!&quot; </span><span>cr </span><span style="color:#f92672;">;
+</span><span style="color:#f92672;">&#39; </span><span style="font-style:italic;color:#fd971f;">my-exn </span><span>throw </span><span style="color:#85817e;">( prints Hello! )
 </span></code></pre>
 <p>That way, no extra data structures are necessary, saving both memory
 and execution time<sup class="footnote-reference"><a href="#time">1</a></sup>. Even when you don't want to print the exception, but,
 for example, check if the exception you've caught is one you want to handle,
 nothing stopping you from comparing these pointers like opaque tokens.</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">print-half </span><span style="color:#85817e;">( n -- )
-  </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">halve </span><span style="color:#c9d1d9;">catch </span><span style="color:#f92672;">case
-    </span><span style="color:#ae81ff;">0 </span><span style="color:#f92672;">of </span><span style="color:#e6db74;">.&quot; The half is &quot; </span><span style="color:#c9d1d9;">. </span><span style="color:#f92672;">endof
-    [&#39;] </span><span style="font-style:italic;color:#fd971f;">its-odd </span><span style="color:#f92672;">of </span><span style="color:#e6db74;">.&quot; It&#39;s odd!&quot; </span><span style="color:#f92672;">endof
-    </span><span style="color:#85817e;">( default ) </span><span style="color:#c9d1d9;">throw
-  </span><span style="color:#f92672;">endcase ;
+<pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">print-half </span><span style="color:#85817e;">( n -- )
+</span><span>  </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">halve </span><span>catch </span><span style="color:#f92672;">case
+</span><span>    </span><span style="color:#ae81ff;">0 </span><span style="color:#f92672;">of </span><span style="color:#e6db74;">.&quot; The half is &quot; </span><span>. </span><span style="color:#f92672;">endof
+</span><span>    </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">its-odd </span><span style="color:#f92672;">of </span><span style="color:#e6db74;">.&quot; It&#39;s odd!&quot; </span><span style="color:#f92672;">endof
+</span><span>    </span><span style="color:#85817e;">( default ) </span><span>throw
+</span><span>  </span><span style="color:#f92672;">endcase ;
 </span></code></pre>
 <p>Of course, throwing the execution token like that will explode violently when
 someone throws a simple integer. If compatibility was desired, the two schemes
@@ -156,33 +153,30 @@ single numeric identifier in the traditional system for all &quot;fancy&quot; ex
 and then store the actual execution token in a <code>variable</code>. In this case a
 wrapper around <code>throw</code> would be necessary, but we can use this opportunity to
 merge the <code>[']</code> into it too:</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#f92672;">variable </span><span style="color:#a6e22e;">exn-xt
-</span><span style="color:#c9d1d9;">-123 </span><span style="color:#f92672;">constant </span><span style="color:#a6e22e;">exn:fancy
-</span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">(throw-fancy) </span><span style="color:#c9d1d9;">exn-xt </span><span style="color:#ffd866;">! </span><span style="color:#c9d1d9;">exn:fancy throw </span><span style="color:#f92672;">;
-: </span><span style="color:#a6e22e;">[throw]  </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">[&#39;] </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">(throw-fancy) </span><span style="color:#f92672;">; immediate
+<pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span style="color:#f92672;">variable </span><span style="color:#a6e22e;">exn-xt
+</span><span>-123 </span><span style="color:#f92672;">constant </span><span style="color:#a6e22e;">exn:fancy
+</span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">(throw-fancy) </span><span>exn-xt </span><span style="color:#ffd866;">! </span><span>exn:fancy throw </span><span style="color:#f92672;">;
+</span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">[throw]  </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">[&#39;] </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">(throw-fancy) </span><span style="color:#f92672;">; immediate
 </span><span style="color:#85817e;">( usage: )
 </span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">halve </span><span style="color:#66d9ef;">dup </span><span style="color:#ae81ff;">1 </span><span style="color:#e6db74;">and </span><span style="color:#f92672;">if
-    [throw] </span><span style="font-style:italic;color:#fd971f;">its-odd
-  </span><span style="color:#f92672;">then </span><span style="color:#c9d1d9;">2/ </span><span style="color:#f92672;">;
+</span><span>    </span><span style="color:#f92672;">[throw] </span><span style="font-style:italic;color:#fd971f;">its-odd
+</span><span>  </span><span style="color:#f92672;">then </span><span>2/ </span><span style="color:#f92672;">;
 </span></code></pre>
 <p>Either way, Miniforth settles for directly throwing execution tokens — this
 alternative could be useful when integrating these ideas into other systems,
 though.</p>
-</section><section id="defining-the-exceptions"><h3>Defining the exceptions</h3>
+</section><section><h3 id="defining-the-exceptions">Defining the exceptions</h3>
 <p>To make defining the exceptions easier, Miniforth provides this syntax:</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#f92672;">exception
-  str </span><span style="color:#a6e22e;">string-field:
-  </span><span style="color:#f92672;">uint </span><span style="color:#a6e22e;">integer-field:
+<pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span style="color:#f92672;">exception
+</span><span>  </span><span style="color:#f92672;">str </span><span style="color:#a6e22e;">string-field:
+</span><span>  </span><span style="color:#f92672;">uint </span><span style="color:#a6e22e;">integer-field:
 </span><span style="color:#f92672;">end-exception </span><span style="color:#a6e22e;">my-exception
 </span></code></pre>
 <p>This creates the variables <code>string-field:</code> and <code>integer-field:</code>, and a word
 <code>my-exception</code> that prints its name and the values of all the fields:</p>
-<pre style="background-color:#272822;">
-<code><span style="color:#c9d1d9;">my-exception
-integer-field: 42
-string-field: hello
+<pre style="background-color:#272822;color:#c9d1d9;"><code><span>my-exception
+</span><span>integer-field: 42
+</span><span>string-field: hello
 </span></code></pre>
 <p>As you can see, the naming convention of ending exception fields with a <code>:</code> also
 serves to separate names from values when the exception gets printed.  While it
@@ -193,7 +187,7 @@ your field names conflicting with other Forth words. For example, the
 well-known word that parses a token from the input stream. I must admit that I
 first considered much more complicated namespacing ideas before realizing that
 the colon can serve as a naming convention.</p>
-</section><section id="alternative-designs"><h3>Alternative designs</h3>
+</section><section><h3 id="alternative-designs">Alternative designs</h3>
 <p>Of course, this is not the only possible way of attaching context. For one, we
 could change how <code>catch</code> affects the stack, and keep any values describing the
 exception on the stack, just below the execution token itself. However, <code>throw</code>
@@ -206,13 +200,12 @@ all, that's pretty much what higher-level languages do. However, there is no
 point in holding onto an exception for later, and only one exception is ever
 being thrown at a given time. I do admit that one could chain exceptions
 together by having a <em>cause</em> field, like so:</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#c9d1d9;">writeback-failed
-buffer-at: </span><span style="color:#ae81ff;">$1400
-</span><span style="color:#c9d1d9;">caused-by:
-  io-error
-  block-number: </span><span style="color:#ae81ff;">13
-  </span><span style="color:#c9d1d9;">error-code: </span><span style="color:#ae81ff;">$47
+<pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span>writeback-failed
+</span><span>buffer-at: </span><span style="color:#ae81ff;">$1400
+</span><span>caused-by:
+</span><span>  io-error
+</span><span>  block-number: </span><span style="color:#ae81ff;">13
+</span><span>  error-code: </span><span style="color:#ae81ff;">$47
 </span></code></pre>
 <p>Still, a situation where two exceptions of the same type are present in a causal
 chain is somewhat far-fetched, and, in my opinion, does not justify the
@@ -224,27 +217,24 @@ by an example, so let's take a look at <code>must-find</code>, which turns the
 zero-is-failure interface of <code>find</code> into an exception-oriented one. The
 implementation stores its input string into <code>word:</code> before calling <code>find</code>,
 regardless of whether the exception will actually be thrown or not:</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">find </span><span style="color:#85817e;">( str len -- nt | 0 ) </span><span style="color:#c9d1d9;">... </span><span style="color:#f92672;">;
-: </span><span style="color:#a6e22e;">must-find </span><span style="color:#85817e;">( str len -- nt ) </span><span style="color:#66d9ef;">2dup </span><span style="color:#c9d1d9;">word: </span><span style="color:#ffd866;">2! </span><span style="color:#c9d1d9;">find
-  </span><span style="color:#66d9ef;">dup </span><span style="color:#e6db74;">0= </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">unknown-word </span><span style="color:#e6db74;">and </span><span style="color:#c9d1d9;">throw </span><span style="color:#f92672;">;
+<pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">find </span><span style="color:#85817e;">( str len -- nt | 0 ) </span><span>... </span><span style="color:#f92672;">;
+</span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">must-find </span><span style="color:#85817e;">( str len -- nt ) </span><span style="color:#66d9ef;">2dup </span><span>word: </span><span style="color:#ffd866;">2! </span><span>find
+</span><span>  </span><span style="color:#66d9ef;">dup </span><span style="color:#e6db74;">0= </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">unknown-word </span><span style="color:#e6db74;">and </span><span>throw </span><span style="color:#f92672;">;
 </span></code></pre>
 <p>If we had to keep it on the stack instead, the code would need a separate code
 path for the happy case afterwards, to discard the no-longer-needed context:</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">must-find </span><span style="color:#85817e;">( str len -- nt ) </span><span style="color:#66d9ef;">2dup </span><span style="color:#c9d1d9;">find
-  </span><span style="color:#66d9ef;">dup </span><span style="color:#f92672;">if
-    </span><span style="font-style:italic;color:#36a9df;">&gt;r </span><span style="color:#66d9ef;">2drop </span><span style="font-style:italic;color:#36a9df;">r&gt;
-  </span><span style="color:#f92672;">else
-    </span><span style="color:#c9d1d9;">word: </span><span style="color:#ffd866;">2! </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">unknown-word </span><span style="color:#c9d1d9;">throw
-  </span><span style="color:#f92672;">then ;
+<pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">must-find </span><span style="color:#85817e;">( str len -- nt ) </span><span style="color:#66d9ef;">2dup </span><span>find
+</span><span>  </span><span style="color:#66d9ef;">dup </span><span style="color:#f92672;">if
+</span><span>    </span><span style="font-style:italic;color:#36a9df;">&gt;r </span><span style="color:#66d9ef;">2drop </span><span style="font-style:italic;color:#36a9df;">r&gt;
+</span><span>  </span><span style="color:#f92672;">else
+</span><span>    word: </span><span style="color:#ffd866;">2! </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">unknown-word </span><span>throw
+</span><span>  </span><span style="color:#f92672;">then ;
 </span></code></pre>
 <p>This strategy does have the caveat that, if you're not careful, a word
 invoked between storing the context and throwing the exception could overwrite
 said context, i.e.</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">inner  </span><span style="color:#e6db74;">s&quot; its-inner&quot; </span><span style="color:#c9d1d9;">ctx: </span><span style="color:#ffd866;">2!  </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">exn </span><span style="color:#c9d1d9;">maybe-throw </span><span style="color:#f92672;">;
-: </span><span style="color:#a6e22e;">outer  </span><span style="color:#e6db74;">s&quot; its-outer&quot; </span><span style="color:#c9d1d9;">ctx: </span><span style="color:#ffd866;">2!  </span><span style="color:#c9d1d9;">inner  </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">exn </span><span style="color:#c9d1d9;">maybe-throw </span><span style="color:#f92672;">;
+<pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">inner  </span><span style="color:#e6db74;">s&quot; its-inner&quot; </span><span>ctx: </span><span style="color:#ffd866;">2!  </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">exn </span><span>maybe-throw </span><span style="color:#f92672;">;
+</span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">outer  </span><span style="color:#e6db74;">s&quot; its-outer&quot; </span><span>ctx: </span><span style="color:#ffd866;">2!  </span><span>inner  </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">exn </span><span>maybe-throw </span><span style="color:#f92672;">;
 </span><span style="color:#85817e;">( even when outer throws the exception, ctx: contains &quot;its-inner&quot; )
 </span></code></pre>
 <p>This is not a big issue in practice, though, as most often the definition of the
@@ -253,7 +243,7 @@ it's easy to notice if this can happen. I suppose recursion would have the
 highest chance of triggering this. If this issue occurs in a context other than
 a recursive word, your exceptions are probably needlessly general anyway, and
 should be split into more granular types.</p>
-</section><section id="the-implementation"><h2>The implementation</h2>
+</section><section><h2 id="the-implementation">The implementation</h2>
 <p>Okay, so how do we implement this <code>exception</code>...<code>end-exception</code> structure? Most
 of the work is actually done by <code>end-exception</code> itself. This is because we need
 to generate the variables with their underlying storage, as well as the code of
@@ -264,7 +254,7 @@ code.<sup class="footnote-reference"><a href="#skipping">2</a></sup></p>
 <code>end-exception</code> <em>walks through the dictionary</em> to process all the variables,
 after they've been defined.</p>
 <p>While traversing the dictionary, we can point at an entry in two places:</p>
-<p><img src="https://niedzejkob.p4.team/bootstrap/exception-context/nt-and-xt.svg" alt="Diagram illustrates what is about to be described." /></p>
+<p><img src="nt-and-xt.svg" alt="Diagram illustrates what is about to be described." /></p>
 <p>The <em>name token</em> (<code>nt</code> for short) points to the very beginning of the header.
 This is the value stored in <code>latest</code> and the link fields, and it lets you know
 as much as the name of the word itself.<sup class="footnote-reference"><a href="#name-token">3</a></sup> On the other hand, we have an
@@ -277,46 +267,40 @@ token (which is what <code>&gt;xt ( nt -- xt )</code> does), but not the other w
 <code>latest</code>, thus saving the name token of the first word that <em>isn't</em> part of the
 exception context. Along the same lines as <code>if</code> or <code>begin</code>, we can just put
 this value on the stack:</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">exception </span><span style="color:#85817e;">( -- dict-pos ) </span><span style="color:#c9d1d9;">latest </span><span style="color:#ffd866;">@ </span><span style="color:#f92672;">;
+<pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">exception </span><span style="color:#85817e;">( -- dict-pos ) </span><span>latest </span><span style="color:#ffd866;">@ </span><span style="color:#f92672;">;
 </span></code></pre>
 <p><code>end-exception</code> also begins by sampling <code>latest</code>, thus establishing the other
 end of the range through which we'll be iterating. Then, <code>:</code> is ran to parse the
 name that comes after <code>end-exception</code>, and create an appropriate word header.</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">end-exception </span><span style="color:#85817e;">( dict-pos -- ) </span><span style="color:#c9d1d9;">latest </span><span style="color:#ffd866;">@ </span><span style="color:#c9d1d9;">:
-  </span><span style="color:#85817e;">( ... )
+<pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">end-exception </span><span style="color:#85817e;">( dict-pos -- ) </span><span>latest </span><span style="color:#ffd866;">@ </span><span>:
+</span><span>  </span><span style="color:#85817e;">( ... )
 </span></code></pre>
 <p>One repeating operation the printing word needs to do is printing the name of
 some word — either the exception name itself, or one of the variables. Let's
 factor that out into <code>print-name,</code>, which takes a name token, resolves it into a
 name with <code>&gt;name</code>, and compiles the action of printing this name.</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">print-name, </span><span style="color:#85817e;">( nt -- )
-  </span><span style="color:#c9d1d9;">&gt;name </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">2literal </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">type </span><span style="color:#f92672;">;
+<pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">print-name, </span><span style="color:#85817e;">( nt -- )
+</span><span>  &gt;name </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">2literal </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">type </span><span style="color:#f92672;">;
 </span></code></pre>
 <p>We can then use it to print the name which <code>:</code> just parsed:</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">end-exception </span><span style="color:#85817e;">( dict-pos -- ) </span><span style="color:#c9d1d9;">latest </span><span style="color:#ffd866;">@ </span><span style="color:#c9d1d9;">:
-  latest </span><span style="color:#ffd866;">@ </span><span style="color:#c9d1d9;">print-name,  </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">cr
+<pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">end-exception </span><span style="color:#85817e;">( dict-pos -- ) </span><span>latest </span><span style="color:#ffd866;">@ </span><span>:
+</span><span>  latest </span><span style="color:#ffd866;">@ </span><span>print-name,  </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">cr
 </span></code></pre>
 <p>Here's a diagram that visualizes the points in the dictionary where the various
 pointers we got so far point to:</p>
-<p><img src="https://niedzejkob.p4.team/bootstrap/exception-context/end-exception-latest.svg" alt="The three values read from latest so far point to: the last word defined before the exception, the last field of the exception, and the printing word." /></p>
+<p><img src="end-exception-latest.svg" alt="The three values read from latest so far point to: the last word defined before the exception, the last field of the exception, and the printing word." /></p>
 <p>The next step is to iterate over the dictionary and handle all the fields. As
 you can see from the diagram above, we need to stop iterating once the two
 pointers become equal, testing <em>before</em> handling each field.</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#c9d1d9;">  </span><span style="color:#f92672;">begin </span><span style="color:#85817e;">( end-pos cur-pos ) </span><span style="color:#66d9ef;">2dup </span><span style="color:#e6db74;">&lt;&gt; </span><span style="color:#f92672;">while
-    </span><span style="color:#66d9ef;">dup </span><span style="color:#c9d1d9;">print-field, </span><span style="color:#85817e;">( we&#39;ll see print-field, later )
-    ( follow the link field: ) </span><span style="color:#ffd866;">@
-  </span><span style="color:#f92672;">repeat  </span><span style="color:#66d9ef;">2drop
+<pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span>  </span><span style="color:#f92672;">begin </span><span style="color:#85817e;">( end-pos cur-pos ) </span><span style="color:#66d9ef;">2dup </span><span style="color:#e6db74;">&lt;&gt; </span><span style="color:#f92672;">while
+</span><span>    </span><span style="color:#66d9ef;">dup </span><span>print-field, </span><span style="color:#85817e;">( we&#39;ll see print-field, later )
+</span><span>    </span><span style="color:#85817e;">( follow the link field: ) </span><span style="color:#ffd866;">@
+</span><span>  </span><span style="color:#f92672;">repeat  </span><span style="color:#66d9ef;">2drop
 </span></code></pre>
 <p>Finally, we finish the printing word with a <code>;</code>. We need to postpone it, since
 it would otherwise end the definition of <code>end-exception</code> itself.</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#c9d1d9;">  </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">;
-</span><span style="color:#f92672;">;
+<pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span>  </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">;
+</span><span>;
 </span></code></pre>
 <p>So, how does <code>print-field,</code> work? It first needs to print the name itself, which
 we can do with <code>print-name,</code>. But how does the value of the field get shown?</p>
@@ -326,26 +310,23 @@ extra field in their header that points to a word such as <code>: print-uint @ u
 <p>At first, it might seem like there is no room to extend the header like this,
 though. We have the link field, then immediately comes the name, and when <em>it</em>
 ends, there's the code. However, we can put it <em>to the left</em> of the link field:</p>
-<p><img src="https://niedzejkob.p4.team/bootstrap/exception-context/printing-field.svg" alt="The print xt is directly to the left of the location the nt points to." /></p>
+<p><img src="printing-field.svg" alt="The print xt is directly to the left of the location the nt points to." /></p>
 <p>As a side-effect of this layout, we don't actually need to write the entire
 header ourselves. After our additional field is written, we can just invoke
 <code>variable</code> or a similar defining word and have it complete the rest:</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">print-uint </span><span style="color:#ffd866;">@ </span><span style="color:#c9d1d9;">u. </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">uint </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">print-uint </span><span style="color:#ffd866;">, </span><span style="color:#c9d1d9;">variable </span><span style="color:#f92672;">;
-: </span><span style="color:#a6e22e;">print-str </span><span style="color:#ffd866;">2@ </span><span style="color:#c9d1d9;">type </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">str </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">print-str </span><span style="color:#ffd866;">, </span><span style="color:#c9d1d9;">2variable </span><span style="color:#f92672;">;
+<pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">print-uint </span><span style="color:#ffd866;">@ </span><span>u. </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">uint </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">print-uint </span><span style="color:#ffd866;">, </span><span>variable </span><span style="color:#f92672;">;
+</span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">print-str </span><span style="color:#ffd866;">2@ </span><span>type </span><span style="color:#f92672;">; : </span><span style="color:#a6e22e;">str </span><span style="color:#f92672;">[&#39;] </span><span style="font-style:italic;color:#fd971f;">print-str </span><span style="color:#ffd866;">, </span><span>2variable </span><span style="color:#f92672;">;
 </span></code></pre>
 <p>This is then used by <code>print-field,</code>. For a string variable called <code>word:</code>, it
 will generate the following code:</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#e6db74;">s&quot; word:&quot; </span><span style="color:#c9d1d9;">type space word: print-str cr
+<pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span style="color:#e6db74;">s&quot; word:&quot; </span><span>type space word: print-str cr
 </span></code></pre>
 <p>Here's how you go about generating that:</p>
-<pre style="background-color:#272822;">
-<code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">print-field, </span><span style="color:#85817e;">( nt -- )
-  </span><span style="color:#66d9ef;">dup </span><span style="color:#c9d1d9;">print-name, </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">space
-  </span><span style="color:#66d9ef;">dup </span><span style="color:#c9d1d9;">&gt;xt </span><span style="color:#ffd866;">,                     </span><span style="color:#85817e;">( e.g. word: )
-  </span><span style="color:#ae81ff;">1 </span><span style="color:#c9d1d9;">cells </span><span style="color:#e6db74;">- </span><span style="color:#ffd866;">@ ,                   </span><span style="color:#85817e;">( e.g. print-str )
-  </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">cr </span><span style="color:#f92672;">;
+<pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">print-field, </span><span style="color:#85817e;">( nt -- )
+</span><span>  </span><span style="color:#66d9ef;">dup </span><span>print-name, </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">space
+</span><span>  </span><span style="color:#66d9ef;">dup </span><span>&gt;xt </span><span style="color:#ffd866;">,                     </span><span style="color:#85817e;">( e.g. word: )
+</span><span>  </span><span style="color:#ae81ff;">1 </span><span>cells </span><span style="color:#e6db74;">- </span><span style="color:#ffd866;">@ ,                   </span><span style="color:#85817e;">( e.g. print-str )
+</span><span>  </span><span style="color:#f92672;">postpone </span><span style="font-style:italic;color:#fd971f;">cr </span><span style="color:#f92672;">;
 </span></code></pre>
 <p>This concludes the crux of the implementation. The only thing that remains is to
 put an <code>execute</code> in the exception handling code of the interpreter, which we'll

@@ -4,10 +4,8 @@ date = "2021-09-25"
 +++
 
 I remember it like it was yesterday. It was a very calm and pleasant evening,
-when, all of a sudden, Amos, known also as *fasterthanlime*,
-[published][announce-tweet] an article entitled ["A terminal case of
-Linux"][amos-art]. With a wonderfully punny title, he explains his adventure of
-getting colored terminal output out of a Linux process.
+when, all of a sudden, Amos, known also as *fasterthanlime*, published
+ an article entitled ["A terminal case of Linux"][amos-art]. With a wonderfully punny title, he explains his adventure of getting colored terminal output out of a Linux process.
 
 > :thinking: I sure do envy Amos's relationship with Cool Bear. I'd look into
 > getting such a sidekick myself, but the dorm I'm about to move into doesn't
@@ -519,7 +517,6 @@ Fixing this upstream in Tokio is left, as an exercise, to the reader.
 
 {{ get_notified() }}
 
-[announce-tweet]: https://twitter.com/fasterthanlime/status/1441475975074795520
 [amos-art]: https://fasterthanli.me/articles/a-terminal-case-of-linux
 [exercise-forth]: /bootstrap/miniforth/#ref:stack-complete
 [bootstrap]: /bootstrap/

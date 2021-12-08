@@ -21,7 +21,7 @@ window.addEventListener('load', function() {
     function activeLink() {
         const section = visibleSections.find(x => x);
         if (section !== undefined) {
-            const id = section.id;
+            const id = section.children[0].id;
             if (id) {
                 return document.querySelector(`nav li a[href$="#${id}"]`).parentElement;
             }
