@@ -1236,5 +1236,4 @@ the comments below the article :slightly_smiling_face:
 [int13-crash]: https://twitter.com/NieDzejkob/status/1403443794842882055
 [github]: https://github.com/NieDzejkob/miniforth/tree/post2
 [twitter]: https://twitter.com/NieDzejkob
-[tipjar]: https://github.com/sponsors/NieDzejkob
 [asmless-discussion]: https://github.com/NieDzejkob/niedzejkob.p4.team/issues/2

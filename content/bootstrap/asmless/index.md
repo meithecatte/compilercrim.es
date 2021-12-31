@@ -50,7 +50,7 @@ return stack to repoint the return address:
 ;
 ```
 
-## Choosing between values
+## Conditional branches
 
 Clearly, the difficulty in a conditional branch boils down to choosing between
 the two possible values for the return address. This would be quite simple if we
@@ -153,7 +153,7 @@ create bb 2 cells allot
 
 While elegant, our solution is quite inefficient, executing thousands of
 instructions on every branch. While I wouldn't expect the best performance when
-we're limiting ourselves in this manner, there still are ways to make this
+we're limiting ourselves to no additional assembly, there still are ways to make this
 better.
 
 For example, we could prepare a 256-byte lookup table for `1bit`. Since we don't

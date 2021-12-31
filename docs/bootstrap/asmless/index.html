@@ -114,7 +114,7 @@ return stack to repoint the return address:</p>
 </span><span>  </span><span style="font-style:italic;color:#36a9df;">&gt;r  </span><span style="color:#85817e;">\ make it the new return address
 </span><span style="color:#f92672;">;
 </span></code></pre>
-</section><section><h2 id="choosing-between-values">Choosing between values</h2>
+</section><section><h2 id="conditional-branches">Conditional branches</h2>
 <p>Clearly, the difficulty in a conditional branch boils down to choosing between
 the two possible values for the return address. This would be quite simple if we
 had <code>and</code> and <code>0=</code> — since Forth's <code>true</code> has all bits set, we can <code>and</code> with a
@@ -169,7 +169,7 @@ invoking <code>nb</code> on each half:</p>
 </ul>
 <pre data-lang="fth" style="background-color:#272822;color:#c9d1d9;" class="language-fth "><code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">1bit </span><span>nbw nb nb nb </span><span style="color:#f92672;">;
 </span></code></pre>
-</section><section><h2 id="choosing-between-values-1">Choosing between values</h2>
+</section><section><h2 id="choosing-between-values">Choosing between values</h2>
 <p>While we could use a similar bitshifting strategy to implement <code>and</code> and choose
 between the two return addresses using that, there is a simpler way: use the
 1-bit value we compute to index into an array.<sup class="footnote-reference"><a href="#movfuscator">5</a></sup> We'll use a 2-entry
@@ -185,7 +185,7 @@ array called the <code>b</code>ranch <code>b</code>uffer:</p>
 </section><section><h2 id="other-solutions-a-time-memory-tradeoff">Other solutions: a time-memory tradeoff</h2>
 <p>While elegant, our solution is quite inefficient, executing thousands of
 instructions on every branch. While I wouldn't expect the best performance when
-we're limiting ourselves in this manner, there still are ways to make this
+we're limiting ourselves to no additional assembly, there still are ways to make this
 better.</p>
 <p>For example, we could prepare a 256-byte lookup table for <code>1bit</code>. Since we don't
 have any way to loop, we'll need to repeat things manually. Since 255 = 3 × 5
@@ -299,7 +299,7 @@ fully formal definition that captures what we usually mean by
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;asmless&#x2F;#choosing-between-values">Choosing between values</a>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;asmless&#x2F;#conditional-branches">Conditional branches</a>
             
         </li>
         
@@ -309,7 +309,7 @@ fully formal definition that captures what we usually mean by
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;asmless&#x2F;#choosing-between-values-1">Choosing between values</a>
+            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;asmless&#x2F;#choosing-between-values">Choosing between values</a>
             
         </li>
         

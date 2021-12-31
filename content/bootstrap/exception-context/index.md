@@ -382,4 +382,4 @@ capabilities.
   will still point to the same word.
 
 [repo]: https://github.com/NieDzejkob/miniforth
-[block]: https://github.com/NieDzejkob/miniforth/blob/master/block14.fth
+[block]: https://github.com/NieDzejkob/miniforth/blob/master/block13.fth
