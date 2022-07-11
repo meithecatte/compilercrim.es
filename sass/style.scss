@@ -363,6 +363,11 @@ details > :not(summary) {
     text-decoration: none;
 }
 
+.head-backdrop {
+    letter-spacing: 0.025rem;
+    //text-decoration: underline;
+}
+
 @media (prefers-color-scheme: dark) {
     * {
         --line-color: #21262d;

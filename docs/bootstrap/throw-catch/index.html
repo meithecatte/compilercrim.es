@@ -10,10 +10,10 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
         <title>How Forth implements exceptions</title>
-        <link rel="stylesheet" href="https://niedzejkob.p4.team/style.css?2"/>
-        <link rel="icon" href="https://niedzejkob.p4.team/icon.png"/>
-        <link rel="canonical" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;"/>
-        <link rel="alternate" type="application/rss+xml" title="NieDżejkob&#x27;s ramblings" href="/rss.xml">
+        <link rel="stylesheet" href="https://compilercrim.es/style.css?2"/>
+        <link rel="icon" href="https://compilercrim.es/icon.png"/>
+        <link rel="canonical" href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;throw-catch&#x2F;"/>
+        <link rel="alternate" type="application/rss+xml" title="The compiler crimes blog" href="/rss.xml">
         
 <meta property="og:type" content="article">
 
@@ -26,15 +26,15 @@ of supporting a mechanism like Rust&#x27;s Result, exceptions are the preferred
 error handling strategy. Let&#x27;s take a closer look at how they&#x27;re used, and how
 they&#x27;re implemented.  ">
         
-        <meta property="og:url" content="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;">
-        <meta property="og:image" content="https://niedzejkob.p4.team/icon.png">
+        <meta property="og:url" content="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;throw-catch&#x2F;">
+        <meta property="og:image" content="https://compilercrim.es/icon.png">
     </head>
     <body class="theme-default">
         <header>
             <div class="main-column">
                 <a href="/">
                     <img id="icon" src="/icon.png">
-                    <span><b>NieDżejkob</b>'s ramblings</span>
+                    <span class="head-backdrop">Compiler crimes</span>
                 </a>
             </div>
         </header>
@@ -53,7 +53,7 @@ September 20, 2021
 
 
 <div class="series-info">
-  This article is part of the <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;">Bootstrapping</a>
+  This article is part of the <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;">Bootstrapping</a>
   
     series, in which I start from a 512-byte seed and try to bootstrap a
 practical system.
@@ -63,14 +63,14 @@ practical system.
 
 <div class="previous-article">
     Previous post:<br>
-    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;asmless&#x2F;">Branches: No assembly required</a>
+    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;asmless&#x2F;">Branches: No assembly required</a>
 </div>
 
 
 
 <div class="next-article">
     Next post:<br>
-    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;">Contextful exceptions with Forth metaprogramming</a>
+    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;exception-context&#x2F;">Contextful exceptions with Forth metaprogramming</a>
 </div>
 
 
@@ -144,7 +144,7 @@ well use it.</p>
 <p>I couldn't actually find any guidance on how these are typically picked for
 application-specific exceptions. If I had to guess, one'd start with small
 positive integers, rather than at <code>-4096</code> going down. For what it's worth,
-<a href="https://niedzejkob.p4.team/bootstrap/exception-context/">Miniforth's extended exception mechanism</a> sidesteps this by
+<a href="https://compilercrim.es/bootstrap/exception-context/">Miniforth's extended exception mechanism</a> sidesteps this by
 using memory addresses as identifiers.</p>
 <p>Anyway, throwing an exception looks exactly like what you'd expect:</p>
 <pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">/ </span><span style="color:#85817e;">( a b -- a/b )
@@ -236,7 +236,7 @@ them. The words for the return stack pointer are straight-forward:</p>
 </span><span style="color:#f92672;">:code </span><span style="color:#a6e22e;">rp! </span><span style="color:#85817e;">( rp -- ) </span><span>bx di movw-rr, bx pop, next,
 </span></code></pre>
 <p>(this syntax (as well as the implementation of the assembler) was explained
-<a href="https://niedzejkob.p4.team/bootstrap/branches/#forth-style-assemblers">in a previous article</a>)</p>
+<a href="https://compilercrim.es/bootstrap/branches/#forth-style-assemblers">in a previous article</a>)</p>
 <p>Manipulating the data stack pointer is a bit harder to keep track of, as the value
 of the stack pointer itself goes through the data stack. I ended up choosing the
 following rule: <code>sp@</code> pushes the pointer to the element that was at the top
@@ -309,7 +309,7 @@ need to remove that stack slot before pushing the exception code in its place:</
 </section><section><h2 id="but-wait-there-s-more">But wait, there's more!</h2>
 <p>We've seen how the standard exception mechanism works in Forth. The facilities
 of throw-and-catch are provided, but in quite a rudimentary form.
-In my <a href="https://niedzejkob.p4.team/bootstrap/exception-context/">next post</a>, I explain how Miniforth builds upon this mechanism to attach
+In my <a href="https://compilercrim.es/bootstrap/exception-context/">next post</a>, I explain how Miniforth builds upon this mechanism to attach
 <em>context</em> to the exceptions, resulting in actionable error messages when the
 exception bubbles up to the top-level. See you there!</p>
 <div id="get-notified">
@@ -352,14 +352,14 @@ at with C, though...</p>
 
 <div class="previous-article">
     Previous post:<br>
-    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;asmless&#x2F;">Branches: No assembly required</a>
+    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;asmless&#x2F;">Branches: No assembly required</a>
 </div>
 
 
 
 <div class="next-article">
     Next post:<br>
-    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;">Contextful exceptions with Forth metaprogramming</a>
+    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;exception-context&#x2F;">Contextful exceptions with Forth metaprogramming</a>
 </div>
 
 
@@ -387,12 +387,12 @@ at with C, though...</p>
     <ul>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;#a-user-s-perspective">A user&#x27;s perspective</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;throw-catch&#x2F;#a-user-s-perspective">A user&#x27;s perspective</a>
             
             <ul>
                 
                     <li>
-                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;#0-throw-and-its-uses">0 throw and its uses</a>
+                        <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;throw-catch&#x2F;#0-throw-and-its-uses">0 throw and its uses</a>
                     </li>
                 
             </ul>
@@ -400,16 +400,16 @@ at with C, though...</p>
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;#the-internals">The internals</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;throw-catch&#x2F;#the-internals">The internals</a>
             
             <ul>
                 
                     <li>
-                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;#some-assembly-required">Some assembly required</a>
+                        <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;throw-catch&#x2F;#some-assembly-required">Some assembly required</a>
                     </li>
                 
                     <li>
-                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;#putting-it-all-together">Putting it all together</a>
+                        <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;throw-catch&#x2F;#putting-it-all-together">Putting it all together</a>
                     </li>
                 
             </ul>
@@ -417,7 +417,7 @@ at with C, though...</p>
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;#but-wait-there-s-more">But wait, there&#x27;s more!</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;throw-catch&#x2F;#but-wait-there-s-more">But wait, there&#x27;s more!</a>
             
         </li>
         
@@ -440,5 +440,5 @@ at with C, though...</p>
         </footer>
     </body>
     <script type="text/javascript" src="/enhance.js" async></script>
-    <script data-goatcounter="https://niedzejkob.goatcounter.com/count" async src="https://niedzejkob.p4.team/count.js"></script>
+    <script data-goatcounter="https://niedzejkob.goatcounter.com/count" async src="https://compilercrim.es/count.js"></script>
 </html>

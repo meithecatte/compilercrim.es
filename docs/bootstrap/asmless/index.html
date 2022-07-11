@@ -10,10 +10,10 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
         <title>Branches: No assembly required</title>
-        <link rel="stylesheet" href="https://niedzejkob.p4.team/style.css?2"/>
-        <link rel="icon" href="https://niedzejkob.p4.team/icon.png"/>
-        <link rel="canonical" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;asmless&#x2F;"/>
-        <link rel="alternate" type="application/rss+xml" title="NieDżejkob&#x27;s ramblings" href="/rss.xml">
+        <link rel="stylesheet" href="https://compilercrim.es/style.css?2"/>
+        <link rel="icon" href="https://compilercrim.es/icon.png"/>
+        <link rel="canonical" href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;asmless&#x2F;"/>
+        <link rel="alternate" type="application/rss+xml" title="The compiler crimes blog" href="/rss.xml">
         
 <meta property="og:type" content="article">
 
@@ -26,15 +26,15 @@ that it is also possible to implement branches in pure Forth. I believe that
 this approach is quite interesting, so let&#x27;s take a detour and get a closer
 look. ">
         
-        <meta property="og:url" content="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;asmless&#x2F;">
-        <meta property="og:image" content="https://niedzejkob.p4.team/icon.png">
+        <meta property="og:url" content="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;asmless&#x2F;">
+        <meta property="og:image" content="https://compilercrim.es/icon.png">
     </head>
     <body class="theme-default">
         <header>
             <div class="main-column">
                 <a href="/">
                     <img id="icon" src="/icon.png">
-                    <span><b>NieDżejkob</b>'s ramblings</span>
+                    <span class="head-backdrop">Compiler crimes</span>
                 </a>
             </div>
         </header>
@@ -53,7 +53,7 @@ June 29, 2021
 
 
 <div class="series-info">
-  This article is part of the <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;">Bootstrapping</a>
+  This article is part of the <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;">Bootstrapping</a>
   
     series, in which I start from a 512-byte seed and try to bootstrap a
 practical system.
@@ -63,14 +63,14 @@ practical system.
 
 <div class="previous-article">
     Previous post:<br>
-    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;">No branches? No problem — a Forth assembler</a>
+    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;branches&#x2F;">No branches? No problem — a Forth assembler</a>
 </div>
 
 
 
 <div class="next-article">
     Next post:<br>
-    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;">How Forth implements exceptions</a>
+    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;throw-catch&#x2F;">How Forth implements exceptions</a>
 </div>
 
 
@@ -81,7 +81,7 @@ practical system.
 
 
 
-<p><a href="https://niedzejkob.p4.team/bootstrap/branches/">Last time,</a> we started from the barebones <a href="https://niedzejkob.p4.team/bootstrap/miniforth/">Miniforth kernel</a>,<sup class="footnote-reference"><a href="#kernel">1</a></sup> and
+<p><a href="https://compilercrim.es/bootstrap/branches/">Last time,</a> we started from the barebones <a href="https://compilercrim.es/bootstrap/miniforth/">Miniforth kernel</a>,<sup class="footnote-reference"><a href="#kernel">1</a></sup> and
 implemented branches by writing additional primitive words in assembly. For
 pragmatic reasons, that is the road I will be pursuing further, but I noticed
 that it is also possible to implement branches in pure Forth. I believe that
@@ -90,7 +90,7 @@ look. <span id="continue-reading"></span></p>
 <p>The relevant<sup class="footnote-reference"><a href="#relevant">2</a></sup> available primitives are:</p>
 <pre style="background-color:#272822;color:#c9d1d9;"><code><span>+ - ! @ c! c@ dup drop swap emit u. &gt;r r&gt; [ ] : ;
 </span></code></pre>
-<p>Additionally, we have the implementations of the following from <a href="https://niedzejkob.p4.team/bootstrap/branches/">the previous
+<p>Additionally, we have the implementations of the following from <a href="https://compilercrim.es/bootstrap/branches/">the previous
 post</a>:</p>
 <ul>
 <li>system variables <code>latest</code>, <code>st</code>, <code>base</code>, <code>dp</code>, <code>disk#</code></li>
@@ -228,7 +228,7 @@ things at once...</p>
 </div>
 <div class="footnote-definition" id="relevant"><sup class="footnote-definition-label">2</sup>
 <p>I'm skipping <code>load</code> and <code>s:</code>, since they won't help, and describing
-them is out of scope for this post. I describe them in <a href="https://niedzejkob.p4.team/bootstrap/branches/">the previous
+them is out of scope for this post. I describe them in <a href="https://compilercrim.es/bootstrap/branches/">the previous
 post</a> if you're curious.</p>
 </div>
 <div class="footnote-definition" id="bitwise"><sup class="footnote-definition-label">3</sup>
@@ -259,14 +259,14 @@ fully formal definition that captures what we usually mean by
 
 <div class="previous-article">
     Previous post:<br>
-    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;">No branches? No problem — a Forth assembler</a>
+    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;branches&#x2F;">No branches? No problem — a Forth assembler</a>
 </div>
 
 
 
 <div class="next-article">
     Next post:<br>
-    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;">How Forth implements exceptions</a>
+    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;throw-catch&#x2F;">How Forth implements exceptions</a>
 </div>
 
 
@@ -294,32 +294,32 @@ fully formal definition that captures what we usually mean by
     <ul>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;asmless&#x2F;#unconditional-branches">Unconditional branches</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;asmless&#x2F;#unconditional-branches">Unconditional branches</a>
             
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;asmless&#x2F;#conditional-branches">Conditional branches</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;asmless&#x2F;#conditional-branches">Conditional branches</a>
             
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;asmless&#x2F;#shifting-the-bits-around">Shifting the bits around</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;asmless&#x2F;#shifting-the-bits-around">Shifting the bits around</a>
             
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;asmless&#x2F;#choosing-between-values">Choosing between values</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;asmless&#x2F;#choosing-between-values">Choosing between values</a>
             
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;asmless&#x2F;#other-solutions-a-time-memory-tradeoff">Other solutions: a time-memory tradeoff</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;asmless&#x2F;#other-solutions-a-time-memory-tradeoff">Other solutions: a time-memory tradeoff</a>
             
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;asmless&#x2F;#is-that-all">Is that all?</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;asmless&#x2F;#is-that-all">Is that all?</a>
             
         </li>
         
@@ -342,5 +342,5 @@ fully formal definition that captures what we usually mean by
         </footer>
     </body>
     <script type="text/javascript" src="/enhance.js" async></script>
-    <script data-goatcounter="https://niedzejkob.goatcounter.com/count" async src="https://niedzejkob.p4.team/count.js"></script>
+    <script data-goatcounter="https://niedzejkob.goatcounter.com/count" async src="https://compilercrim.es/count.js"></script>
 </html>

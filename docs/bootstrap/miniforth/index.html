@@ -10,10 +10,10 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
         <title>Fitting a Forth in 512 bytes</title>
-        <link rel="stylesheet" href="https://niedzejkob.p4.team/style.css?2"/>
-        <link rel="icon" href="https://niedzejkob.p4.team/icon.png"/>
-        <link rel="canonical" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;"/>
-        <link rel="alternate" type="application/rss+xml" title="NieDżejkob&#x27;s ramblings" href="/rss.xml">
+        <link rel="stylesheet" href="https://compilercrim.es/style.css?2"/>
+        <link rel="icon" href="https://compilercrim.es/icon.png"/>
+        <link rel="canonical" href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;"/>
+        <link rel="alternate" type="application/rss+xml" title="The compiler crimes blog" href="/rss.xml">
         
 <meta property="og:type" content="article">
 
@@ -29,15 +29,15 @@ this unique area of software engineering.  Not out of fear that someone would
 try to implement a trusting trust attack, but simply as an interesting
 challenge.  ">
         
-        <meta property="og:url" content="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;">
-        <meta property="og:image" content="https://niedzejkob.p4.team/icon.png">
+        <meta property="og:url" content="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;">
+        <meta property="og:image" content="https://compilercrim.es/icon.png">
     </head>
     <body class="theme-default">
         <header>
             <div class="main-column">
                 <a href="/">
                     <img id="icon" src="/icon.png">
-                    <span><b>NieDżejkob</b>'s ramblings</span>
+                    <span class="head-backdrop">Compiler crimes</span>
                 </a>
             </div>
         </header>
@@ -56,7 +56,7 @@ June 10, 2021
 
 
 <div class="series-info">
-  This article is part of the <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;">Bootstrapping</a>
+  This article is part of the <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;">Bootstrapping</a>
   
     series, in which I start from a 512-byte seed and try to bootstrap a
 practical system.
@@ -68,7 +68,7 @@ practical system.
 
 <div class="next-article">
     Next post:<br>
-    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;">No branches? No problem — a Forth assembler</a>
+    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;branches&#x2F;">No branches? No problem — a Forth assembler</a>
 </div>
 
 
@@ -140,7 +140,7 @@ GitHub</a>, but I will include most of it here.</p>
 development process involved being on a perpetual lookout for byte-saving
 opportunities. However, when I published what I thought was quite tightly
 optimized code, <a href="https://twitter.com/ilyakurdyukov">Ilya Kurdyukov</a> came along and managed to find 24 bytes
-to be saved! I promptly reinvested this saved space in <a href="https://niedzejkob.p4.team/bootstrap/miniforth/#s-string-poke">new
+to be saved! I promptly reinvested this saved space in <a href="https://compilercrim.es/bootstrap/miniforth/#s-string-poke">new
 features</a>.</p>
 <section><h2 id="a-primer-on-forth">A primer on Forth</h2>
 <p><em>If you've ever written anything in Forth, you can safely skip this section.</em></p>
@@ -1172,7 +1172,7 @@ Ilya Kurdyukov's help — without it, I wouldn't have been able to fit <code>s:<
 so I'll be using it from now on.<sup class="footnote-reference"><a href="#future">10</a></sup></p>
 <p><img src="./hardware.jpg" alt="A photo of the corner of a monitor. We see the calculation &quot;6969 4242 100 + + u-dot&quot;, which results in &quot;ACAB&quot;. Then the &quot;1 load&quot; command is issued, to which the system describes &quot;Hello, world!&quot;" /></p>
 <p>If you'd like to see how to bootstrap on top of Miniforth's minimal set of
-primitives, see the <a href="https://niedzejkob.p4.team/bootstrap/branches/">next post in this series</a>.</p>
+primitives, see the <a href="https://compilercrim.es/bootstrap/branches/">next post in this series</a>.</p>
 <div id="get-notified">
     <h1>Enjoyed this article?</h1>
     <p>You might like my <a href="/">other posts</a>, too. If you'd like to be notified
@@ -1253,7 +1253,7 @@ problem.</p>
 
 <div class="next-article">
     Next post:<br>
-    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;">No branches? No problem — a Forth assembler</a>
+    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;branches&#x2F;">No branches? No problem — a Forth assembler</a>
 </div>
 
 
@@ -1281,66 +1281,66 @@ problem.</p>
     <ul>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#a-primer-on-forth">A primer on Forth</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#a-primer-on-forth">A primer on Forth</a>
             
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#threaded-code">Threaded code</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#threaded-code">Threaded code</a>
             
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#the-dictionary">The dictionary</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#the-dictionary">The dictionary</a>
             
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#compression">Compression</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#compression">Compression</a>
             
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#variables">Variables?</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#variables">Variables?</a>
             
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#initialization-code">Initialization code</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#initialization-code">Initialization code</a>
             
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#the-outer-interpreter">The outer interpreter</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#the-outer-interpreter">The outer interpreter</a>
             
             <ul>
                 
                     <li>
-                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#keyboard-input">Keyboard input</a>
+                        <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#keyboard-input">Keyboard input</a>
                     </li>
                 
                     <li>
-                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#parsing">Parsing</a>
+                        <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#parsing">Parsing</a>
                     </li>
                 
                     <li>
-                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#dictionary-lookup">Dictionary Lookup</a>
+                        <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#dictionary-lookup">Dictionary Lookup</a>
                     </li>
                 
                     <li>
-                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#should-we-execute-it">Should we execute it?</a>
+                        <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#should-we-execute-it">Should we execute it?</a>
                     </li>
                 
                     <li>
-                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#executing-the-word">Executing the word</a>
+                        <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#executing-the-word">Executing the word</a>
                     </li>
                 
                     <li>
-                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#handling-numbers">Handling numbers</a>
+                        <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#handling-numbers">Handling numbers</a>
                     </li>
                 
                     <li>
-                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#compiling-things">Compiling things</a>
+                        <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#compiling-things">Compiling things</a>
                     </li>
                 
             </ul>
@@ -1348,27 +1348,27 @@ problem.</p>
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#loading-code-from-disk">Loading code from disk</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#loading-code-from-disk">Loading code from disk</a>
             
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#printing-numbers">Printing numbers</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#printing-numbers">Printing numbers</a>
             
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#s-string-poke">s: — string poke</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#s-string-poke">s: — string poke</a>
             
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#other-primitives">Other primitives</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#other-primitives">Other primitives</a>
             
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#conclusion">Conclusion</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#conclusion">Conclusion</a>
             
         </li>
         
@@ -1391,5 +1391,5 @@ problem.</p>
         </footer>
     </body>
     <script type="text/javascript" src="/enhance.js" async></script>
-    <script data-goatcounter="https://niedzejkob.goatcounter.com/count" async src="https://niedzejkob.p4.team/count.js"></script>
+    <script data-goatcounter="https://niedzejkob.goatcounter.com/count" async src="https://compilercrim.es/count.js"></script>
 </html>

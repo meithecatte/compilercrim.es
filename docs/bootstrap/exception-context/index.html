@@ -10,10 +10,10 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
         <title>Contextful exceptions with Forth metaprogramming</title>
-        <link rel="stylesheet" href="https://niedzejkob.p4.team/style.css?2"/>
-        <link rel="icon" href="https://niedzejkob.p4.team/icon.png"/>
-        <link rel="canonical" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;"/>
-        <link rel="alternate" type="application/rss+xml" title="NieDżejkob&#x27;s ramblings" href="/rss.xml">
+        <link rel="stylesheet" href="https://compilercrim.es/style.css?2"/>
+        <link rel="icon" href="https://compilercrim.es/icon.png"/>
+        <link rel="canonical" href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;exception-context&#x2F;"/>
+        <link rel="alternate" type="application/rss+xml" title="The compiler crimes blog" href="/rss.xml">
         
 <meta property="og:type" content="article">
 
@@ -25,15 +25,15 @@ catching the exception, this scheme works reasonably well. However, if it
 bubbles up to the very top and gets printed to the user, we&#x27;d like to show a bit
 more context. ">
         
-        <meta property="og:url" content="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;">
-        <meta property="og:image" content="https://niedzejkob.p4.team/icon.png">
+        <meta property="og:url" content="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;exception-context&#x2F;">
+        <meta property="og:image" content="https://compilercrim.es/icon.png">
     </head>
     <body class="theme-default">
         <header>
             <div class="main-column">
                 <a href="/">
                     <img id="icon" src="/icon.png">
-                    <span><b>NieDżejkob</b>'s ramblings</span>
+                    <span class="head-backdrop">Compiler crimes</span>
                 </a>
             </div>
         </header>
@@ -52,7 +52,7 @@ September 20, 2021
 
 
 <div class="series-info">
-  This article is part of the <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;">Bootstrapping</a>
+  This article is part of the <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;">Bootstrapping</a>
   
     series, in which I start from a 512-byte seed and try to bootstrap a
 practical system.
@@ -62,7 +62,7 @@ practical system.
 
 <div class="previous-article">
     Previous post:<br>
-    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;">How Forth implements exceptions</a>
+    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;throw-catch&#x2F;">How Forth implements exceptions</a>
 </div>
 
 
@@ -111,7 +111,7 @@ vocabulary activated for the commands specific to editing text). In that case,
 quitting the editor after the first typo wouldn't be very nice.</p>
 <p>The mechanism I describe here is built it on top of the standard <code>catch</code> and
 <code>throw</code> words, so if you need a refresher on how they behave, or would like to
-see how they're implemented, see <a href="https://niedzejkob.p4.team/bootstrap/throw-catch/">this article of mine</a>.</p>
+see how they're implemented, see <a href="https://compilercrim.es/bootstrap/throw-catch/">this article of mine</a>.</p>
 <section><h2 id="the-design">The design</h2>
 <p>The mechanism would be most flexible if the user could simply register an
 arbitrary snippet of code for printing an exception type. However, most of
@@ -377,7 +377,7 @@ will still point to the same word.</p>
 
 <div class="previous-article">
     Previous post:<br>
-    <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;">How Forth implements exceptions</a>
+    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;throw-catch&#x2F;">How Forth implements exceptions</a>
 </div>
 
 
@@ -407,20 +407,20 @@ will still point to the same word.</p>
     <ul>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;#the-design">The design</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;exception-context&#x2F;#the-design">The design</a>
             
             <ul>
                 
                     <li>
-                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;#finding-the-printing-function">Finding the printing function</a>
+                        <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;exception-context&#x2F;#finding-the-printing-function">Finding the printing function</a>
                     </li>
                 
                     <li>
-                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;#defining-the-exceptions">Defining the exceptions</a>
+                        <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;exception-context&#x2F;#defining-the-exceptions">Defining the exceptions</a>
                     </li>
                 
                     <li>
-                        <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;#alternative-designs">Alternative designs</a>
+                        <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;exception-context&#x2F;#alternative-designs">Alternative designs</a>
                     </li>
                 
             </ul>
@@ -428,7 +428,7 @@ will still point to the same word.</p>
         </li>
         
         <li>
-            <a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;#the-implementation">The implementation</a>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;exception-context&#x2F;#the-implementation">The implementation</a>
             
         </li>
         
@@ -451,5 +451,5 @@ will still point to the same word.</p>
         </footer>
     </body>
     <script type="text/javascript" src="/enhance.js" async></script>
-    <script data-goatcounter="https://niedzejkob.goatcounter.com/count" async src="https://niedzejkob.p4.team/count.js"></script>
+    <script data-goatcounter="https://niedzejkob.goatcounter.com/count" async src="https://compilercrim.es/count.js"></script>
 </html>

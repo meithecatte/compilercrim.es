@@ -10,10 +10,10 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
         <title>Bootstrapping</title>
-        <link rel="stylesheet" href="https://niedzejkob.p4.team/style.css?2"/>
-        <link rel="icon" href="https://niedzejkob.p4.team/icon.png"/>
-        <link rel="canonical" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;"/>
-        <link rel="alternate" type="application/rss+xml" title="NieDżejkob&#x27;s ramblings" href="/rss.xml">
+        <link rel="stylesheet" href="https://compilercrim.es/style.css?2"/>
+        <link rel="icon" href="https://compilercrim.es/icon.png"/>
+        <link rel="canonical" href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;"/>
+        <link rel="alternate" type="application/rss+xml" title="The compiler crimes blog" href="/rss.xml">
         
 <meta property="og:type" content="website">
 
@@ -23,15 +23,15 @@
 you&#x27;d need to bootstrap a practical system? I decided to start
 with a one sector (512-byte) seed and find out how far I can get.">
         
-        <meta property="og:url" content="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;">
-        <meta property="og:image" content="https://niedzejkob.p4.team/icon.png">
+        <meta property="og:url" content="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;">
+        <meta property="og:image" content="https://compilercrim.es/icon.png">
     </head>
     <body class="theme-default">
         <header>
             <div class="main-column">
                 <a href="/">
                     <img id="icon" src="/icon.png">
-                    <span><b>NieDżejkob</b>'s ramblings</span>
+                    <span class="head-backdrop">Compiler crimes</span>
                 </a>
             </div>
         </header>
@@ -58,7 +58,7 @@ with a one sector (512-byte) seed and find out how far I can get.</p>
 
   
   <div class="article-preview">
-  <h1 class="title"><a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;">Fitting a Forth in 512 bytes</a></h1>
+  <h1 class="title"><a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;">Fitting a Forth in 512 bytes</a></h1>
   
 <p class="page-metadata">
 June 10, 2021
@@ -74,11 +74,11 @@ problem</a> has first come to my attention, I've been drawn to
 this unique area of software engineering.  Not out of fear that someone would
 try to implement a <a href="http://users.ece.cmu.edu/%7Eganger/712.fall02/papers/p761-thompson.pdf">trusting trust</a> attack, but simply as an interesting
 challenge.  
-  <a class="read-more button" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;miniforth&#x2F;#continue-reading">Read more</a>
+  <a class="read-more button" href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#continue-reading">Read more</a>
   </div>
   
   <div class="article-preview">
-  <h1 class="title"><a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;">No branches? No problem — a Forth assembler</a></h1>
+  <h1 class="title"><a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;branches&#x2F;">No branches? No problem — a Forth assembler</a></h1>
   
 <p class="page-metadata">
 June 22, 2021
@@ -89,28 +89,28 @@ June 22, 2021
 reader even <a href="https://www.reddit.com/r/Forth/comments/nxgg20/fitting_a_forth_in_512_bytes/h1eq4ok">claimed</a> that, since there's no branches, it is not
 Turing-complete, and therefore not worthy of being called a Forth! Today is the
 day we prove them wrong. 
-  <a class="read-more button" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;branches&#x2F;#continue-reading">Read more</a>
+  <a class="read-more button" href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;branches&#x2F;#continue-reading">Read more</a>
   </div>
   
   <div class="article-preview">
-  <h1 class="title"><a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;asmless&#x2F;">Branches: No assembly required</a></h1>
+  <h1 class="title"><a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;asmless&#x2F;">Branches: No assembly required</a></h1>
   
 <p class="page-metadata">
 June 29, 2021
 &middot; 7 minute read
 </p>
 
-  <p><a href="https://niedzejkob.p4.team/bootstrap/branches/">Last time,</a> we started from the barebones <a href="https://niedzejkob.p4.team/bootstrap/miniforth/">Miniforth kernel</a>, and
+  <p><a href="https://compilercrim.es/bootstrap/branches/">Last time,</a> we started from the barebones <a href="https://compilercrim.es/bootstrap/miniforth/">Miniforth kernel</a>, and
 implemented branches by writing additional primitive words in assembly. For
 pragmatic reasons, that is the road I will be pursuing further, but I noticed
 that it is also possible to implement branches in pure Forth. I believe that
 this approach is quite interesting, so let's take a detour and get a closer
 look. 
-  <a class="read-more button" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;asmless&#x2F;#continue-reading">Read more</a>
+  <a class="read-more button" href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;asmless&#x2F;#continue-reading">Read more</a>
   </div>
   
   <div class="article-preview">
-  <h1 class="title"><a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;">How Forth implements exceptions</a></h1>
+  <h1 class="title"><a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;throw-catch&#x2F;">How Forth implements exceptions</a></h1>
   
 <p class="page-metadata">
 September 20, 2021
@@ -123,11 +123,11 @@ simple exception handling mechanism. As Forth doesn't have a typesystem capable
 of supporting a mechanism like Rust's <code>Result</code>, exceptions are the preferred
 error handling strategy. Let's take a closer look at how they're used, and how
 they're implemented.  
-  <a class="read-more button" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;throw-catch&#x2F;#continue-reading">Read more</a>
+  <a class="read-more button" href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;throw-catch&#x2F;#continue-reading">Read more</a>
   </div>
   
   <div class="article-preview">
-  <h1 class="title"><a href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;">Contextful exceptions with Forth metaprogramming</a></h1>
+  <h1 class="title"><a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;exception-context&#x2F;">Contextful exceptions with Forth metaprogramming</a></h1>
   
 <p class="page-metadata">
 September 20, 2021
@@ -139,7 +139,7 @@ a single integer, that identifies the exception, is thrown. If we end up
 catching the exception, this scheme works reasonably well. However, if it
 bubbles up to the very top and gets printed to the user, we'd like to show a bit
 more context. 
-  <a class="read-more button" href="https:&#x2F;&#x2F;niedzejkob.p4.team&#x2F;bootstrap&#x2F;exception-context&#x2F;#continue-reading">Read more</a>
+  <a class="read-more button" href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;exception-context&#x2F;#continue-reading">Read more</a>
   </div>
   
 
@@ -162,5 +162,5 @@ more context.
         </footer>
     </body>
     <script type="text/javascript" src="/enhance.js" async></script>
-    <script data-goatcounter="https://niedzejkob.goatcounter.com/count" async src="https://niedzejkob.p4.team/count.js"></script>
+    <script data-goatcounter="https://niedzejkob.goatcounter.com/count" async src="https://compilercrim.es/count.js"></script>
 </html>
