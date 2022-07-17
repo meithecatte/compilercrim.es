@@ -1423,10 +1423,9 @@ primitives, see the [next post in this series][next].
 [cubicDoom]: https://github.com/nanochess/cubicDoom
 [atomchess]: https://github.com/nanochess/Toledo-Atomchess
 [bootbasic]: https://github.com/nanochess/bootBASIC
-[miniforth]: https://github.com/NieDzejkob/miniforth/tree/post1
+[miniforth]: https://github.com/meithecatte/miniforth/tree/post1
 [ilya]: https://twitter.com/ilyakurdyukov
-[twitter-me]: https://twitter.com/NieDzejkob
-[db-trick-twitter]: https://twitter.com/NieDzejkob/status/1401557309118103560
+[db-trick-twitter]: https://twitter.com/meithecatte/status/1401557309118103560
 [db-trick-avoid]: https://twitter.com/ilyakurdyukov/status/1401736488681979906
 [segment registers]: https://en.wikipedia.org/wiki/X86_memory_segmentation
 [SDM]: https://software.intel.com/content/www/us/en/develop/articles/intel-sdm.html

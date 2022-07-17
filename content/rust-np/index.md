@@ -257,10 +257,9 @@ reference, too.
 [playground]: https://play.rust-lang.org/?version=stable&mode=debug&edition=2018&gist=cab7e0bcf26b0180f15324d81009870d
 [DIMACS CNF]: https://logic.pdmi.ras.ru/~basolver/dimacs.html
 [`flussab_cnf`]: https://crates.io/crates/flussab-cnf
-[converter]: https://github.com/NieDzejkob/rustc-sat
+[converter]: https://github.com/meithecatte/rustc-sat
 [satlib]: https://www.cs.ubc.ca/~hoos/SATLIB/benchm.html
 [DPLL]: https://en.wikipedia.org/wiki/DPLL_algorithm
-[twitter]: https://twitter.com/NieDzejkob
 [bootstrapping]: @/bootstrap/_index.md
 [knuth]: https://www.youtube.com/watch?v=g4lhrVPDUG0
 [varisat]: https://jix.one/blog/

@@ -381,5 +381,5 @@ capabilities.
   if a future definition with the same name shadows this one, the name token
   will still point to the same word.
 
-[repo]: https://github.com/NieDzejkob/miniforth
-[block]: https://github.com/NieDzejkob/miniforth/blob/master/block13.fth
+[repo]: https://github.com/meithecatte/miniforth
+[block]: https://github.com/meithecatte/miniforth/blob/master/block13.fth

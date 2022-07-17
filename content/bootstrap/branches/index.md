@@ -1233,7 +1233,6 @@ the comments below the article :slightly_smiling_face:
 [literal]: https://forth-standard.org/standard/core/LITERAL
 [reddit-guy]: https://www.reddit.com/r/Forth/comments/nxgg20/fitting_a_forth_in_512_bytes/h1eq4ok
 [acdb]: https://retrocomputing.stackexchange.com/questions/5121/why-are-first-four-x86-gprs-named-in-such-unintuitive-order
-[int13-crash]: https://twitter.com/NieDzejkob/status/1403443794842882055
-[github]: https://github.com/NieDzejkob/miniforth/tree/post2
-[twitter]: https://twitter.com/NieDzejkob
-[asmless-discussion]: https://github.com/NieDzejkob/niedzejkob.p4.team/issues/2
+[int13-crash]: https://twitter.com/meithecatte/status/1403443794842882055
+[github]: https://github.com/meithecatte/miniforth/tree/post2
+[asmless-discussion]: https://github.com/meithecatte/compilercrim.es/issues/2

@@ -24,7 +24,7 @@ Well, [I've been guilty of setting such exercises for my readers
 too][exercise-forth], so today, we'll be solving one of those.
 
 ```
-[.../niedzejkob.p4.team/content/amos-nerdsniped-me]$ cargo new terminus
+[.../compilercrim.es/content/amos-nerdsniped-me]$ cargo new terminus
 Created binary (application) `terminus` package
 ```
 

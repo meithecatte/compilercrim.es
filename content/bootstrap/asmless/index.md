@@ -216,14 +216,13 @@ messages than the bare minimum usually encountered in Forth.
 
 [prev]: @/bootstrap/branches/index.md
 [Miniforth kernel]: @/bootstrap/miniforth/index.md
-[github]: https://github.com/NieDzejkob/miniforth/tree/post2#building-a-disk-image
-[purity]: https://github.com/NieDzejkob/miniforth/blob/purity/block1.fth
+[github]: https://github.com/meithecatte/miniforth/tree/post2#building-a-disk-image
+[purity]: https://github.com/meithecatte/miniforth/blob/purity/block1.fth
 [brainfuck]: https://esolangs.org/wiki/Brainfuck
 [LBA]: https://en.wikipedia.org/wiki/Linear_bounded_automaton
-[bitwise-me]: https://github.com/NieDzejkob/2klinux/blob/b4f435cd0c265b9bee28d02be6d1fc177f3847b3/image-files/stage1.frt#L130
+[bitwise-me]: https://github.com/meithecatte/2klinux/blob/b4f435cd0c265b9bee28d02be6d1fc177f3847b3/image-files/stage1.frt#L130
 [bitwise-sector]: https://github.com/cesarblum/sectorforth/blob/32031ac6e77e30817c2f65ba11b1ccda07d564f9/examples/01-helloworld.f#L55-L57
-[bitwise-comment]: https://github.com/NieDzejkob/niedzejkob.p4.team/issues/2#issuecomment-867288663
+[bitwise-comment]: https://github.com/meithecatte/compilercrim.es/issues/2#issuecomment-867288663
 [mov]: https://www.youtube.com/watch?v=R7EEoWg6Ekk
-[twitter]: https://twitter.com/NieDzejkob
-[block2]: https://github.com/NieDzejkob/miniforth/blob/purity/block2.fth
+[block2]: https://github.com/meithecatte/miniforth/blob/purity/block2.fth
 [rss]: /rss.xml
