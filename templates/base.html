@@ -42,17 +42,23 @@
         <main>
             <article>
                 {% block content %} {% endblock %}
+
+                <center>
+                    <p>
+                        Twitter: <a href="https://twitter.com/meithecatte">@meithecatte</a>
+                        &bull;
+                        GitHub: <a href="https://github.com/meithecatte">@meithecatte</a>
+                        &bull;
+                        E-mail: catch-all on this domain
+                    </p>
+
+                    <a href="https://diyhrt.wiki">
+                        <img src="/e2.gif" width="88" height="31" />
+                    </a>
+                </center>
             </article>
             {% block toc %} {% endblock %}
         </main>
-        <footer>
-            <div class="main-column">
-                <span class="social-links" data-license="CC-BY 4.0 https://fontawesome.com/license">
-                    <a href="https://twitter.com/meithecatte" target="_blank">{% include "twitter.svg.html" %}</a>
-                    <a href="https://github.com/meithecatte" target="_blank">{% include "github.svg.html" %}</a>
-                </span>
-            </div>
-        </footer>
     </body>
     <script type="text/javascript" src="/enhance.js" async></script>
     <script data-goatcounter="https://niedzejkob.goatcounter.com/count" async src="{{ get_url(path="/count.js") }}"></script>
