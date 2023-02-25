@@ -273,9 +273,9 @@ expose the tokio internals from which the data can be collected.</p>
 <code><span style="color:#c9d1d9;">error: failed to run custom build command for `prost-build v0.8.0`
 
 Caused by:
-  process didn&#39;t exit successfully: `/home/kuba/dev/terminus/target/debug/build/prost-build-793fc1bd9d193261/build-script-build` (exit status: 101)
+  process didn&#39;t exit successfully: `/home/maya/dev/terminus/target/debug/build/prost-build-793fc1bd9d193261/build-script-build` (exit status: 101)
   --- stderr
-  thread &#39;main&#39; panicked at &#39;Failed to find the protoc binary. The PROTOC environment variable is not set, there is no bundled protoc for this platform, and protoc is not in the PATH&#39;, /home/kuba/.cargo/registry/src/github.com-1ecc6299db9ec823/prost-build-0.8.0/build.rs:105:10
+  thread &#39;main&#39; panicked at &#39;Failed to find the protoc binary. The PROTOC environment variable is not set, there is no bundled protoc for this platform, and protoc is not in the PATH&#39;, /home/maya/.cargo/registry/src/github.com-1ecc6299db9ec823/prost-build-0.8.0/build.rs:105:10
   note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 </span></code></pre>
 <p>Okay, where can I find a <code>protoc</code>?</p>
@@ -469,7 +469,7 @@ async </span><span style="font-style:italic;color:#66d9ef;">fn </span><span styl
 <p><em>sweating profusely</em></p>
 <pre style="background-color:#272822;">
 <code><span style="color:#c9d1d9;">$ RUSTFLAGS=&quot;--cfg tokio_unstable&quot; cargo run
-   Compiling terminus v0.1.0 (/home/kuba/dev/terminus)
+   Compiling terminus v0.1.0 (/home/maya/dev/terminus)
     Finished dev [unoptimized + debuginfo] target(s) in 3.76s
      Running `target/debug/terminus`
 [src/main.rs:28] primary_fd = 9
@@ -481,7 +481,7 @@ Read 84 bytes
 Read 84 bytes
 Child exited!
     Checking tokio-fd v0.3.0
-    Checking terminus v0.1.0 (/home/kuba/dev/terminus)
+    Checking terminus v0.1.0 (/home/maya/dev/terminus)
     Finished dev [unoptimized + debuginfo] target(s) in 0.67s
     Finished dev [unoptimized + debuginfo] target(s) in 0.09s
     Finished dev [unoptimized + debuginfo] target(s) in 0.09s

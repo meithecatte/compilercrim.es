@@ -260,9 +260,9 @@ $ RUSTFLAGS="--cfg tokio_unstable" cargo run
 error: failed to run custom build command for `prost-build v0.8.0`
 
 Caused by:
-  process didn't exit successfully: `/home/kuba/dev/terminus/target/debug/build/prost-build-793fc1bd9d193261/build-script-build` (exit status: 101)
+  process didn't exit successfully: `/home/maya/dev/terminus/target/debug/build/prost-build-793fc1bd9d193261/build-script-build` (exit status: 101)
   --- stderr
-  thread 'main' panicked at 'Failed to find the protoc binary. The PROTOC environment variable is not set, there is no bundled protoc for this platform, and protoc is not in the PATH', /home/kuba/.cargo/registry/src/github.com-1ecc6299db9ec823/prost-build-0.8.0/build.rs:105:10
+  thread 'main' panicked at 'Failed to find the protoc binary. The PROTOC environment variable is not set, there is no bundled protoc for this platform, and protoc is not in the PATH', /home/maya/.cargo/registry/src/github.com-1ecc6299db9ec823/prost-build-0.8.0/build.rs:105:10
   note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 ```
 
@@ -486,7 +486,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
 ```
 $ RUSTFLAGS="--cfg tokio_unstable" cargo run
-   Compiling terminus v0.1.0 (/home/kuba/dev/terminus)
+   Compiling terminus v0.1.0 (/home/maya/dev/terminus)
     Finished dev [unoptimized + debuginfo] target(s) in 3.76s
      Running `target/debug/terminus`
 [src/main.rs:28] primary_fd = 9
@@ -498,7 +498,7 @@ Read 84 bytes
 Read 84 bytes
 Child exited!
     Checking tokio-fd v0.3.0
-    Checking terminus v0.1.0 (/home/kuba/dev/terminus)
+    Checking terminus v0.1.0 (/home/maya/dev/terminus)
     Finished dev [unoptimized + debuginfo] target(s) in 0.67s
     Finished dev [unoptimized + debuginfo] target(s) in 0.09s
     Finished dev [unoptimized + debuginfo] target(s) in 0.09s
