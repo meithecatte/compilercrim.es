@@ -1,7 +1,7 @@
 # The URL the site will be built for
 base_url = "https://compilercrim.es/"
 output_dir = "docs"
-title = "The compiler crimes blog"
+title = "compiler crimes :3"
 
 compile_sass = true
 

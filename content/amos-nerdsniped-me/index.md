@@ -3,13 +3,9 @@ title = "Terminating the terminal case of Linux"
 date = "2021-09-25"
 +++
 
-I remember it like it was yesterday. It was a very calm and pleasant evening,
-when, all of a sudden, Amos, known also as *fasterthanlime*, published
- an article entitled ["A terminal case of Linux"][amos-art]. With a wonderfully punny title, he explains his adventure of getting colored terminal output out of a Linux process.
-
-> :thinking: I sure do envy Amos's relationship with Cool Bear. I'd look into
-> getting such a sidekick myself, but the dorm I'm about to move into doesn't
-> allow keeping pets, and definitely not ones sentient enough to throw a party.
+I remember it like it was yesterday.[^yesterday] It was a very calm and pleasant evening,
+when, all of a sudden, amos the fasterthanlime published
+ an article entitled ["A terminal case of Linux"][amos-art]. With a title that makes you sigh when you get it, he explains his adventure of capturing colored terminal output of a Linux process.
 
 After a journey through the bowels of libc, the Land of Terrible Truths, and as
 is in Amos's style, many underlying details of the problem, we arrive at a
@@ -20,8 +16,12 @@ problem to solve:
 
 ![Cool bear: Nice, nice... but what's that ^C at the end? / Amos: Nothing. / Bear: What? / Amos: IT'S NOTHING. It's an exercise left to the reader. / Bear: But doesn't that mean we- /Amos: So the program hangs at the end of main. Big deal. We could just call std::process::exit! That would definitely cut things short.](quote.png)
 
+> :thinking: I sure do envy Amos's relationship with Cool Bear. I'd look into
+> getting such a sidekick myself, but the dorm I'm about to move into doesn't
+> allow keeping pets, and definitely not ones sentient enough to throw a party.
+
 Well, [I've been guilty of setting such exercises for my readers
-too][exercise-forth], so today, we'll be solving one of those.
+too][exercise-forth], so today, we'll be solving one of those instead.
 
 ```
 [.../compilercrim.es/content/amos-nerdsniped-me]$ cargo new terminus
@@ -134,7 +134,15 @@ $ ls /bin
 sh
 ```
 
-If you want to find `bash`, you'll need to scan through `$PATH` or something.
+No such luck in `/usr/bin` either:
+
+```
+$ ls /usr/bin
+env
+```
+
+What are you looking at? It's POSIX compliant. If you want to find `bash`,
+you'll need to scan through `$PATH` or something.
 
 ```
 $ which bash
@@ -145,8 +153,7 @@ $ realpath $(which bash)
 ```
 
 This means that shebang lines are often something like `#!/usr/bin/env bash`, if
-you need the bash features (as you can probably guess, `/usr/bin` only contains
-`env`). But apart from that (and the fact that I connect to new Wi-Fi networks
+you need the bash features. But apart from that (and the fact that I connect to new Wi-Fi networks
 by editing a config file and then running `nixos-rebuild switch`, which takes a
 few minutes (and the fact that getting random executables downloaded from the
 internet is hard)), it's *great* — it's like Haskell, Bash and Unix had a
@@ -173,8 +180,10 @@ Ok we're gonna return now
 ```
 
 So, how is it even possible that we're returning from main and the process isn't
-exiting? The secret is that, it's not the true `main`. See this little attribute
-macro?
+exiting?
+
+You might think of the code provided by `std` that takes us from `_start` to `main` and vice versa, but today we won't need to go that deep.
+The secret is that, the `main` we can see in our code is not the *true* `main`. See this little attribute macro?
 
 ```rust
 #[tokio::main]
@@ -516,6 +525,10 @@ I don't know about you, but I'm pretty satisfied with that.
 Fixing this upstream in Tokio is left, as an exercise, to the reader.
 
 {{ get_notified() }}
+
+---
+
+[^yesterday]: The reader is advised to compare the date on the two articles.
 
 [amos-art]: https://fasterthanli.me/articles/a-terminal-case-of-linux
 [exercise-forth]: /bootstrap/miniforth/#ref:stack-complete

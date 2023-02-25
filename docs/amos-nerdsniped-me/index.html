@@ -13,20 +13,15 @@
         <link rel="stylesheet" href="https://compilercrim.es/style.css?2"/>
         <link rel="icon" href="https://compilercrim.es/icon.png"/>
         <link rel="canonical" href="https:&#x2F;&#x2F;compilercrim.es&#x2F;amos-nerdsniped-me&#x2F;"/>
-        <link rel="alternate" type="application/rss+xml" title="The compiler crimes blog" href="/rss.xml">
+        <link rel="alternate" type="application/rss+xml" title="compiler crimes :3" href="/rss.xml">
         
 <meta property="og:type" content="article">
 
         <meta property="og:title" content="Terminating the terminal case of Linux">
         
             <meta property="og:description" content="I remember it like it was yesterday. It was a very calm and pleasant evening,
-when, all of a sudden, Amos, known also as fasterthanlime, published
-an article entitled &amp;quot;A terminal case of Linux&amp;quot;. With a wonderfully punny title, he explains his adventure of getting colored terminal output out of a Linux process.
-
-🤔 I sure do envy Amos&#x27;s relationship with Cool Bear. I&#x27;d look into
-getting such a sidekick myself, but the dorm I&#x27;m about to move into doesn&#x27;t
-allow keeping pets, and definitely not ones sentient enough to throw a party.
-
+when, all of a sudden, amos the fasterthanlime published
+an article entitled &amp;quot;A terminal case of Linux&amp;quot;. With a title that makes you sigh when you get it, he explains his adventure of capturing colored terminal output of a Linux process.
 After a journey through the bowels of libc, the Land of Terrible Truths, and as
 is in Amos&#x27;s style, many underlying details of the problem, we arrive at a
 program that does what we&#x27;ve set out to do. Well, almost. ">
@@ -39,7 +34,7 @@ program that does what we&#x27;ve set out to do. Well, almost. ">
             <div class="main-column">
                 <a href="/">
                     <img id="icon" src="/icon.png">
-                    <span class="head-backdrop">Compiler crimes</span>
+                    <span class="head-backdrop">the blog of compiler crime :3</span>
                 </a>
             </div>
         </header>
@@ -57,22 +52,22 @@ September 25, 2021
 
 
 
-<p>I remember it like it was yesterday. It was a very calm and pleasant evening,
-when, all of a sudden, Amos, known also as <em>fasterthanlime</em>, published
-an article entitled <a href="https://fasterthanli.me/articles/a-terminal-case-of-linux">&quot;A terminal case of Linux&quot;</a>. With a wonderfully punny title, he explains his adventure of getting colored terminal output out of a Linux process.</p>
-<blockquote>
-<p>🤔 I sure do envy Amos's relationship with Cool Bear. I'd look into
-getting such a sidekick myself, but the dorm I'm about to move into doesn't
-allow keeping pets, and definitely not ones sentient enough to throw a party.</p>
-</blockquote>
+<p>I remember it like it was yesterday.<sup class="footnote-reference"><a href="#yesterday">1</a></sup> It was a very calm and pleasant evening,
+when, all of a sudden, amos the fasterthanlime published
+an article entitled <a href="https://fasterthanli.me/articles/a-terminal-case-of-linux">&quot;A terminal case of Linux&quot;</a>. With a title that makes you sigh when you get it, he explains his adventure of capturing colored terminal output of a Linux process.</p>
 <p>After a journey through the bowels of libc, the Land of Terrible Truths, and as
 is in Amos's style, many underlying details of the problem, we arrive at a
 program that does what we've set out to do. Well, almost. <span id="continue-reading"></span></p>
 <p>You see, in a devious act of nerdsnipe, the article stops when there's still one
 problem to solve:</p>
 <p><img src="https://compilercrim.es/amos-nerdsniped-me/quote.png" alt="Cool bear: Nice, nice... but what's that ^C at the end? / Amos: Nothing. / Bear: What? / Amos: IT'S NOTHING. It's an exercise left to the reader. / Bear: But doesn't that mean we- /Amos: So the program hangs at the end of main. Big deal. We could just call std::process::exit! That would definitely cut things short." /></p>
+<blockquote>
+<p>🤔 I sure do envy Amos's relationship with Cool Bear. I'd look into
+getting such a sidekick myself, but the dorm I'm about to move into doesn't
+allow keeping pets, and definitely not ones sentient enough to throw a party.</p>
+</blockquote>
 <p>Well, <a href="/bootstrap/miniforth/#ref:stack-complete">I've been guilty of setting such exercises for my readers
-too</a>, so today, we'll be solving one of those.</p>
+too</a>, so today, we'll be solving one of those instead.</p>
 <pre style="background-color:#272822;">
 <code><span style="color:#c9d1d9;">[.../compilercrim.es/content/amos-nerdsniped-me]$ cargo new terminus
 Created binary (application) `terminus` package
@@ -172,7 +167,13 @@ driver distro. This means that <code>/bin</code> looks like it's been deserted:<
 <code><span style="color:#c9d1d9;">$ ls /bin
 sh
 </span></code></pre>
-<p>If you want to find <code>bash</code>, you'll need to scan through <code>$PATH</code> or something.</p>
+<p>No such luck in <code>/usr/bin</code> either:</p>
+<pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">$ ls /usr/bin
+env
+</span></code></pre>
+<p>What are you looking at? It's POSIX compliant. If you want to find <code>bash</code>,
+you'll need to scan through <code>$PATH</code> or something.</p>
 <pre style="background-color:#272822;">
 <code><span style="color:#c9d1d9;">$ which bash
 /run/current-system/sw/bin/bash
@@ -181,8 +182,7 @@ $ realpath $(which bash)
 /nix/store/39k586qrghljxiyqvv72ni5fk89vshib-bash-interactive-4.4-p23/bin/bash
 </span></code></pre>
 <p>This means that shebang lines are often something like <code>#!/usr/bin/env bash</code>, if
-you need the bash features (as you can probably guess, <code>/usr/bin</code> only contains
-<code>env</code>). But apart from that (and the fact that I connect to new Wi-Fi networks
+you need the bash features. But apart from that (and the fact that I connect to new Wi-Fi networks
 by editing a config file and then running <code>nixos-rebuild switch</code>, which takes a
 few minutes (and the fact that getting random executables downloaded from the
 internet is hard)), it's <em>great</em> — it's like Haskell, Bash and Unix had a
@@ -204,8 +204,9 @@ Ok we&#39;re gonna return now
 ^C
 </span></code></pre>
 <p>So, how is it even possible that we're returning from main and the process isn't
-exiting? The secret is that, it's not the true <code>main</code>. See this little attribute
-macro?</p>
+exiting?</p>
+<p>You might think of the code provided by <code>std</code> that takes us from <code>_start</code> to <code>main</code> and vice versa, but today we won't need to go that deep.
+The secret is that, the <code>main</code> we can see in our code is not the <em>true</em> <code>main</code>. See this little attribute macro?</p>
 <pre style="background-color:#272822;">
 <code class="language-rust" data-lang="rust"><span style="color:#c9d1d9;">#[tokio::main]
 async </span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">main</span><span style="color:#c9d1d9;">() -&gt; </span><span style="font-style:italic;color:#66d9ef;">Result</span><span style="color:#c9d1d9;">&lt;(), </span><span style="font-style:italic;color:#66d9ef;">Box</span><span style="color:#c9d1d9;">&lt;dyn Error&gt;&gt; {
@@ -503,6 +504,10 @@ got rid of that unsafe block around <code>File::from_raw_fd</code>.</p>
     <a href="https://github.com/sponsors/meithecatte">my GitHub sponsors</a> for their support:
     Michalina Sidor and Tijn Kersjes.
     </p>
+</div>
+<hr />
+<div class="footnote-definition" id="yesterday"><sup class="footnote-definition-label">1</sup>
+<p>The reader is advised to compare the date on the two articles.</p>
 </div>
 
 
