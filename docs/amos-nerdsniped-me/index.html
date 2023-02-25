@@ -70,87 +70,91 @@ is in Amos's style, many underlying details of the problem, we arrive at a
 program that does what we've set out to do. Well, almost. <span id="continue-reading"></span></p>
 <p>You see, in a devious act of nerdsnipe, the article stops when there's still one
 problem to solve:</p>
-<p><img src="quote.png" alt="Cool bear: Nice, nice... but what's that ^C at the end? / Amos: Nothing. / Bear: What? / Amos: IT'S NOTHING. It's an exercise left to the reader. / Bear: But doesn't that mean we- /Amos: So the program hangs at the end of main. Big deal. We could just call std::process::exit! That would definitely cut things short." /></p>
+<p><img src="https://compilercrim.es/amos-nerdsniped-me/quote.png" alt="Cool bear: Nice, nice... but what's that ^C at the end? / Amos: Nothing. / Bear: What? / Amos: IT'S NOTHING. It's an exercise left to the reader. / Bear: But doesn't that mean we- /Amos: So the program hangs at the end of main. Big deal. We could just call std::process::exit! That would definitely cut things short." /></p>
 <p>Well, <a href="/bootstrap/miniforth/#ref:stack-complete">I've been guilty of setting such exercises for my readers
 too</a>, so today, we'll be solving one of those.</p>
-<pre style="background-color:#272822;color:#c9d1d9;"><code><span>[.../compilercrim.es/content/amos-nerdsniped-me]$ cargo new terminus
-</span><span>Created binary (application) `terminus` package
+<pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">[.../compilercrim.es/content/amos-nerdsniped-me]$ cargo new terminus
+Created binary (application) `terminus` package
 </span></code></pre>
 <p>First order of business: reproducing the bug. We add the dependencies...</p>
-<pre style="background-color:#272822;color:#c9d1d9;"><code><span>$ cargo add libc
-</span><span>$ cargo add tokio@1.12.0 --features full
+<pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">$ cargo add libc
+$ cargo add tokio@1.12.0 --features full
 </span></code></pre>
 <p>...paste in the code...</p>
-<pre data-lang="rust" style="background-color:#272822;color:#c9d1d9;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#f92672;">use </span><span>std::{error::Error, os::unix::prelude::FromRawFd};
-</span><span style="color:#f92672;">use </span><span>tokio::{fs::File, io::AsyncReadExt, process::Command};
-</span><span>
-</span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">openpty</span><span>() -&gt; (</span><span style="font-style:italic;color:#66d9ef;">i32</span><span>, </span><span style="font-style:italic;color:#66d9ef;">i32</span><span>) {
-</span><span>    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span> primary_fd: </span><span style="font-style:italic;color:#66d9ef;">i32 </span><span style="color:#f92672;">= -</span><span style="color:#ae81ff;">1</span><span>;
-</span><span>    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span> secondary_fd: </span><span style="font-style:italic;color:#66d9ef;">i32 </span><span style="color:#f92672;">= -</span><span style="color:#ae81ff;">1</span><span>;
-</span><span>    </span><span style="color:#f92672;">unsafe </span><span>{
-</span><span>        </span><span style="font-style:italic;color:#66d9ef;">let</span><span> ret </span><span style="color:#f92672;">= </span><span>libc::openpty(
-</span><span>            </span><span style="color:#f92672;">&amp;mut</span><span> primary_fd,
-</span><span>            </span><span style="color:#f92672;">&amp;mut</span><span> secondary_fd,
-</span><span>            std::ptr::null_mut(),
-</span><span>            std::ptr::null(),
-</span><span>            std::ptr::null(),
-</span><span>        );
-</span><span>        </span><span style="color:#f92672;">if</span><span> ret </span><span style="color:#f92672;">!= </span><span style="color:#ae81ff;">0 </span><span>{
-</span><span>            panic!(</span><span style="color:#e6db74;">&quot;Failed to openpty!&quot;</span><span>);
-</span><span>        }
-</span><span>    };
-</span><span>    (primary_fd, secondary_fd)
-</span><span>}
-</span><span>
-</span><span>#[tokio::main]
-</span><span>async </span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">main</span><span>() -&gt; </span><span style="font-style:italic;color:#66d9ef;">Result</span><span>&lt;(), </span><span style="font-style:italic;color:#66d9ef;">Box</span><span>&lt;dyn Error&gt;&gt; {
-</span><span>    </span><span style="font-style:italic;color:#66d9ef;">let </span><span>(primary_fd, secondary_fd) </span><span style="color:#f92672;">= </span><span style="color:#66d9ef;">openpty</span><span>();
-</span><span>    dbg!(primary_fd, secondary_fd);
-</span><span>
-</span><span>    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span> cmd </span><span style="color:#f92672;">= </span><span>Command::new(</span><span style="color:#e6db74;">&quot;/bin/bash&quot;</span><span>);
-</span><span>    cmd.</span><span style="color:#66d9ef;">arg</span><span>(</span><span style="color:#e6db74;">&quot;-c&quot;</span><span>)
-</span><span>        .</span><span style="color:#66d9ef;">arg</span><span>(</span><span style="color:#e6db74;">&quot;for i in $(seq 1 3); do cargo check; sleep 0.2; done&quot;</span><span>);
-</span><span>
-</span><span>    </span><span style="color:#f92672;">unsafe </span><span>{
-</span><span>        cmd.</span><span style="color:#66d9ef;">pre_exec</span><span>(</span><span style="color:#f92672;">move || </span><span>{
-</span><span>            </span><span style="color:#f92672;">if </span><span>libc::login_tty(secondary_fd) </span><span style="color:#f92672;">!= </span><span style="color:#ae81ff;">0 </span><span>{
-</span><span>                panic!(</span><span style="color:#e6db74;">&quot;couldn&#39;t set the controlling terminal or something&quot;</span><span>);
-</span><span>            }
-</span><span>            </span><span style="font-style:italic;color:#66d9ef;">Ok</span><span>(())
-</span><span>        })
-</span><span>    };
-</span><span>    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span> child </span><span style="color:#f92672;">=</span><span> cmd.</span><span style="color:#66d9ef;">spawn</span><span>()</span><span style="color:#f92672;">?</span><span>;
-</span><span>
-</span><span>    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span> out </span><span style="color:#f92672;">= </span><span>vec![];
-</span><span>    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span> buf </span><span style="color:#f92672;">= </span><span>vec![</span><span style="color:#ae81ff;">0</span><span style="font-style:italic;color:#66d9ef;">u8</span><span>; </span><span style="color:#ae81ff;">1024</span><span>];
-</span><span>    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span> primary </span><span style="color:#f92672;">= unsafe </span><span>{ File::from_raw_fd(primary_fd) };
-</span><span>
-</span><span>    &#39;weee: </span><span style="color:#f92672;">loop </span><span>{
-</span><span>        tokio::select</span><span style="color:#f92672;">! </span><span>{
-</span><span>            n </span><span style="color:#f92672;">=</span><span> primary.</span><span style="color:#66d9ef;">read</span><span>(</span><span style="color:#f92672;">&amp;mut</span><span> buf) </span><span style="color:#f92672;">=&gt; </span><span>{
-</span><span>                </span><span style="font-style:italic;color:#66d9ef;">let</span><span> n </span><span style="color:#f92672;">=</span><span> n</span><span style="color:#f92672;">?</span><span>;
-</span><span>                println!(</span><span style="color:#e6db74;">&quot;Read </span><span style="color:#ae81ff;">{}</span><span style="color:#e6db74;"> bytes&quot;</span><span>, n);
-</span><span>                out.</span><span style="color:#66d9ef;">extend_from_slice</span><span>(</span><span style="color:#f92672;">&amp;</span><span>buf[</span><span style="color:#f92672;">..</span><span>n]);
-</span><span>            },
-</span><span>
-</span><span>            status </span><span style="color:#f92672;">=</span><span> child.</span><span style="color:#66d9ef;">wait</span><span>() </span><span style="color:#f92672;">=&gt; </span><span>{
-</span><span>                status</span><span style="color:#f92672;">?</span><span>;
-</span><span>                println!(</span><span style="color:#e6db74;">&quot;Child exited!&quot;</span><span>);
-</span><span>                </span><span style="color:#f92672;">break &#39;weee
-</span><span>            },
-</span><span>        }
-</span><span>    }
-</span><span>    println!(</span><span style="color:#e6db74;">&quot;</span><span style="color:#ae81ff;">{}</span><span style="color:#e6db74;">&quot;</span><span>, </span><span style="font-style:italic;color:#66d9ef;">String</span><span>::from_utf8(out)</span><span style="color:#f92672;">?</span><span>);
-</span><span>
-</span><span>    println!(</span><span style="color:#e6db74;">&quot;Ok we&#39;re gonna return now&quot;</span><span>);
-</span><span>    </span><span style="font-style:italic;color:#66d9ef;">Ok</span><span>(())
-</span><span>}
+<pre style="background-color:#272822;">
+<code class="language-rust" data-lang="rust"><span style="color:#f92672;">use </span><span style="color:#c9d1d9;">std::{error::Error, os::unix::prelude::FromRawFd};
+</span><span style="color:#f92672;">use </span><span style="color:#c9d1d9;">tokio::{fs::File, io::AsyncReadExt, process::Command};
+
+</span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">openpty</span><span style="color:#c9d1d9;">() -&gt; (</span><span style="font-style:italic;color:#66d9ef;">i32</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#66d9ef;">i32</span><span style="color:#c9d1d9;">) {
+    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span style="color:#c9d1d9;"> primary_fd: </span><span style="font-style:italic;color:#66d9ef;">i32 </span><span style="color:#f92672;">= -</span><span style="color:#ae81ff;">1</span><span style="color:#c9d1d9;">;
+    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span style="color:#c9d1d9;"> secondary_fd: </span><span style="font-style:italic;color:#66d9ef;">i32 </span><span style="color:#f92672;">= -</span><span style="color:#ae81ff;">1</span><span style="color:#c9d1d9;">;
+    </span><span style="color:#f92672;">unsafe </span><span style="color:#c9d1d9;">{
+        </span><span style="font-style:italic;color:#66d9ef;">let</span><span style="color:#c9d1d9;"> ret </span><span style="color:#f92672;">= </span><span style="color:#c9d1d9;">libc::openpty(
+            </span><span style="color:#f92672;">&amp;mut</span><span style="color:#c9d1d9;"> primary_fd,
+            </span><span style="color:#f92672;">&amp;mut</span><span style="color:#c9d1d9;"> secondary_fd,
+            std::ptr::null_mut(),
+            std::ptr::null(),
+            std::ptr::null(),
+        );
+        </span><span style="color:#f92672;">if</span><span style="color:#c9d1d9;"> ret </span><span style="color:#f92672;">!= </span><span style="color:#ae81ff;">0 </span><span style="color:#c9d1d9;">{
+            panic!(</span><span style="color:#e6db74;">&quot;Failed to openpty!&quot;</span><span style="color:#c9d1d9;">);
+        }
+    };
+    (primary_fd, secondary_fd)
+}
+
+#[tokio::main]
+async </span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">main</span><span style="color:#c9d1d9;">() -&gt; </span><span style="font-style:italic;color:#66d9ef;">Result</span><span style="color:#c9d1d9;">&lt;(), </span><span style="font-style:italic;color:#66d9ef;">Box</span><span style="color:#c9d1d9;">&lt;dyn Error&gt;&gt; {
+    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#c9d1d9;">(primary_fd, secondary_fd) </span><span style="color:#f92672;">= </span><span style="color:#66d9ef;">openpty</span><span style="color:#c9d1d9;">();
+    dbg!(primary_fd, secondary_fd);
+
+    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span style="color:#c9d1d9;"> cmd </span><span style="color:#f92672;">= </span><span style="color:#c9d1d9;">Command::new(</span><span style="color:#e6db74;">&quot;/bin/bash&quot;</span><span style="color:#c9d1d9;">);
+    cmd.</span><span style="color:#66d9ef;">arg</span><span style="color:#c9d1d9;">(</span><span style="color:#e6db74;">&quot;-c&quot;</span><span style="color:#c9d1d9;">)
+        .</span><span style="color:#66d9ef;">arg</span><span style="color:#c9d1d9;">(</span><span style="color:#e6db74;">&quot;for i in $(seq 1 3); do cargo check; sleep 0.2; done&quot;</span><span style="color:#c9d1d9;">);
+
+    </span><span style="color:#f92672;">unsafe </span><span style="color:#c9d1d9;">{
+        cmd.</span><span style="color:#66d9ef;">pre_exec</span><span style="color:#c9d1d9;">(</span><span style="color:#f92672;">move || </span><span style="color:#c9d1d9;">{
+            </span><span style="color:#f92672;">if </span><span style="color:#c9d1d9;">libc::login_tty(secondary_fd) </span><span style="color:#f92672;">!= </span><span style="color:#ae81ff;">0 </span><span style="color:#c9d1d9;">{
+                panic!(</span><span style="color:#e6db74;">&quot;couldn&#39;t set the controlling terminal or something&quot;</span><span style="color:#c9d1d9;">);
+            }
+            </span><span style="font-style:italic;color:#66d9ef;">Ok</span><span style="color:#c9d1d9;">(())
+        })
+    };
+    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span style="color:#c9d1d9;"> child </span><span style="color:#f92672;">=</span><span style="color:#c9d1d9;"> cmd.</span><span style="color:#66d9ef;">spawn</span><span style="color:#c9d1d9;">()</span><span style="color:#f92672;">?</span><span style="color:#c9d1d9;">;
+
+    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span style="color:#c9d1d9;"> out </span><span style="color:#f92672;">= </span><span style="color:#c9d1d9;">vec![];
+    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span style="color:#c9d1d9;"> buf </span><span style="color:#f92672;">= </span><span style="color:#c9d1d9;">vec![</span><span style="color:#ae81ff;">0</span><span style="font-style:italic;color:#66d9ef;">u8</span><span style="color:#c9d1d9;">; </span><span style="color:#ae81ff;">1024</span><span style="color:#c9d1d9;">];
+    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span style="color:#c9d1d9;"> primary </span><span style="color:#f92672;">= unsafe </span><span style="color:#c9d1d9;">{ File::from_raw_fd(primary_fd) };
+
+    &#39;weee: </span><span style="color:#f92672;">loop </span><span style="color:#c9d1d9;">{
+        tokio::select</span><span style="color:#f92672;">! </span><span style="color:#c9d1d9;">{
+            n </span><span style="color:#f92672;">=</span><span style="color:#c9d1d9;"> primary.</span><span style="color:#66d9ef;">read</span><span style="color:#c9d1d9;">(</span><span style="color:#f92672;">&amp;mut</span><span style="color:#c9d1d9;"> buf) </span><span style="color:#f92672;">=&gt; </span><span style="color:#c9d1d9;">{
+                </span><span style="font-style:italic;color:#66d9ef;">let</span><span style="color:#c9d1d9;"> n </span><span style="color:#f92672;">=</span><span style="color:#c9d1d9;"> n</span><span style="color:#f92672;">?</span><span style="color:#c9d1d9;">;
+                println!(</span><span style="color:#e6db74;">&quot;Read </span><span style="color:#ae81ff;">{}</span><span style="color:#e6db74;"> bytes&quot;</span><span style="color:#c9d1d9;">, n);
+                out.</span><span style="color:#66d9ef;">extend_from_slice</span><span style="color:#c9d1d9;">(</span><span style="color:#f92672;">&amp;</span><span style="color:#c9d1d9;">buf[</span><span style="color:#f92672;">..</span><span style="color:#c9d1d9;">n]);
+            },
+
+            status </span><span style="color:#f92672;">=</span><span style="color:#c9d1d9;"> child.</span><span style="color:#66d9ef;">wait</span><span style="color:#c9d1d9;">() </span><span style="color:#f92672;">=&gt; </span><span style="color:#c9d1d9;">{
+                status</span><span style="color:#f92672;">?</span><span style="color:#c9d1d9;">;
+                println!(</span><span style="color:#e6db74;">&quot;Child exited!&quot;</span><span style="color:#c9d1d9;">);
+                </span><span style="color:#f92672;">break &#39;weee
+            </span><span style="color:#c9d1d9;">},
+        }
+    }
+    println!(</span><span style="color:#e6db74;">&quot;</span><span style="color:#ae81ff;">{}</span><span style="color:#e6db74;">&quot;</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#66d9ef;">String</span><span style="color:#c9d1d9;">::from_utf8(out)</span><span style="color:#f92672;">?</span><span style="color:#c9d1d9;">);
+
+    println!(</span><span style="color:#e6db74;">&quot;Ok we&#39;re gonna return now&quot;</span><span style="color:#c9d1d9;">);
+    </span><span style="font-style:italic;color:#66d9ef;">Ok</span><span style="color:#c9d1d9;">(())
+}
 </span></code></pre>
 <p>and...</p>
-<pre style="background-color:#272822;color:#c9d1d9;"><code><span>$ cargo run -q
-</span><span>[src/main.rs:25] primary_fd = 9
-</span><span>[src/main.rs:25] secondary_fd = 10
-</span><span>Error: Os { code: 2, kind: NotFound, message: &quot;No such file or directory&quot; }
+<pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">$ cargo run -q
+[src/main.rs:25] primary_fd = 9
+[src/main.rs:25] secondary_fd = 10
+Error: Os { code: 2, kind: NotFound, message: &quot;No such file or directory&quot; }
 </span></code></pre>
 <p>Uhh, what? That's not what was supposed to happen. The one time you chose to
 skip the error handling, Amos!</p>
@@ -164,15 +168,17 @@ Where do I apply for a bear-ing license?</p>
 </blockquote>
 <p><em>ahem</em>, because I am a masochist and run <a href="https://nixos.org/">NixOS</a> as my daily
 driver distro. This means that <code>/bin</code> looks like it's been deserted:</p>
-<pre style="background-color:#272822;color:#c9d1d9;"><code><span>$ ls /bin
-</span><span>sh
+<pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">$ ls /bin
+sh
 </span></code></pre>
 <p>If you want to find <code>bash</code>, you'll need to scan through <code>$PATH</code> or something.</p>
-<pre style="background-color:#272822;color:#c9d1d9;"><code><span>$ which bash
-</span><span>/run/current-system/sw/bin/bash
-</span><span>
-</span><span>$ realpath $(which bash)
-</span><span>/nix/store/39k586qrghljxiyqvv72ni5fk89vshib-bash-interactive-4.4-p23/bin/bash
+<pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">$ which bash
+/run/current-system/sw/bin/bash
+
+$ realpath $(which bash)
+/nix/store/39k586qrghljxiyqvv72ni5fk89vshib-bash-interactive-4.4-p23/bin/bash
 </span></code></pre>
 <p>This means that shebang lines are often something like <code>#!/usr/bin/env bash</code>, if
 you need the bash features (as you can probably guess, <code>/usr/bin</code> only contains
@@ -182,24 +188,27 @@ few minutes (and the fact that getting random executables downloaded from the
 internet is hard)), it's <em>great</em> — it's like Haskell, Bash and Unix had a
 threesome and the birth control didn't quite work.</p>
 <p>In this case, we should be able to get away with...</p>
-<pre data-lang="rust" style="background-color:#272822;color:#c9d1d9;" class="language-rust "><code class="language-rust" data-lang="rust"><span>    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span> cmd </span><span style="color:#f92672;">= </span><span>Command::new(</span><span style="color:#e6db74;">&quot;/bin/sh&quot;</span><span>); </span><span style="color:#85817e;">// was /bin/bash
-</span><span>    cmd.</span><span style="color:#66d9ef;">arg</span><span>(</span><span style="color:#e6db74;">&quot;-c&quot;</span><span>)
-</span><span>        .</span><span style="color:#66d9ef;">arg</span><span>(</span><span style="color:#e6db74;">&quot;for i in $(seq 1 3); do cargo check; sleep 0.2; done&quot;</span><span>);
+<pre style="background-color:#272822;">
+<code class="language-rust" data-lang="rust"><span style="color:#c9d1d9;">    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span style="color:#c9d1d9;"> cmd </span><span style="color:#f92672;">= </span><span style="color:#c9d1d9;">Command::new(</span><span style="color:#e6db74;">&quot;/bin/sh&quot;</span><span style="color:#c9d1d9;">); </span><span style="color:#85817e;">// was /bin/bash
+</span><span style="color:#c9d1d9;">    cmd.</span><span style="color:#66d9ef;">arg</span><span style="color:#c9d1d9;">(</span><span style="color:#e6db74;">&quot;-c&quot;</span><span style="color:#c9d1d9;">)
+        .</span><span style="color:#66d9ef;">arg</span><span style="color:#c9d1d9;">(</span><span style="color:#e6db74;">&quot;for i in $(seq 1 3); do cargo check; sleep 0.2; done&quot;</span><span style="color:#c9d1d9;">);
 </span></code></pre>
 <p>...and we can observe the bug!</p>
-<pre style="background-color:#272822;color:#c9d1d9;"><code><span>    [...]
-</span><span>    Finished dev [unoptimized + debuginfo] target(s) in 20.17s
-</span><span>    Finished dev [unoptimized + debuginfo] target(s) in 0.07s
-</span><span>    Finished dev [unoptimized + debuginfo] target(s) in 0.07s
-</span><span>
-</span><span>Ok we&#39;re gonna return now
-</span><span>^C
+<pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">    [...]
+    Finished dev [unoptimized + debuginfo] target(s) in 20.17s
+    Finished dev [unoptimized + debuginfo] target(s) in 0.07s
+    Finished dev [unoptimized + debuginfo] target(s) in 0.07s
+
+Ok we&#39;re gonna return now
+^C
 </span></code></pre>
 <p>So, how is it even possible that we're returning from main and the process isn't
 exiting? The secret is that, it's not the true <code>main</code>. See this little attribute
 macro?</p>
-<pre data-lang="rust" style="background-color:#272822;color:#c9d1d9;" class="language-rust "><code class="language-rust" data-lang="rust"><span>#[tokio::main]
-</span><span>async </span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">main</span><span>() -&gt; </span><span style="font-style:italic;color:#66d9ef;">Result</span><span>&lt;(), </span><span style="font-style:italic;color:#66d9ef;">Box</span><span>&lt;dyn Error&gt;&gt; {
+<pre style="background-color:#272822;">
+<code class="language-rust" data-lang="rust"><span style="color:#c9d1d9;">#[tokio::main]
+async </span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">main</span><span style="color:#c9d1d9;">() -&gt; </span><span style="font-style:italic;color:#66d9ef;">Result</span><span style="color:#c9d1d9;">&lt;(), </span><span style="font-style:italic;color:#66d9ef;">Box</span><span style="color:#c9d1d9;">&lt;dyn Error&gt;&gt; {
 </span></code></pre>
 <p>Macros like that are allowed to do whatever changes they want to the tokens of
 the item they're applied to. Let's see what the docs have to say about this
@@ -210,23 +219,24 @@ particular one, then:</p>
 <p>Note: This macro can be used on any function and not just the main function. Using it on a non-main function makes the function behave as if it was synchronous by starting a new runtime each time it is called. If the function is called often, it is preferable to create the runtime using the runtime builder so the runtime can be reused across calls.</p>
 </blockquote>
 <p>If we wanted to, we could even take a look at the code it generates with <a href="https://crates.io/crates/cargo-expand"><code>cargo expand</code></a>:</p>
-<pre data-lang="rust" style="background-color:#272822;color:#c9d1d9;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#f92672;">$</span><span> cargo expand main
-</span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">main</span><span>() -&gt; </span><span style="font-style:italic;color:#66d9ef;">Result</span><span>&lt;(), </span><span style="font-style:italic;color:#66d9ef;">Box</span><span>&lt;dyn Error&gt;&gt; {
-</span><span>    tokio::runtime::Builder::new_multi_thread()
-</span><span>        .</span><span style="color:#66d9ef;">enable_all</span><span>()
-</span><span>        .</span><span style="color:#66d9ef;">build</span><span>()
-</span><span>        .</span><span style="color:#66d9ef;">expect</span><span>(</span><span style="color:#e6db74;">&quot;Failed building the Runtime&quot;</span><span>)
-</span><span>        .</span><span style="color:#66d9ef;">block_on</span><span>(async {
-</span><span>            {
-</span><span>                ::std::io::_print(::core::fmt::Arguments::new_v1(
-</span><span>                    </span><span style="color:#f92672;">&amp;</span><span>[</span><span style="color:#e6db74;">&quot;Async main says hi!</span><span style="color:#ae81ff;">\n</span><span style="color:#e6db74;">&quot;</span><span>],
-</span><span>                    </span><span style="color:#f92672;">&amp;match </span><span>() {
-</span><span>                        () </span><span style="color:#f92672;">=&gt; </span><span>[],
-</span><span>                    },
-</span><span>                ));
-</span><span>            };
-</span><span>        })
-</span><span>}
+<pre style="background-color:#272822;">
+<code class="language-rust" data-lang="rust"><span style="color:#f92672;">$</span><span style="color:#c9d1d9;"> cargo expand main
+</span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">main</span><span style="color:#c9d1d9;">() -&gt; </span><span style="font-style:italic;color:#66d9ef;">Result</span><span style="color:#c9d1d9;">&lt;(), </span><span style="font-style:italic;color:#66d9ef;">Box</span><span style="color:#c9d1d9;">&lt;dyn Error&gt;&gt; {
+    tokio::runtime::Builder::new_multi_thread()
+        .</span><span style="color:#66d9ef;">enable_all</span><span style="color:#c9d1d9;">()
+        .</span><span style="color:#66d9ef;">build</span><span style="color:#c9d1d9;">()
+        .</span><span style="color:#66d9ef;">expect</span><span style="color:#c9d1d9;">(</span><span style="color:#e6db74;">&quot;Failed building the Runtime&quot;</span><span style="color:#c9d1d9;">)
+        .</span><span style="color:#66d9ef;">block_on</span><span style="color:#c9d1d9;">(async {
+            {
+                ::std::io::_print(::core::fmt::Arguments::new_v1(
+                    </span><span style="color:#f92672;">&amp;</span><span style="color:#c9d1d9;">[</span><span style="color:#e6db74;">&quot;Async main says hi!</span><span style="color:#ae81ff;">\n</span><span style="color:#e6db74;">&quot;</span><span style="color:#c9d1d9;">],
+                    </span><span style="color:#f92672;">&amp;match </span><span style="color:#c9d1d9;">() {
+                        () </span><span style="color:#f92672;">=&gt; </span><span style="color:#c9d1d9;">[],
+                    },
+                ));
+            };
+        })
+}
 </span></code></pre>
 <p>BTW, if I run <code>cargo expand</code> on the original code, it all gets printed on one
 line, even though <code>cargo expand</code> already runs rustfmt here...</p>
@@ -243,63 +253,71 @@ the Tokio Console. It's like <code>top</code>, but for async tasks! Let's try it
 <p>I suppose that means you can't deploy this to production, at least without
 pinning the git commit you use, but for having some fun, it should be fine.</p>
 <p>On the side of our program, we need to add the <code>console-subscriber</code> dependency:</p>
-<pre data-lang="toml" style="background-color:#272822;color:#c9d1d9;" class="language-toml "><code class="language-toml" data-lang="toml"><span style="color:#85817e;"># in Cargo.toml
-</span><span style="color:#f92672;">console-subscriber </span><span>= { </span><span style="color:#f92672;">git </span><span>= </span><span style="color:#e6db74;">&quot;https://github.com/tokio-rs/console&quot; </span><span>}
+<pre style="background-color:#272822;">
+<code class="language-toml" data-lang="toml"><span style="color:#85817e;"># in Cargo.toml
+</span><span style="color:#f92672;">console-subscriber </span><span style="color:#c9d1d9;">= { </span><span style="color:#f92672;">git </span><span style="color:#c9d1d9;">= </span><span style="color:#e6db74;">&quot;https://github.com/tokio-rs/console&quot; </span><span style="color:#c9d1d9;">}
 </span></code></pre>
 <p>and call <code>init</code> when we're starting up:</p>
-<pre data-lang="rust" style="background-color:#272822;color:#c9d1d9;" class="language-rust "><code class="language-rust" data-lang="rust"><span>#[tokio::main]
-</span><span>async </span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">main</span><span>() -&gt; </span><span style="font-style:italic;color:#66d9ef;">Result</span><span>&lt;(), </span><span style="font-style:italic;color:#66d9ef;">Box</span><span>&lt;dyn Error&gt;&gt; {
-</span><span>    console_subscriber::init(); </span><span style="color:#85817e;">// new!
+<pre style="background-color:#272822;">
+<code class="language-rust" data-lang="rust"><span style="color:#c9d1d9;">#[tokio::main]
+async </span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">main</span><span style="color:#c9d1d9;">() -&gt; </span><span style="font-style:italic;color:#66d9ef;">Result</span><span style="color:#c9d1d9;">&lt;(), </span><span style="font-style:italic;color:#66d9ef;">Box</span><span style="color:#c9d1d9;">&lt;dyn Error&gt;&gt; {
+    console_subscriber::init(); </span><span style="color:#85817e;">// new!
 </span></code></pre>
 <p>We also have to compile with <code>RUSTFLAGS=&quot;--cfg tokio_unstable&quot; cargo build</code>, to
 expose the tokio internals from which the data can be collected.</p>
-<pre style="background-color:#272822;color:#c9d1d9;"><code><span>$ RUSTFLAGS=&quot;--cfg tokio_unstable&quot; cargo run
+<pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">$ RUSTFLAGS=&quot;--cfg tokio_unstable&quot; cargo run
 </span></code></pre>
 <p><em>drumroll please</em></p>
-<pre style="background-color:#272822;color:#c9d1d9;"><code><span>error: failed to run custom build command for `prost-build v0.8.0`
-</span><span>
-</span><span>Caused by:
-</span><span>  process didn&#39;t exit successfully: `/home/kuba/dev/terminus/target/debug/build/prost-build-793fc1bd9d193261/build-script-build` (exit status: 101)
-</span><span>  --- stderr
-</span><span>  thread &#39;main&#39; panicked at &#39;Failed to find the protoc binary. The PROTOC environment variable is not set, there is no bundled protoc for this platform, and protoc is not in the PATH&#39;, /home/kuba/.cargo/registry/src/github.com-1ecc6299db9ec823/prost-build-0.8.0/build.rs:105:10
-</span><span>  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+<pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">error: failed to run custom build command for `prost-build v0.8.0`
+
+Caused by:
+  process didn&#39;t exit successfully: `/home/kuba/dev/terminus/target/debug/build/prost-build-793fc1bd9d193261/build-script-build` (exit status: 101)
+  --- stderr
+  thread &#39;main&#39; panicked at &#39;Failed to find the protoc binary. The PROTOC environment variable is not set, there is no bundled protoc for this platform, and protoc is not in the PATH&#39;, /home/kuba/.cargo/registry/src/github.com-1ecc6299db9ec823/prost-build-0.8.0/build.rs:105:10
+  note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
 </span></code></pre>
 <p>Okay, where can I find a <code>protoc</code>?</p>
-<pre style="background-color:#272822;color:#c9d1d9;"><code><span>$ protoc
-</span><span>The program &#39;protoc&#39; is not in your PATH. It is provided by several packages.
-</span><span>You can make it available in an ephemeral shell by typing one of the following:
-</span><span>  nix-shell -p grpc-tools
-</span><span>  nix-shell -p protobuf
-</span><span>  nix-shell -p protobuf2_5
-</span><span>  nix-shell -p protobuf3_1
-</span><span>  [about ten other versions elided]
+<pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">$ protoc
+The program &#39;protoc&#39; is not in your PATH. It is provided by several packages.
+You can make it available in an ephemeral shell by typing one of the following:
+  nix-shell -p grpc-tools
+  nix-shell -p protobuf
+  nix-shell -p protobuf2_5
+  nix-shell -p protobuf3_1
+  [about ten other versions elided]
 </span></code></pre>
 <p>Nice, it's packaged. One <code>nix-shell</code> later, we have a shell with <code>protoc</code>
 installed. All the tidyness of using some kind of ephemeral container with the
 convenience of installing it globally and hoping it won't break anything.
 Definitely worth all the other hassle, don't try to tell me otherwise.</p>
-<pre style="background-color:#272822;color:#c9d1d9;"><code><span>$ nix-shell -p protobuf
-</span><span>[nix-shell:~/dev/terminus]$ RUSTFLAGS=&quot;--cfg tokio_unstable&quot; cargo run
+<pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">$ nix-shell -p protobuf
+[nix-shell:~/dev/terminus]$ RUSTFLAGS=&quot;--cfg tokio_unstable&quot; cargo run
 </span></code></pre>
 <p>This should mean that our program now listens on port 6669, and will send off
 precious debug info when we connect. That port, on your local machine, is the
 default address for where the Tokio console will connect to:</p>
-<pre style="background-color:#272822;color:#c9d1d9;"><code><span>$ git clone https://github.com/tokio-rs/console tokio-console
-</span><span>[...]
-</span><span>$ cd tokio-console
-</span><span>$ nix-shell -p protobuf # we need to do this again since we&#39;re in a separate terminal
-</span><span>[nix-shell:~/dev/tokio-console]$ cargo run
+<pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">$ git clone https://github.com/tokio-rs/console tokio-console
+[...]
+$ cd tokio-console
+$ nix-shell -p protobuf # we need to do this again since we&#39;re in a separate terminal
+[nix-shell:~/dev/tokio-console]$ cargo run
 </span></code></pre>
 <p>And just like that, we get to peek under the hood. To get a steady readout of
 what the normal conditions look like, let's adjust our command so that the
 output rate is a bit more predictable:</p>
-<pre data-lang="rust" style="background-color:#272822;color:#c9d1d9;" class="language-rust "><code class="language-rust" data-lang="rust"><span>    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span> cmd </span><span style="color:#f92672;">= </span><span>Command::new(</span><span style="color:#e6db74;">&quot;/bin/sh&quot;</span><span>);
-</span><span>    cmd.</span><span style="color:#66d9ef;">arg</span><span>(</span><span style="color:#e6db74;">&quot;-c&quot;</span><span>)
-</span><span>        .</span><span style="color:#66d9ef;">arg</span><span>(</span><span style="color:#e6db74;">&quot;while true; do echo Hi there; sleep 0.5; done&quot;</span><span>);
-</span><span>                </span><span style="color:#85817e;">// no more pesky cargo checks taking only finite time
+<pre style="background-color:#272822;">
+<code class="language-rust" data-lang="rust"><span style="color:#c9d1d9;">    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span style="color:#c9d1d9;"> cmd </span><span style="color:#f92672;">= </span><span style="color:#c9d1d9;">Command::new(</span><span style="color:#e6db74;">&quot;/bin/sh&quot;</span><span style="color:#c9d1d9;">);
+    cmd.</span><span style="color:#66d9ef;">arg</span><span style="color:#c9d1d9;">(</span><span style="color:#e6db74;">&quot;-c&quot;</span><span style="color:#c9d1d9;">)
+        .</span><span style="color:#66d9ef;">arg</span><span style="color:#c9d1d9;">(</span><span style="color:#e6db74;">&quot;while true; do echo Hi there; sleep 0.5; done&quot;</span><span style="color:#c9d1d9;">);
+                </span><span style="color:#85817e;">// no more pesky cargo checks taking only finite time
 </span></code></pre>
 <p>The console looks like this now:</p>
-<p><img src="console.png" alt="Screenshot of the tokio console, described below." /></p>
+<p><img src="https://compilercrim.es/amos-nerdsniped-me/console.png" alt="Screenshot of the tokio console, described below." /></p>
 <p>Apart from some tasks internal to the console itself, we see many stopped
 instances of <code>tokio::task::blocking</code>. &quot;stopped&quot; meaning these are only visible
 because, by default, tasks are kept on the screen for two seconds after they've
@@ -309,49 +327,51 @@ like a new task is spawned each time we call <code>read</code>...</p>
 <p>And if we trigger the hang bug, we indeed see one such blocking task, and it
 stays running. As the controls line at the top of the screen tells us, we can
 use the arrow keys and Enter to view some more details about it:</p>
-<p><img src="console2.png" alt="" /></p>
+<p><img src="https://compilercrim.es/amos-nerdsniped-me/console2.png" alt="" /></p>
 <p>We can see that the task has been busy for about 40 seconds already, and that
 the entrypoint of this task was</p>
-<pre data-lang="rust" style="background-color:#272822;color:#c9d1d9;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#f92672;">&lt;</span><span>tokio::fs::file::File </span><span style="color:#f92672;">as </span><span>tokio::io::async_read::AsyncRead</span><span style="color:#f92672;">&gt;</span><span>::poll_read::{{closure}}
+<pre style="background-color:#272822;">
+<code class="language-rust" data-lang="rust"><span style="color:#f92672;">&lt;</span><span style="color:#c9d1d9;">tokio::fs::file::File </span><span style="color:#f92672;">as </span><span style="color:#c9d1d9;">tokio::io::async_read::AsyncRead</span><span style="color:#f92672;">&gt;</span><span style="color:#c9d1d9;">::poll_read::{{closure}}
 </span></code></pre>
 <p>Thanks to the <code>[src]</code> links in the documentation, we can easily find <a href="https://docs.rs/tokio/1.12.0/src/tokio/fs/file.rs.html#515-521">the
 code</a>.
 And it's not pretty.</p>
-<pre data-lang="rust" style="background-color:#272822;color:#c9d1d9;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#85817e;">// in src/tokio/fs/file.rs
-</span><span>
-</span><span style="font-style:italic;color:#66d9ef;">impl </span><span>AsyncRead </span><span style="color:#f92672;">for </span><span>File {
-</span><span>    </span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">poll_read</span><span>(
-</span><span>        </span><span style="font-style:italic;color:#fd971f;">self</span><span>: Pin&lt;</span><span style="color:#f92672;">&amp;mut </span><span style="font-style:italic;color:#66d9ef;">Self</span><span>&gt;,
-</span><span>        </span><span style="font-style:italic;color:#fd971f;">cx</span><span>: </span><span style="color:#f92672;">&amp;mut </span><span>Context&lt;&#39;</span><span style="color:#f92672;">_</span><span>&gt;,
-</span><span>        </span><span style="font-style:italic;color:#fd971f;">dst</span><span>: </span><span style="color:#f92672;">&amp;mut </span><span>ReadBuf&lt;&#39;</span><span style="color:#f92672;">_</span><span>&gt;,
-</span><span>    ) -&gt; Poll&lt;io::</span><span style="font-style:italic;color:#66d9ef;">Result</span><span>&lt;()&gt;&gt; {
-</span><span>        </span><span style="font-style:italic;color:#66d9ef;">let</span><span> me </span><span style="color:#f92672;">= </span><span>self.</span><span style="color:#66d9ef;">get_mut</span><span>();
-</span><span>        </span><span style="font-style:italic;color:#66d9ef;">let</span><span> inner </span><span style="color:#f92672;">=</span><span> me.inner.</span><span style="color:#66d9ef;">get_mut</span><span>();
-</span><span>
-</span><span>        </span><span style="color:#f92672;">loop </span><span>{
-</span><span>            </span><span style="color:#f92672;">match</span><span> inner.state {
-</span><span>                Idle(</span><span style="color:#f92672;">ref mut</span><span> buf_cell) </span><span style="color:#f92672;">=&gt; </span><span>{
-</span><span>                    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span> buf </span><span style="color:#f92672;">=</span><span> buf_cell.</span><span style="color:#66d9ef;">take</span><span>().</span><span style="color:#66d9ef;">unwrap</span><span>();
-</span><span>
-</span><span>                    </span><span style="color:#f92672;">if !</span><span>buf.</span><span style="color:#66d9ef;">is_empty</span><span>() {
-</span><span>                        buf.</span><span style="color:#66d9ef;">copy_to</span><span>(dst);
-</span><span>                        </span><span style="color:#f92672;">*</span><span>buf_cell </span><span style="color:#f92672;">= </span><span style="font-style:italic;color:#66d9ef;">Some</span><span>(buf);
-</span><span>                        </span><span style="color:#f92672;">return</span><span> Ready(</span><span style="font-style:italic;color:#66d9ef;">Ok</span><span>(()));
-</span><span>                    }
-</span><span>
-</span><span>                    buf.</span><span style="color:#66d9ef;">ensure_capacity_for</span><span>(dst);
-</span><span>                    </span><span style="font-style:italic;color:#66d9ef;">let</span><span> std </span><span style="color:#f92672;">=</span><span> me.std.</span><span style="color:#66d9ef;">clone</span><span>();
-</span><span>
-</span><span>                    inner.state </span><span style="color:#f92672;">=</span><span> Busy(</span><span style="color:#66d9ef;">spawn_blocking</span><span>(</span><span style="color:#f92672;">move || </span><span>{    </span><span style="color:#85817e;">// !
-</span><span>                        </span><span style="font-style:italic;color:#66d9ef;">let</span><span> res </span><span style="color:#f92672;">=</span><span> buf.</span><span style="color:#66d9ef;">read_from</span><span>(</span><span style="color:#f92672;">&amp;mut &amp;*</span><span>std);
-</span><span>                        (Operation::Read(res), buf)
-</span><span>                    }));
-</span><span>                }
-</span><span>                Busy(</span><span style="color:#f92672;">ref mut</span><span> rx) </span><span style="color:#f92672;">=&gt; </span><span style="color:#85817e;">/* ... */
-</span><span>            }
-</span><span>        }
-</span><span>    }
-</span><span>}
+<pre style="background-color:#272822;">
+<code class="language-rust" data-lang="rust"><span style="color:#85817e;">// in src/tokio/fs/file.rs
+
+</span><span style="font-style:italic;color:#66d9ef;">impl </span><span style="color:#c9d1d9;">AsyncRead </span><span style="color:#f92672;">for </span><span style="color:#c9d1d9;">File {
+    </span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">poll_read</span><span style="color:#c9d1d9;">(
+        </span><span style="font-style:italic;color:#fd971f;">self</span><span style="color:#c9d1d9;">: Pin&lt;</span><span style="color:#f92672;">&amp;mut </span><span style="font-style:italic;color:#66d9ef;">Self</span><span style="color:#c9d1d9;">&gt;,
+        </span><span style="font-style:italic;color:#fd971f;">cx</span><span style="color:#c9d1d9;">: </span><span style="color:#f92672;">&amp;mut </span><span style="color:#c9d1d9;">Context&lt;&#39;</span><span style="color:#f92672;">_</span><span style="color:#c9d1d9;">&gt;,
+        </span><span style="font-style:italic;color:#fd971f;">dst</span><span style="color:#c9d1d9;">: </span><span style="color:#f92672;">&amp;mut </span><span style="color:#c9d1d9;">ReadBuf&lt;&#39;</span><span style="color:#f92672;">_</span><span style="color:#c9d1d9;">&gt;,
+    ) -&gt; Poll&lt;io::</span><span style="font-style:italic;color:#66d9ef;">Result</span><span style="color:#c9d1d9;">&lt;()&gt;&gt; {
+        </span><span style="font-style:italic;color:#66d9ef;">let</span><span style="color:#c9d1d9;"> me </span><span style="color:#f92672;">= </span><span style="color:#c9d1d9;">self.</span><span style="color:#66d9ef;">get_mut</span><span style="color:#c9d1d9;">();
+        </span><span style="font-style:italic;color:#66d9ef;">let</span><span style="color:#c9d1d9;"> inner </span><span style="color:#f92672;">=</span><span style="color:#c9d1d9;"> me.inner.</span><span style="color:#66d9ef;">get_mut</span><span style="color:#c9d1d9;">();
+
+        </span><span style="color:#f92672;">loop </span><span style="color:#c9d1d9;">{
+            </span><span style="color:#f92672;">match</span><span style="color:#c9d1d9;"> inner.state {
+                Idle(</span><span style="color:#f92672;">ref mut</span><span style="color:#c9d1d9;"> buf_cell) </span><span style="color:#f92672;">=&gt; </span><span style="color:#c9d1d9;">{
+                    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span style="color:#c9d1d9;"> buf </span><span style="color:#f92672;">=</span><span style="color:#c9d1d9;"> buf_cell.</span><span style="color:#66d9ef;">take</span><span style="color:#c9d1d9;">().</span><span style="color:#66d9ef;">unwrap</span><span style="color:#c9d1d9;">();
+
+                    </span><span style="color:#f92672;">if !</span><span style="color:#c9d1d9;">buf.</span><span style="color:#66d9ef;">is_empty</span><span style="color:#c9d1d9;">() {
+                        buf.</span><span style="color:#66d9ef;">copy_to</span><span style="color:#c9d1d9;">(dst);
+                        </span><span style="color:#f92672;">*</span><span style="color:#c9d1d9;">buf_cell </span><span style="color:#f92672;">= </span><span style="font-style:italic;color:#66d9ef;">Some</span><span style="color:#c9d1d9;">(buf);
+                        </span><span style="color:#f92672;">return</span><span style="color:#c9d1d9;"> Ready(</span><span style="font-style:italic;color:#66d9ef;">Ok</span><span style="color:#c9d1d9;">(()));
+                    }
+
+                    buf.</span><span style="color:#66d9ef;">ensure_capacity_for</span><span style="color:#c9d1d9;">(dst);
+                    </span><span style="font-style:italic;color:#66d9ef;">let</span><span style="color:#c9d1d9;"> std </span><span style="color:#f92672;">=</span><span style="color:#c9d1d9;"> me.std.</span><span style="color:#66d9ef;">clone</span><span style="color:#c9d1d9;">();
+
+                    inner.state </span><span style="color:#f92672;">=</span><span style="color:#c9d1d9;"> Busy(</span><span style="color:#66d9ef;">spawn_blocking</span><span style="color:#c9d1d9;">(</span><span style="color:#f92672;">move || </span><span style="color:#c9d1d9;">{    </span><span style="color:#85817e;">// !
+                        </span><span style="font-style:italic;color:#66d9ef;">let</span><span style="color:#c9d1d9;"> res </span><span style="color:#f92672;">=</span><span style="color:#c9d1d9;"> buf.</span><span style="color:#66d9ef;">read_from</span><span style="color:#c9d1d9;">(</span><span style="color:#f92672;">&amp;mut &amp;*</span><span style="color:#c9d1d9;">std);
+                        (Operation::Read(res), buf)
+                    }));
+                }
+                Busy(</span><span style="color:#f92672;">ref mut</span><span style="color:#c9d1d9;"> rx) </span><span style="color:#f92672;">=&gt; </span><span style="color:#85817e;">/* ... */
+            </span><span style="color:#c9d1d9;">}
+        }
+    }
+}
 </span></code></pre>
 <p>As you can see, when <code>AsyncRead::poll_read</code> gets called, it will use
 <code>spawn_blocking</code> to spawn a task on the thread pool, and call the normal,
@@ -371,101 +391,104 @@ it and forgot. But surely, somebody else with more time on their hands had also
 hit this by now.</p>
 <p>And, sure enough, the second result for &quot;tokio non-blocking file io&quot; is the
 <a href="https://crates.io/crates/tokio-fd"><code>tokio-fd</code> crate</a>.</p>
-<pre style="background-color:#272822;color:#c9d1d9;"><code><span>$ cargo add tokio-fd
-</span><span>    Updating &#39;https://github.com/rust-lang/crates.io-index&#39; index
-</span><span>      Adding tokio-fd v0.3.0 to dependencies
+<pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">$ cargo add tokio-fd
+    Updating &#39;https://github.com/rust-lang/crates.io-index&#39; index
+      Adding tokio-fd v0.3.0 to dependencies
 </span></code></pre>
 <p><em>quick prayer to Ferris</em></p>
-<pre data-lang="rust" style="background-color:#272822;color:#c9d1d9;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#f92672;">use </span><span>std::{error::Error, convert::TryFrom};
-</span><span style="color:#f92672;">use </span><span>tokio::{io::AsyncReadExt, process::Command};
-</span><span style="color:#f92672;">use </span><span>tokio_fd::AsyncFd;
-</span><span>
-</span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">openpty</span><span>() -&gt; (</span><span style="font-style:italic;color:#66d9ef;">i32</span><span>, </span><span style="font-style:italic;color:#66d9ef;">i32</span><span>) {
-</span><span>    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span> primary_fd: </span><span style="font-style:italic;color:#66d9ef;">i32 </span><span style="color:#f92672;">= -</span><span style="color:#ae81ff;">1</span><span>;
-</span><span>    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span> secondary_fd: </span><span style="font-style:italic;color:#66d9ef;">i32 </span><span style="color:#f92672;">= -</span><span style="color:#ae81ff;">1</span><span>;
-</span><span>    </span><span style="color:#f92672;">unsafe </span><span>{
-</span><span>        </span><span style="font-style:italic;color:#66d9ef;">let</span><span> ret </span><span style="color:#f92672;">= </span><span>libc::openpty(
-</span><span>            </span><span style="color:#f92672;">&amp;mut</span><span> primary_fd,
-</span><span>            </span><span style="color:#f92672;">&amp;mut</span><span> secondary_fd,
-</span><span>            std::ptr::null_mut(),
-</span><span>            std::ptr::null(),
-</span><span>            std::ptr::null(),
-</span><span>        );
-</span><span>        </span><span style="color:#f92672;">if</span><span> ret </span><span style="color:#f92672;">!= </span><span style="color:#ae81ff;">0 </span><span>{
-</span><span>            panic!(</span><span style="color:#e6db74;">&quot;Failed to openpty!&quot;</span><span>);
-</span><span>        }
-</span><span>    };
-</span><span>    (primary_fd, secondary_fd)
-</span><span>}
-</span><span>
-</span><span>#[tokio::main]
-</span><span>async </span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">main</span><span>() -&gt; </span><span style="font-style:italic;color:#66d9ef;">Result</span><span>&lt;(), </span><span style="font-style:italic;color:#66d9ef;">Box</span><span>&lt;dyn Error&gt;&gt; {
-</span><span>    console_subscriber::init();
-</span><span>
-</span><span>    </span><span style="font-style:italic;color:#66d9ef;">let </span><span>(primary_fd, secondary_fd) </span><span style="color:#f92672;">= </span><span style="color:#66d9ef;">openpty</span><span>();
-</span><span>    dbg!(primary_fd, secondary_fd);
-</span><span>
-</span><span>    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span> cmd </span><span style="color:#f92672;">= </span><span>Command::new(</span><span style="color:#e6db74;">&quot;/bin/sh&quot;</span><span>);
-</span><span>    cmd.</span><span style="color:#66d9ef;">arg</span><span>(</span><span style="color:#e6db74;">&quot;-c&quot;</span><span>)
-</span><span>        .</span><span style="color:#66d9ef;">arg</span><span>(</span><span style="color:#e6db74;">&quot;for i in $(seq 1 3); do cargo check; sleep 0.2; done&quot;</span><span>);
-</span><span>
-</span><span>    </span><span style="color:#f92672;">unsafe </span><span>{
-</span><span>        cmd.</span><span style="color:#66d9ef;">pre_exec</span><span>(</span><span style="color:#f92672;">move || </span><span>{
-</span><span>            </span><span style="color:#f92672;">if </span><span>libc::login_tty(secondary_fd) </span><span style="color:#f92672;">!= </span><span style="color:#ae81ff;">0 </span><span>{
-</span><span>                panic!(</span><span style="color:#e6db74;">&quot;couldn&#39;t set the controlling terminal or something&quot;</span><span>);
-</span><span>            }
-</span><span>            </span><span style="font-style:italic;color:#66d9ef;">Ok</span><span>(())
-</span><span>        })
-</span><span>    };
-</span><span>    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span> child </span><span style="color:#f92672;">=</span><span> cmd.</span><span style="color:#66d9ef;">spawn</span><span>()</span><span style="color:#f92672;">?</span><span>;
-</span><span>
-</span><span>    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span> out </span><span style="color:#f92672;">= </span><span>vec![];
-</span><span>    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span> buf </span><span style="color:#f92672;">= </span><span>vec![</span><span style="color:#ae81ff;">0</span><span style="font-style:italic;color:#66d9ef;">u8</span><span>; </span><span style="color:#ae81ff;">1024</span><span>];
-</span><span>    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span> primary </span><span style="color:#f92672;">= </span><span>AsyncFd::try_from(primary_fd)</span><span style="color:#f92672;">?</span><span>; </span><span style="color:#85817e;">// new
-</span><span>
-</span><span>    &#39;weee: </span><span style="color:#f92672;">loop </span><span>{
-</span><span>        tokio::select</span><span style="color:#f92672;">! </span><span>{
-</span><span>            n </span><span style="color:#f92672;">=</span><span> primary.</span><span style="color:#66d9ef;">read</span><span>(</span><span style="color:#f92672;">&amp;mut</span><span> buf) </span><span style="color:#f92672;">=&gt; </span><span>{
-</span><span>                </span><span style="font-style:italic;color:#66d9ef;">let</span><span> n </span><span style="color:#f92672;">=</span><span> n</span><span style="color:#f92672;">?</span><span>;
-</span><span>                println!(</span><span style="color:#e6db74;">&quot;Read </span><span style="color:#ae81ff;">{}</span><span style="color:#e6db74;"> bytes&quot;</span><span>, n);
-</span><span>                out.</span><span style="color:#66d9ef;">extend_from_slice</span><span>(</span><span style="color:#f92672;">&amp;</span><span>buf[</span><span style="color:#f92672;">..</span><span>n]);
-</span><span>            },
-</span><span>
-</span><span>            status </span><span style="color:#f92672;">=</span><span> child.</span><span style="color:#66d9ef;">wait</span><span>() </span><span style="color:#f92672;">=&gt; </span><span>{
-</span><span>                status</span><span style="color:#f92672;">?</span><span>;
-</span><span>                println!(</span><span style="color:#e6db74;">&quot;Child exited!&quot;</span><span>);
-</span><span>                </span><span style="color:#f92672;">break &#39;weee
-</span><span>            },
-</span><span>        }
-</span><span>    }
-</span><span>    println!(</span><span style="color:#e6db74;">&quot;</span><span style="color:#ae81ff;">{}</span><span style="color:#e6db74;">&quot;</span><span>, </span><span style="font-style:italic;color:#66d9ef;">String</span><span>::from_utf8(out)</span><span style="color:#f92672;">?</span><span>);
-</span><span>
-</span><span>    println!(</span><span style="color:#e6db74;">&quot;Ok we&#39;re gonna return now&quot;</span><span>);
-</span><span>    </span><span style="font-style:italic;color:#66d9ef;">Ok</span><span>(())
-</span><span>}
+<pre style="background-color:#272822;">
+<code class="language-rust" data-lang="rust"><span style="color:#f92672;">use </span><span style="color:#c9d1d9;">std::{error::Error, convert::TryFrom};
+</span><span style="color:#f92672;">use </span><span style="color:#c9d1d9;">tokio::{io::AsyncReadExt, process::Command};
+</span><span style="color:#f92672;">use </span><span style="color:#c9d1d9;">tokio_fd::AsyncFd;
+
+</span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">openpty</span><span style="color:#c9d1d9;">() -&gt; (</span><span style="font-style:italic;color:#66d9ef;">i32</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#66d9ef;">i32</span><span style="color:#c9d1d9;">) {
+    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span style="color:#c9d1d9;"> primary_fd: </span><span style="font-style:italic;color:#66d9ef;">i32 </span><span style="color:#f92672;">= -</span><span style="color:#ae81ff;">1</span><span style="color:#c9d1d9;">;
+    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span style="color:#c9d1d9;"> secondary_fd: </span><span style="font-style:italic;color:#66d9ef;">i32 </span><span style="color:#f92672;">= -</span><span style="color:#ae81ff;">1</span><span style="color:#c9d1d9;">;
+    </span><span style="color:#f92672;">unsafe </span><span style="color:#c9d1d9;">{
+        </span><span style="font-style:italic;color:#66d9ef;">let</span><span style="color:#c9d1d9;"> ret </span><span style="color:#f92672;">= </span><span style="color:#c9d1d9;">libc::openpty(
+            </span><span style="color:#f92672;">&amp;mut</span><span style="color:#c9d1d9;"> primary_fd,
+            </span><span style="color:#f92672;">&amp;mut</span><span style="color:#c9d1d9;"> secondary_fd,
+            std::ptr::null_mut(),
+            std::ptr::null(),
+            std::ptr::null(),
+        );
+        </span><span style="color:#f92672;">if</span><span style="color:#c9d1d9;"> ret </span><span style="color:#f92672;">!= </span><span style="color:#ae81ff;">0 </span><span style="color:#c9d1d9;">{
+            panic!(</span><span style="color:#e6db74;">&quot;Failed to openpty!&quot;</span><span style="color:#c9d1d9;">);
+        }
+    };
+    (primary_fd, secondary_fd)
+}
+
+#[tokio::main]
+async </span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">main</span><span style="color:#c9d1d9;">() -&gt; </span><span style="font-style:italic;color:#66d9ef;">Result</span><span style="color:#c9d1d9;">&lt;(), </span><span style="font-style:italic;color:#66d9ef;">Box</span><span style="color:#c9d1d9;">&lt;dyn Error&gt;&gt; {
+    console_subscriber::init();
+
+    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#c9d1d9;">(primary_fd, secondary_fd) </span><span style="color:#f92672;">= </span><span style="color:#66d9ef;">openpty</span><span style="color:#c9d1d9;">();
+    dbg!(primary_fd, secondary_fd);
+
+    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span style="color:#c9d1d9;"> cmd </span><span style="color:#f92672;">= </span><span style="color:#c9d1d9;">Command::new(</span><span style="color:#e6db74;">&quot;/bin/sh&quot;</span><span style="color:#c9d1d9;">);
+    cmd.</span><span style="color:#66d9ef;">arg</span><span style="color:#c9d1d9;">(</span><span style="color:#e6db74;">&quot;-c&quot;</span><span style="color:#c9d1d9;">)
+        .</span><span style="color:#66d9ef;">arg</span><span style="color:#c9d1d9;">(</span><span style="color:#e6db74;">&quot;for i in $(seq 1 3); do cargo check; sleep 0.2; done&quot;</span><span style="color:#c9d1d9;">);
+
+    </span><span style="color:#f92672;">unsafe </span><span style="color:#c9d1d9;">{
+        cmd.</span><span style="color:#66d9ef;">pre_exec</span><span style="color:#c9d1d9;">(</span><span style="color:#f92672;">move || </span><span style="color:#c9d1d9;">{
+            </span><span style="color:#f92672;">if </span><span style="color:#c9d1d9;">libc::login_tty(secondary_fd) </span><span style="color:#f92672;">!= </span><span style="color:#ae81ff;">0 </span><span style="color:#c9d1d9;">{
+                panic!(</span><span style="color:#e6db74;">&quot;couldn&#39;t set the controlling terminal or something&quot;</span><span style="color:#c9d1d9;">);
+            }
+            </span><span style="font-style:italic;color:#66d9ef;">Ok</span><span style="color:#c9d1d9;">(())
+        })
+    };
+    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span style="color:#c9d1d9;"> child </span><span style="color:#f92672;">=</span><span style="color:#c9d1d9;"> cmd.</span><span style="color:#66d9ef;">spawn</span><span style="color:#c9d1d9;">()</span><span style="color:#f92672;">?</span><span style="color:#c9d1d9;">;
+
+    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span style="color:#c9d1d9;"> out </span><span style="color:#f92672;">= </span><span style="color:#c9d1d9;">vec![];
+    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span style="color:#c9d1d9;"> buf </span><span style="color:#f92672;">= </span><span style="color:#c9d1d9;">vec![</span><span style="color:#ae81ff;">0</span><span style="font-style:italic;color:#66d9ef;">u8</span><span style="color:#c9d1d9;">; </span><span style="color:#ae81ff;">1024</span><span style="color:#c9d1d9;">];
+    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span style="color:#c9d1d9;"> primary </span><span style="color:#f92672;">= </span><span style="color:#c9d1d9;">AsyncFd::try_from(primary_fd)</span><span style="color:#f92672;">?</span><span style="color:#c9d1d9;">; </span><span style="color:#85817e;">// new
+
+    </span><span style="color:#c9d1d9;">&#39;weee: </span><span style="color:#f92672;">loop </span><span style="color:#c9d1d9;">{
+        tokio::select</span><span style="color:#f92672;">! </span><span style="color:#c9d1d9;">{
+            n </span><span style="color:#f92672;">=</span><span style="color:#c9d1d9;"> primary.</span><span style="color:#66d9ef;">read</span><span style="color:#c9d1d9;">(</span><span style="color:#f92672;">&amp;mut</span><span style="color:#c9d1d9;"> buf) </span><span style="color:#f92672;">=&gt; </span><span style="color:#c9d1d9;">{
+                </span><span style="font-style:italic;color:#66d9ef;">let</span><span style="color:#c9d1d9;"> n </span><span style="color:#f92672;">=</span><span style="color:#c9d1d9;"> n</span><span style="color:#f92672;">?</span><span style="color:#c9d1d9;">;
+                println!(</span><span style="color:#e6db74;">&quot;Read </span><span style="color:#ae81ff;">{}</span><span style="color:#e6db74;"> bytes&quot;</span><span style="color:#c9d1d9;">, n);
+                out.</span><span style="color:#66d9ef;">extend_from_slice</span><span style="color:#c9d1d9;">(</span><span style="color:#f92672;">&amp;</span><span style="color:#c9d1d9;">buf[</span><span style="color:#f92672;">..</span><span style="color:#c9d1d9;">n]);
+            },
+
+            status </span><span style="color:#f92672;">=</span><span style="color:#c9d1d9;"> child.</span><span style="color:#66d9ef;">wait</span><span style="color:#c9d1d9;">() </span><span style="color:#f92672;">=&gt; </span><span style="color:#c9d1d9;">{
+                status</span><span style="color:#f92672;">?</span><span style="color:#c9d1d9;">;
+                println!(</span><span style="color:#e6db74;">&quot;Child exited!&quot;</span><span style="color:#c9d1d9;">);
+                </span><span style="color:#f92672;">break &#39;weee
+            </span><span style="color:#c9d1d9;">},
+        }
+    }
+    println!(</span><span style="color:#e6db74;">&quot;</span><span style="color:#ae81ff;">{}</span><span style="color:#e6db74;">&quot;</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#66d9ef;">String</span><span style="color:#c9d1d9;">::from_utf8(out)</span><span style="color:#f92672;">?</span><span style="color:#c9d1d9;">);
+
+    println!(</span><span style="color:#e6db74;">&quot;Ok we&#39;re gonna return now&quot;</span><span style="color:#c9d1d9;">);
+    </span><span style="font-style:italic;color:#66d9ef;">Ok</span><span style="color:#c9d1d9;">(())
+}
 </span></code></pre>
 <p><em>sweating profusely</em></p>
-<pre style="background-color:#272822;color:#c9d1d9;"><code><span>$ RUSTFLAGS=&quot;--cfg tokio_unstable&quot; cargo run
-</span><span>   Compiling terminus v0.1.0 (/home/kuba/dev/terminus)
-</span><span>    Finished dev [unoptimized + debuginfo] target(s) in 3.76s
-</span><span>     Running `target/debug/terminus`
-</span><span>[src/main.rs:28] primary_fd = 9
-</span><span>[src/main.rs:28] secondary_fd = 10
-</span><span>Read 51 bytes
-</span><span>Read 77 bytes
-</span><span>Read 84 bytes
-</span><span>Read 84 bytes
-</span><span>Read 84 bytes
-</span><span>Child exited!
-</span><span>    Checking tokio-fd v0.3.0
-</span><span>    Checking terminus v0.1.0 (/home/kuba/dev/terminus)
-</span><span>    Finished dev [unoptimized + debuginfo] target(s) in 0.67s
-</span><span>    Finished dev [unoptimized + debuginfo] target(s) in 0.09s
-</span><span>    Finished dev [unoptimized + debuginfo] target(s) in 0.09s
-</span><span>
-</span><span>Ok we&#39;re gonna return now
-</span><span>
-</span><span>$
+<pre style="background-color:#272822;">
+<code><span style="color:#c9d1d9;">$ RUSTFLAGS=&quot;--cfg tokio_unstable&quot; cargo run
+   Compiling terminus v0.1.0 (/home/kuba/dev/terminus)
+    Finished dev [unoptimized + debuginfo] target(s) in 3.76s
+     Running `target/debug/terminus`
+[src/main.rs:28] primary_fd = 9
+[src/main.rs:28] secondary_fd = 10
+Read 51 bytes
+Read 77 bytes
+Read 84 bytes
+Read 84 bytes
+Read 84 bytes
+Child exited!
+    Checking tokio-fd v0.3.0
+    Checking terminus v0.1.0 (/home/kuba/dev/terminus)
+    Finished dev [unoptimized + debuginfo] target(s) in 0.67s
+    Finished dev [unoptimized + debuginfo] target(s) in 0.09s
+    Finished dev [unoptimized + debuginfo] target(s) in 0.09s
+
+Ok we&#39;re gonna return now
+
+$
 </span></code></pre>
 <p>Hey, look! It works! Without any manual <code>^C</code>! And it's not even ugly! And we even
 got rid of that unsafe block around <code>File::from_raw_fd</code>.</p>
