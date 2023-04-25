@@ -14,8 +14,7 @@ feed_filename = "rss.xml"
 [markdown]
 highlight_code = true
 highlight_theme = "monokaiak"
-extra_syntaxes = ["syntaxes"]
-extra_highlight_themes = ["themes"]
+extra_syntaxes_and_themes = ["syntaxes"]
 render_emoji = true
 render_with_section_tags = "flat"
 

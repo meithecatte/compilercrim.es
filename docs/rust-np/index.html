@@ -54,16 +54,15 @@ July  7, 2021
 noticed, and would like to share with you today, is that the exhaustiveness
 checking performed by the Rust compiler on <code>match</code> patterns is a superset of the
 <a href="https://en.wikipedia.org/wiki/Boolean_satisfiability_problem">SAT</a> problem. <span id="continue-reading"></span></p>
-<h2 id="exhaustiveness-checking">Exhaustiveness checking</h2>
+<section><h2 id="exhaustiveness-checking">Exhaustiveness checking</h2>
 <p>Consider the following code (<a href="https://play.rust-lang.org/?version=stable&amp;mode=debug&amp;edition=2018&amp;gist=cab7e0bcf26b0180f15324d81009870d">playground</a>):</p>
-<pre style="background-color:#272822;">
-<code class="language-rust" data-lang="rust"><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">update_thing</span><span style="color:#c9d1d9;">(</span><span style="font-style:italic;color:#fd971f;">old_thing</span><span style="color:#c9d1d9;">: </span><span style="font-style:italic;color:#66d9ef;">Option</span><span style="color:#c9d1d9;">&lt;Thing&gt;, </span><span style="font-style:italic;color:#fd971f;">new_thing</span><span style="color:#c9d1d9;">: </span><span style="font-style:italic;color:#66d9ef;">Option</span><span style="color:#c9d1d9;">&lt;Thing&gt;) {
-    </span><span style="color:#f92672;">match </span><span style="color:#c9d1d9;">(old_thing, new_thing) {
-        (</span><span style="font-style:italic;color:#66d9ef;">None</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#66d9ef;">Some</span><span style="color:#c9d1d9;">(new)) </span><span style="color:#f92672;">=&gt; </span><span style="color:#66d9ef;">create_thing</span><span style="color:#c9d1d9;">(new),
-        (</span><span style="font-style:italic;color:#66d9ef;">Some</span><span style="color:#c9d1d9;">(old), </span><span style="font-style:italic;color:#66d9ef;">None</span><span style="color:#c9d1d9;">) </span><span style="color:#f92672;">=&gt; </span><span style="color:#66d9ef;">delete_thing</span><span style="color:#c9d1d9;">(old),
-        (</span><span style="font-style:italic;color:#66d9ef;">None</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#66d9ef;">None</span><span style="color:#c9d1d9;">) </span><span style="color:#f92672;">=&gt; </span><span style="color:#c9d1d9;">{ </span><span style="color:#85817e;">/* nothing to be done */ </span><span style="color:#c9d1d9;">},
-    }
-}
+<pre data-lang="rust" style="background-color:#272822;color:#c9d1d9;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">update_thing</span><span>(</span><span style="font-style:italic;color:#fd971f;">old_thing</span><span>: </span><span style="font-style:italic;color:#66d9ef;">Option</span><span>&lt;Thing&gt;, </span><span style="font-style:italic;color:#fd971f;">new_thing</span><span>: </span><span style="font-style:italic;color:#66d9ef;">Option</span><span>&lt;Thing&gt;) {
+</span><span>    </span><span style="color:#f92672;">match </span><span>(old_thing, new_thing) {
+</span><span>        (</span><span style="font-style:italic;color:#66d9ef;">None</span><span>, </span><span style="font-style:italic;color:#66d9ef;">Some</span><span>(new)) </span><span style="color:#f92672;">=&gt; </span><span style="color:#66d9ef;">create_thing</span><span>(new),
+</span><span>        (</span><span style="font-style:italic;color:#66d9ef;">Some</span><span>(old), </span><span style="font-style:italic;color:#66d9ef;">None</span><span>) </span><span style="color:#f92672;">=&gt; </span><span style="color:#66d9ef;">delete_thing</span><span>(old),
+</span><span>        (</span><span style="font-style:italic;color:#66d9ef;">None</span><span>, </span><span style="font-style:italic;color:#66d9ef;">None</span><span>) </span><span style="color:#f92672;">=&gt; </span><span>{ </span><span style="color:#85817e;">/* nothing to be done */ </span><span>},
+</span><span>    }
+</span><span>}
 </span></code></pre>
 <p>As most Rustaceans already know, the compiler will reject this with the
 following error:</p>
@@ -81,90 +80,83 @@ following error:</p>
 computed. What's the most efficient algorithm you can write to do this? As it
 turns out, you can't do well in the worst case — and we'll prove this by a
 reduction from SAT.</p>
-<h2 id="boolean-satisfiability">Boolean satisfiability</h2>
+</section><section><h2 id="boolean-satisfiability">Boolean satisfiability</h2>
 <p>Boolean satisfiability, or SAT for short, is the problem of determining, given
 a boolean formula, whether there's a way of assigning 1 and 0 to the
 variables, such that the formula evaluates to 1. For example, the formula</p>
-<pre style="background-color:#272822;">
-<code class="language-c++" data-lang="c++"><span style="color:#c9d1d9;">A </span><span style="color:#f92672;">and </span><span style="color:#c9d1d9;">(A </span><span style="color:#f92672;">xor</span><span style="color:#c9d1d9;"> B)
+<pre data-lang="c++" style="background-color:#272822;color:#c9d1d9;" class="language-c++ "><code class="language-c++" data-lang="c++"><span>A </span><span style="color:#f92672;">and </span><span>(A </span><span style="color:#f92672;">xor</span><span> B)
 </span></code></pre>
 <p>is satisfiable, by setting <code>A = 1</code> and <code>B = 0</code>, but</p>
-<pre style="background-color:#272822;">
-<code class="language-c++" data-lang="c++"><span style="color:#c9d1d9;">A </span><span style="color:#f92672;">and</span><span style="color:#c9d1d9;"> B </span><span style="color:#f92672;">and </span><span style="color:#c9d1d9;">(A </span><span style="color:#f92672;">xor</span><span style="color:#c9d1d9;"> B)
+<pre data-lang="c++" style="background-color:#272822;color:#c9d1d9;" class="language-c++ "><code class="language-c++" data-lang="c++"><span>A </span><span style="color:#f92672;">and</span><span> B </span><span style="color:#f92672;">and </span><span>(A </span><span style="color:#f92672;">xor</span><span> B)
 </span></code></pre>
 <p>is not satisfiable.</p>
 <p>Most algorithms for solving this problem begin by transforming it into the
 <em>conjunctive normal form</em>, or simply: AND-of-ORs. That is, the formula must be
 of the form</p>
-<pre style="background-color:#272822;">
-<code><span style="color:#c9d1d9;">(_ or _ or ...) and (_ or _ or ...) and ...
+<pre style="background-color:#272822;color:#c9d1d9;"><code><span>(_ or _ or ...) and (_ or _ or ...) and ...
 </span></code></pre>
 <p>where the <code>_</code> are filled in with variables and their negations. This makes the
 structure of the formula much more uniform, and as such — way easier to work
 with.</p>
 <p>Our previous unsatisfiable example would look like this when transformed:</p>
-<pre style="background-color:#272822;">
-<code class="language-c++" data-lang="c++"><span style="color:#c9d1d9;">A </span><span style="color:#f92672;">and</span><span style="color:#c9d1d9;"> B </span><span style="color:#f92672;">and </span><span style="color:#c9d1d9;">(A </span><span style="color:#f92672;">or</span><span style="color:#c9d1d9;"> B) </span><span style="color:#f92672;">and </span><span style="color:#c9d1d9;">(</span><span style="color:#f92672;">!</span><span style="color:#c9d1d9;">A </span><span style="color:#f92672;">or !</span><span style="color:#c9d1d9;">B)
+<pre data-lang="c++" style="background-color:#272822;color:#c9d1d9;" class="language-c++ "><code class="language-c++" data-lang="c++"><span>A </span><span style="color:#f92672;">and</span><span> B </span><span style="color:#f92672;">and </span><span>(A </span><span style="color:#f92672;">or</span><span> B) </span><span style="color:#f92672;">and </span><span>(</span><span style="color:#f92672;">!</span><span>A </span><span style="color:#f92672;">or !</span><span>B)
 </span></code></pre>
 <p>This is usually written as a list of constraints, where we need to pick one
 option from each line without conflicts:</p>
-<pre style="background-color:#272822;">
-<code><span style="color:#c9d1d9;"> A
-    B
- A  B
-!A !B
+<pre style="background-color:#272822;color:#c9d1d9;"><code><span> A
+</span><span>    B
+</span><span> A  B
+</span><span>!A !B
 </span></code></pre>
 <p>While every formula can be transformed into this form by applying the rules of
 Boolean algebra, it's a bit harder to do so without an exponential blowup. We
 don't need to concern ourselves with the specifics, though.<sup class="footnote-reference"><a href="#clausal">1</a></sup> At this
 point, the representation should look similar to a set of Rust patterns.</p>
-<h2 id="connecting-the-two">Connecting the two</h2>
+</section><section><h2 id="connecting-the-two">Connecting the two</h2>
 <p>Thinking about the equivalence between exhaustiveness checking and
 satisfiability is a <em>bit</em> tricky, as there's a negation between them at
 every step of the reasoning — if a <code>match</code> is rejected, <code>rustc</code> will show us an
 example value that we haven't covered, and this example is the solution to our SAT
 problem. Thus, the values that match any given pattern are <em>rejected</em>. This
 means that we could encode our example from the previous section like so:</p>
-<pre style="background-color:#272822;">
-<code class="language-rust" data-lang="rust"><span style="color:#f92672;">match </span><span style="color:#c9d1d9;">todo!() {
-    (</span><span style="color:#ae81ff;">false</span><span style="color:#c9d1d9;">, </span><span style="color:#f92672;">_</span><span style="color:#c9d1d9;">)     </span><span style="color:#f92672;">=&gt; </span><span style="color:#c9d1d9;">{}  </span><span style="color:#85817e;">//  A
-    </span><span style="color:#c9d1d9;">(</span><span style="color:#f92672;">_</span><span style="color:#c9d1d9;">,     </span><span style="color:#ae81ff;">false</span><span style="color:#c9d1d9;">) </span><span style="color:#f92672;">=&gt; </span><span style="color:#c9d1d9;">{}  </span><span style="color:#85817e;">//     B
-    </span><span style="color:#c9d1d9;">(</span><span style="color:#ae81ff;">false</span><span style="color:#c9d1d9;">, </span><span style="color:#ae81ff;">false</span><span style="color:#c9d1d9;">) </span><span style="color:#f92672;">=&gt; </span><span style="color:#c9d1d9;">{}  </span><span style="color:#85817e;">//  A  B
-    </span><span style="color:#c9d1d9;">(</span><span style="color:#ae81ff;">true</span><span style="color:#c9d1d9;">,  </span><span style="color:#ae81ff;">true</span><span style="color:#c9d1d9;">)  </span><span style="color:#f92672;">=&gt; </span><span style="color:#c9d1d9;">{}  </span><span style="color:#85817e;">// !A !B
-</span><span style="color:#c9d1d9;">}
+<pre data-lang="rust" style="background-color:#272822;color:#c9d1d9;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#f92672;">match </span><span>todo!() {
+</span><span>    (</span><span style="color:#ae81ff;">false</span><span>, </span><span style="color:#f92672;">_</span><span>)     </span><span style="color:#f92672;">=&gt; </span><span>{}  </span><span style="color:#85817e;">//  A
+</span><span>    (</span><span style="color:#f92672;">_</span><span>,     </span><span style="color:#ae81ff;">false</span><span>) </span><span style="color:#f92672;">=&gt; </span><span>{}  </span><span style="color:#85817e;">//     B
+</span><span>    (</span><span style="color:#ae81ff;">false</span><span>, </span><span style="color:#ae81ff;">false</span><span>) </span><span style="color:#f92672;">=&gt; </span><span>{}  </span><span style="color:#85817e;">//  A  B
+</span><span>    (</span><span style="color:#ae81ff;">true</span><span>,  </span><span style="color:#ae81ff;">true</span><span>)  </span><span style="color:#f92672;">=&gt; </span><span>{}  </span><span style="color:#85817e;">// !A !B
+</span><span>}
 </span></code></pre>
 <p>Let's take a closer look at the last pattern, <code>(true, true)</code>. Because of it, any
 value not covered must have <code>false</code> in at least one of the variables. That's
 exactly what our <code>!A !B</code> clause says.</p>
-<h2 id="some-benchmarks">Some benchmarks</h2>
+</section><section><h2 id="some-benchmarks">Some benchmarks</h2>
 <p>Upon noticing this, I couldn't <em>not</em> check how rustc compares to other SAT
 solvers. The standard file format for SAT problems is <a href="https://logic.pdmi.ras.ru/%7Ebasolver/dimacs.html">DIMACS CNF</a>, and thanks
 to Jannis Harder's <a href="https://crates.io/crates/flussab-cnf"><code>flussab_cnf</code></a> library, processing it was a breeze.
 I'll spare you the plumbing, but the core of the converter looks like this:</p>
-<pre style="background-color:#272822;">
-<code class="language-rust" data-lang="rust"><span style="color:#85817e;">/// 0-based variable index, possibly negated — `false` in the `bool` field means negated
-</span><span style="color:#c9d1d9;">#[derive(Clone, Copy, PartialEq, Eq)]
-</span><span style="font-style:italic;color:#66d9ef;">struct </span><span style="color:#c9d1d9;">Literal(</span><span style="font-style:italic;color:#66d9ef;">usize</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#66d9ef;">bool</span><span style="color:#c9d1d9;">);
-
-</span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">print_clause</span><span style="color:#c9d1d9;">(</span><span style="color:#f92672;">mut </span><span style="font-style:italic;color:#fd971f;">clause</span><span style="color:#c9d1d9;">: </span><span style="font-style:italic;color:#66d9ef;">Vec</span><span style="color:#c9d1d9;">&lt;Literal&gt;, </span><span style="font-style:italic;color:#fd971f;">num_variables</span><span style="color:#c9d1d9;">: </span><span style="font-style:italic;color:#66d9ef;">usize</span><span style="color:#c9d1d9;">) {
-    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span style="color:#c9d1d9;"> pattern </span><span style="color:#f92672;">= </span><span style="color:#c9d1d9;">vec![</span><span style="font-style:italic;color:#66d9ef;">None</span><span style="color:#c9d1d9;">; num_variables];
-    </span><span style="color:#f92672;">for</span><span style="color:#c9d1d9;"> Literal(var, positive) </span><span style="color:#f92672;">in</span><span style="color:#c9d1d9;"> clause {
-        </span><span style="color:#85817e;">// We negate it here, as we need to match the assignments that *don&#39;t* satisfy
-        // the clause. While not doing this would generate an equivalent instance, this
-        // way the results rustc outputs directly correspond with our input.
-</span><span style="color:#c9d1d9;">        pattern[var] </span><span style="color:#f92672;">= </span><span style="font-style:italic;color:#66d9ef;">Some</span><span style="color:#c9d1d9;">(</span><span style="color:#f92672;">!</span><span style="color:#c9d1d9;">positive);
-    }
-
-    </span><span style="font-style:italic;color:#66d9ef;">let</span><span style="color:#c9d1d9;"> pattern </span><span style="color:#f92672;">=</span><span style="color:#c9d1d9;"> pattern.</span><span style="color:#66d9ef;">into_iter</span><span style="color:#c9d1d9;">()
-        .</span><span style="color:#66d9ef;">map</span><span style="color:#c9d1d9;">(|</span><span style="font-style:italic;color:#fd971f;">pat</span><span style="color:#c9d1d9;">| </span><span style="color:#f92672;">match</span><span style="color:#c9d1d9;"> pat {
-            </span><span style="font-style:italic;color:#66d9ef;">None </span><span style="color:#f92672;">=&gt; </span><span style="color:#e6db74;">&quot;_&quot;</span><span style="color:#c9d1d9;">,
-            </span><span style="font-style:italic;color:#66d9ef;">Some</span><span style="color:#c9d1d9;">(</span><span style="color:#ae81ff;">true</span><span style="color:#c9d1d9;">) </span><span style="color:#f92672;">=&gt; </span><span style="color:#e6db74;">&quot;true&quot;</span><span style="color:#c9d1d9;">,
-            </span><span style="font-style:italic;color:#66d9ef;">Some</span><span style="color:#c9d1d9;">(</span><span style="color:#ae81ff;">false</span><span style="color:#c9d1d9;">) </span><span style="color:#f92672;">=&gt; </span><span style="color:#e6db74;">&quot;false&quot;</span><span style="color:#c9d1d9;">,
-        })
-        .</span><span style="color:#66d9ef;">join</span><span style="color:#c9d1d9;">(</span><span style="color:#e6db74;">&quot;, &quot;</span><span style="color:#c9d1d9;">);
-
-    println!(</span><span style="color:#e6db74;">&quot;(</span><span style="color:#ae81ff;">{}</span><span style="color:#e6db74;">) =&gt; </span><span style="color:#ae81ff;">{{}}</span><span style="color:#e6db74;">&quot;</span><span style="color:#c9d1d9;">, pattern);
-}
+<pre data-lang="rust" style="background-color:#272822;color:#c9d1d9;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#85817e;">/// 0-based variable index, possibly negated — `false` in the `bool` field means negated
+</span><span>#[derive(Clone, Copy, PartialEq, Eq)]
+</span><span style="font-style:italic;color:#66d9ef;">struct </span><span>Literal(</span><span style="font-style:italic;color:#66d9ef;">usize</span><span>, </span><span style="font-style:italic;color:#66d9ef;">bool</span><span>);
+</span><span>
+</span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">print_clause</span><span>(</span><span style="color:#f92672;">mut </span><span style="font-style:italic;color:#fd971f;">clause</span><span>: </span><span style="font-style:italic;color:#66d9ef;">Vec</span><span>&lt;Literal&gt;, </span><span style="font-style:italic;color:#fd971f;">num_variables</span><span>: </span><span style="font-style:italic;color:#66d9ef;">usize</span><span>) {
+</span><span>    </span><span style="font-style:italic;color:#66d9ef;">let </span><span style="color:#f92672;">mut</span><span> pattern </span><span style="color:#f92672;">= </span><span>vec![</span><span style="font-style:italic;color:#66d9ef;">None</span><span>; num_variables];
+</span><span>    </span><span style="color:#f92672;">for</span><span> Literal(var, positive) </span><span style="color:#f92672;">in</span><span> clause {
+</span><span>        </span><span style="color:#85817e;">// We negate it here, as we need to match the assignments that *don&#39;t* satisfy
+</span><span>        </span><span style="color:#85817e;">// the clause. While not doing this would generate an equivalent instance, this
+</span><span>        </span><span style="color:#85817e;">// way the results rustc outputs directly correspond with our input.
+</span><span>        pattern[var] </span><span style="color:#f92672;">= </span><span style="font-style:italic;color:#66d9ef;">Some</span><span>(</span><span style="color:#f92672;">!</span><span>positive);
+</span><span>    }
+</span><span>
+</span><span>    </span><span style="font-style:italic;color:#66d9ef;">let</span><span> pattern </span><span style="color:#f92672;">=</span><span> pattern.</span><span style="color:#66d9ef;">into_iter</span><span>()
+</span><span>        .</span><span style="color:#66d9ef;">map</span><span>(|</span><span style="font-style:italic;color:#fd971f;">pat</span><span>| </span><span style="color:#f92672;">match</span><span> pat {
+</span><span>            </span><span style="font-style:italic;color:#66d9ef;">None </span><span style="color:#f92672;">=&gt; </span><span style="color:#e6db74;">&quot;_&quot;</span><span>,
+</span><span>            </span><span style="font-style:italic;color:#66d9ef;">Some</span><span>(</span><span style="color:#ae81ff;">true</span><span>) </span><span style="color:#f92672;">=&gt; </span><span style="color:#e6db74;">&quot;true&quot;</span><span>,
+</span><span>            </span><span style="font-style:italic;color:#66d9ef;">Some</span><span>(</span><span style="color:#ae81ff;">false</span><span>) </span><span style="color:#f92672;">=&gt; </span><span style="color:#e6db74;">&quot;false&quot;</span><span>,
+</span><span>        })
+</span><span>        .</span><span style="color:#66d9ef;">join</span><span>(</span><span style="color:#e6db74;">&quot;, &quot;</span><span>);
+</span><span>
+</span><span>    println!(</span><span style="color:#e6db74;">&quot;(</span><span style="color:#ae81ff;">{}</span><span style="color:#e6db74;">) =&gt; </span><span style="color:#ae81ff;">{{}}</span><span style="color:#e6db74;">&quot;</span><span>, pattern);
+</span><span>}
 </span></code></pre>
 <p>I've pushed the <a href="https://github.com/meithecatte/rustc-sat">full code</a> to GitHub if you want to run some
 experiments yourself. I chose to try it on the first instance of <code>uf20-91</code>
@@ -214,21 +206,20 @@ millisecond.</p>
 <p>So, unlike a basic SAT solver, it finds all the solutions and some redundant
 clauses. Though, even with these features, I wouldn't call its performance
 competitive 😛</p>
-<h2 id="improving-the-representation">Improving the representation</h2>
+</section><section><h2 id="improving-the-representation">Improving the representation</h2>
 <p>If you take a look at the Rust code we produce, you'll notice that it's mostly
 composed of <code>_</code>. In fact, it's size is quadratic in the size of the input SAT
 problem (since the number of both clauses and variables is linear in the input
 size). While that's still a polynomial, and thus the proof of NP-hardness works
 out, it still feels unoptimal.</p>
 <p>What we could do instead, is use a tree instead of a simple list:</p>
-<pre style="background-color:#272822;">
-<code class="language-rust" data-lang="rust"><span style="color:#c9d1d9;">  (</span><span style="font-style:italic;color:#66d9ef;">bool</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#66d9ef;">bool</span><span style="color:#c9d1d9;">,   </span><span style="font-style:italic;color:#66d9ef;">bool</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#66d9ef;">bool</span><span style="color:#c9d1d9;">,     </span><span style="font-style:italic;color:#66d9ef;">bool</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#66d9ef;">bool</span><span style="color:#c9d1d9;">,   </span><span style="font-style:italic;color:#66d9ef;">bool</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#66d9ef;">bool</span><span style="color:#c9d1d9;">)
-(((</span><span style="font-style:italic;color:#66d9ef;">bool</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#66d9ef;">bool</span><span style="color:#c9d1d9;">), (</span><span style="font-style:italic;color:#66d9ef;">bool</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#66d9ef;">bool</span><span style="color:#c9d1d9;">)), ((</span><span style="font-style:italic;color:#66d9ef;">bool</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#66d9ef;">bool</span><span style="color:#c9d1d9;">), (</span><span style="font-style:italic;color:#66d9ef;">bool</span><span style="color:#c9d1d9;">, </span><span style="font-style:italic;color:#66d9ef;">bool</span><span style="color:#c9d1d9;">)))
+<pre data-lang="rust" style="background-color:#272822;color:#c9d1d9;" class="language-rust "><code class="language-rust" data-lang="rust"><span>  (</span><span style="font-style:italic;color:#66d9ef;">bool</span><span>, </span><span style="font-style:italic;color:#66d9ef;">bool</span><span>,   </span><span style="font-style:italic;color:#66d9ef;">bool</span><span>, </span><span style="font-style:italic;color:#66d9ef;">bool</span><span>,     </span><span style="font-style:italic;color:#66d9ef;">bool</span><span>, </span><span style="font-style:italic;color:#66d9ef;">bool</span><span>,   </span><span style="font-style:italic;color:#66d9ef;">bool</span><span>, </span><span style="font-style:italic;color:#66d9ef;">bool</span><span>)
+</span><span>(((</span><span style="font-style:italic;color:#66d9ef;">bool</span><span>, </span><span style="font-style:italic;color:#66d9ef;">bool</span><span>), (</span><span style="font-style:italic;color:#66d9ef;">bool</span><span>, </span><span style="font-style:italic;color:#66d9ef;">bool</span><span>)), ((</span><span style="font-style:italic;color:#66d9ef;">bool</span><span>, </span><span style="font-style:italic;color:#66d9ef;">bool</span><span>), (</span><span style="font-style:italic;color:#66d9ef;">bool</span><span>, </span><span style="font-style:italic;color:#66d9ef;">bool</span><span>)))
 </span></code></pre>
 <p>That way, if a branch is composed of only <code>_</code>s, we can collapse it all into a
 single <code>_</code>. This makes a single clause take only <code>O(num_vars_in_clause log num_vars_total)</code>
 characters, which means the entire thing is only linearithmic in the input size.</p>
-<h2 id="endsay">Endsay</h2>
+</section><section><h2 id="endsay">Endsay</h2>
 <p>Does this mean that rustc should integrate an industrial-strength SAT solver?
 As hilarious as that would be, I'm advocating no such thing. This will only be a
 performance issue on pathological examples crafted by bored nerds, and I don't
@@ -266,7 +257,7 @@ input formula as a circuit of gates, add a variable for the state of every
 internal wire. Then, we can express the constraint that the output of each
 gate agrees with the inputs, separately for each gate.</p>
 </div>
-
+</section>
 
 
 
