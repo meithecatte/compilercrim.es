@@ -28,7 +28,7 @@ the keyboard, and then jumps to it. Since the keyboard input routines in the
 BIOS implement alt+numpad escape codes, you don't even need to write any base
 conversion code.[^ascii-x86] Moreover, the loop doesn't even need an end
 condition — just write to the buffer backwards until you run into the existing
-code and overwrite the jump target. This approach takes a mere 14 bytes:
+code and overwrite the jump target. This approach takes a mere 14 bytes:[^smol-infloop]
 
 ```lst
 6a00    push word 0
@@ -49,10 +49,11 @@ bootstrap seed that fits into the bootsector is fair game.[^disagree] Obviously,
 one would want to maximize the utility of the chosen program. What is the most
 powerful thing we can fit in 510 bytes?
 
-Many interesting sector-sized programs have been written by Oscar Toledo. This
-includes many games, such as [a DooM-like raycasting game][cubicDoom] or a
-[chess AI][atomchess], as well as a basic [BASIC interpreter][bootbasic], but
-the most perhaps the most relevant one for our usecase is [bootOS]:
+Many interesting sector-sized programs have been written. In particular, Oscar Toledo
+has authored a wide variety of examples. This includes various games,
+such as [a DooM-like raycasting game][cubicDoom] or a [chess AI][atomchess],
+as well as a basic [BASIC interpreter][bootbasic], but
+perhaps the most relevant one for our usecase is [bootOS]:
 
 > `bootOS` is a monolithic operating system that fits in one boot sector. It's
 > able to load, execute, and save programs. Also keeps a filesystem.
@@ -153,6 +154,10 @@ pointers is kept in `SI`, so that the `lodsw` instruction allows for easy
 processing of this list:
 
 ```asm
+    mov si, DOUBLE
+    lodsw
+    jmp ax
+
 DUP:
     pop ax
     push ax
@@ -281,7 +286,7 @@ If a word is marked as `IMMEDIATE`, it will be executed immediately, even if
 we're currently compiling a definition. For example, this is used to implement
 `;`.  If a word is marked as `HIDDEN`, it is ignored when searching through the
 dictionary. Apart from being used as a rudimentary encapsulation mechanism, this
-can be used to implement the traditional Forth semantics where a word definition
+can be used to implement the traditional Forth semantics where a redefinition
 can refer to the previous word with the same name (and `RECURSE` is used when
 you want the definition currently being compiled). However, towards the end of
 development, I have removed the code that actually does this from the default
@@ -816,7 +821,7 @@ and convert the digit to its numeric value:
 `cbw` is a little-known instruction that converts a signed number from `b`yte to
 `w`ord, but for us it's just a shorter `mov ah, 0`. In a perhaps similar vein,
 we use the signed multiply `imul`, because it has more options for how it uses
-the registers than the unsigned `mul`. The particular form used here allows
+the registers than the unsigned `mul`. The specific form used here allows
 multiplying by an immediate and doesn't overwrite `DX` with the upper half of
 the product.[^imul]
 
@@ -1363,13 +1368,16 @@ primitives, see the [next post in this series][next].
 
 ---
 
-[^cycle]: A graph theorist would have many strong words to describe this,
-  rather than just *cycle*.
+[^cycle]: I would wager that the typical system involves a tangled strongly
+  connected component of dependencies, rather than just a simple cycle.
 
 [^ascii-x86]: And even if that wasn't the case, there are [many][printable1],
   [many][printable2]
   [examples][printable3] of x86 code written with the printable subset of ASCII.
   I've even [done it myself][printable-mine] once a few years ago.
+
+[^smol-infloop]: Exercise for the reader: the jump to `input_loop` is unconditional.
+  How will the code you input from the keyboard ever get executed?
 
 [^disagree]: If you, dear reader, find this unsatisfactory, I would like to
   invite you on your own journey of bootstrapping. It's really quite fun!
@@ -1381,15 +1389,16 @@ primitives, see the [next post in this series][next].
   analogous statement is made in the documentation for `mov`.
 
 [^pop-esp]: This seems to be one of the many mistakes in the SDM — using a `pop
-  esp` for this wouldn't work. Section 6.8.3 ("Masking Exceptions and Interrupts
+  esp` for this wouldn't work, *because you just invalidated your stack pointer
+  by doing `pop ss`. Section 6.8.3 ("Masking Exceptions and Interrupts
   When Switching Stacks") in Volume 3A clarifies that all single-instruction
-  ways to load `SP` work for this. I would've quoted that section instead, if
+  ways to load `SP` mask the interrupts. I would've quoted that section instead, if
   not for the fact that, while it lists many more types of events that are
-  suppressed, it actually fails to mention actual interrupts as one of them.
-  That section does mention some interesting edge-cases, though.  For example,
-  if you're like me, you might be wondering what happens if many instructions in
-  a row write to `SS`. The answer is that only the first one is guaranteed to
-  suppress interrupts.
+  suppressed, it neglects to mention actual interrupts as one of them...
+  They do mention some interesting edge-cases, though.  For example,
+  if you're like me, you might be wondering what happens if the processor encounters
+  a long stream of repeated `pop ss` or `mov ss` instructions. The answer?
+  Only the first one is guaranteed to suppress interrupts. Fair enough.
 
 [^imul]: I suppose it makes sense that this option is only available for `imul`,
   since, by modular arithmetic,  the only difference between a signed and

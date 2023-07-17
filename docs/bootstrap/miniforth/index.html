@@ -7,10 +7,10 @@
         
     
     <head>
+        <link rel="stylesheet" href="https://compilercrim.es/style.css?2"/>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
         <title>Fitting a Forth in 512 bytes</title>
-        <link rel="stylesheet" href="https://compilercrim.es/style.css?2"/>
         <link rel="icon" href="https://compilercrim.es/icon.png"/>
         <link rel="canonical" href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;"/>
         <link rel="alternate" type="application/rss+xml" title="compiler crimes :3" href="/rss.xml">
@@ -101,7 +101,7 @@ the keyboard, and then jumps to it. Since the keyboard input routines in the
 BIOS implement alt+numpad escape codes, you don't even need to write any base
 conversion code.<sup class="footnote-reference"><a href="#ascii-x86">2</a></sup> Moreover, the loop doesn't even need an end
 condition — just write to the buffer backwards until you run into the existing
-code and overwrite the jump target. This approach takes a mere 14 bytes:</p>
+code and overwrite the jump target. This approach takes a mere 14 bytes:<sup class="footnote-reference"><a href="#smol-infloop">3</a></sup></p>
 <pre data-lang="lst" style="background-color:#272822;color:#c9d1d9;" class="language-lst "><code class="language-lst" data-lang="lst"><span style="color:#85817e;">6a00    </span><span style="color:#f92672;">push </span><span style="color:#66d9ef;">word </span><span style="color:#ae81ff;">0
 </span><span style="color:#85817e;">07      </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">es
 </span><span style="color:#85817e;">fd      </span><span style="color:#f92672;">std
@@ -115,13 +115,14 @@ code and overwrite the jump target. This approach takes a mere 14 bytes:</p>
 </span></code></pre>
 <p>However, I do not find the prospect of entering code this way anywhere near
 appealing. I've decided that, since the BIOS loads an entire sector anyway, any
-bootstrap seed that fits into the bootsector is fair game.<sup class="footnote-reference"><a href="#disagree">3</a></sup> Obviously,
+bootstrap seed that fits into the bootsector is fair game.<sup class="footnote-reference"><a href="#disagree">4</a></sup> Obviously,
 one would want to maximize the utility of the chosen program. What is the most
 powerful thing we can fit in 510 bytes?</p>
-<p>Many interesting sector-sized programs have been written by Oscar Toledo. This
-includes many games, such as <a href="https://github.com/nanochess/cubicDoom">a DooM-like raycasting game</a> or a
-<a href="https://github.com/nanochess/Toledo-Atomchess">chess AI</a>, as well as a basic <a href="https://github.com/nanochess/bootBASIC">BASIC interpreter</a>, but
-the most perhaps the most relevant one for our usecase is <a href="https://github.com/nanochess/bootOS">bootOS</a>:</p>
+<p>Many interesting sector-sized programs have been written. In particular, Oscar Toledo
+has authored a wide variety of examples. This includes various games,
+such as <a href="https://github.com/nanochess/cubicDoom">a DooM-like raycasting game</a> or a <a href="https://github.com/nanochess/Toledo-Atomchess">chess AI</a>,
+as well as a basic <a href="https://github.com/nanochess/bootBASIC">BASIC interpreter</a>, but
+perhaps the most relevant one for our usecase is <a href="https://github.com/nanochess/bootOS">bootOS</a>:</p>
 <blockquote>
 <p><code>bootOS</code> is a monolithic operating system that fits in one boot sector. It's
 able to load, execute, and save programs. Also keeps a filesystem.</p>
@@ -197,7 +198,11 @@ words:</p>
 the next word from memory, and jumps to it. A pointer to this sequence of
 pointers is kept in <code>SI</code>, so that the <code>lodsw</code> instruction allows for easy
 processing of this list:</p>
-<pre data-lang="asm" style="background-color:#272822;color:#c9d1d9;" class="language-asm "><code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">DUP:
+<pre data-lang="asm" style="background-color:#272822;color:#c9d1d9;" class="language-asm "><code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">    </span><span style="color:#f92672;">mov </span><span style="font-style:italic;color:#fd971f;">si</span><span>, </span><span style="color:#a6e22e;">DOUBLE
+</span><span style="color:#a6e22e;">    </span><span style="color:#f92672;">lodsw
+</span><span style="color:#a6e22e;">    </span><span style="color:#f92672;">jmp </span><span style="font-style:italic;color:#fd971f;">ax
+</span><span>
+</span><span style="color:#a6e22e;">DUP:
 </span><span style="color:#a6e22e;">    </span><span style="color:#f92672;">pop </span><span style="font-style:italic;color:#fd971f;">ax
 </span><span style="color:#a6e22e;">    </span><span style="color:#f92672;">push </span><span style="font-style:italic;color:#fd971f;">ax
 </span><span style="color:#a6e22e;">    </span><span style="color:#f92672;">push </span><span style="font-style:italic;color:#fd971f;">ax
@@ -299,7 +304,7 @@ in a variable called <code>LATEST</code>.</p>
 we're currently compiling a definition. For example, this is used to implement
 <code>;</code>.  If a word is marked as <code>HIDDEN</code>, it is ignored when searching through the
 dictionary. Apart from being used as a rudimentary encapsulation mechanism, this
-can be used to implement the traditional Forth semantics where a word definition
+can be used to implement the traditional Forth semantics where a redefinition
 can refer to the previous word with the same name (and <code>RECURSE</code> is used when
 you want the definition currently being compiled). However, towards the end of
 development, I have removed the code that actually does this from the default
@@ -320,7 +325,7 @@ of which the link field is predictable.</p>
 <p>I chose to implement a compression scheme where every <code>0xff</code> byte is replaced
 with <code>NEXT</code>, followed by a link field, which is computed based on the previous
 occurence of an <code>0xff</code> byte. This strategy saved 19 bytes when I introduced
-it.<sup class="footnote-reference"><a href="#compress-savings">4</a></sup></p>
+it.<sup class="footnote-reference"><a href="#compress-savings">5</a></sup></p>
 <p>At first, I used a <code>0x90</code> byte for this — after all, it's the opcode of <code>nop</code>,
 which I'm definitely not going to be using. However, the byte can still occur in
 the immediate bytes of an instruction. It wasn't a problem at first, but when
@@ -595,7 +600,7 @@ bytes required to wrap this in an <code>cli</code>/<code>sti</code> pair were to
 turns out that this trade-off is not necessary due to an obscure corner of the
 x86 architecture. To quote the Volume 2B of the <a href="https://software.intel.com/content/www/us/en/develop/articles/intel-sdm.html">x86 Software Developer's Manual</a>:</p>
 <blockquote>
-<p>Loading the SS register with a POP instruction<sup class="footnote-reference"><a href="#pop-ss">5</a></sup> suppresses or inhibits some debug exceptions and inhibits interrupts on the following instruction boundary. (The inhibition ends after delivery of an exception or the execution of the next instruction.) This behavior allows a stack pointer to be loaded into the ESP register with the next instruction (POP ESP)<sup class="footnote-reference"><a href="#pop-esp">6</a></sup> before an event can be delivered.</p>
+<p>Loading the SS register with a POP instruction<sup class="footnote-reference"><a href="#pop-ss">6</a></sup> suppresses or inhibits some debug exceptions and inhibits interrupts on the following instruction boundary. (The inhibition ends after delivery of an exception or the execution of the next instruction.) This behavior allows a stack pointer to be loaded into the ESP register with the next instruction (POP ESP)<sup class="footnote-reference"><a href="#pop-esp">7</a></sup> before an event can be delivered.</p>
 </blockquote>
 <p>After the segments, stack and direction flag are set up, the decompressor is
 ran. Crucially, it does not use the DL register, which contains the BIOS disk
@@ -741,11 +746,11 @@ and convert the digit to its numeric value:</p>
 <p><code>cbw</code> is a little-known instruction that converts a signed number from <code>b</code>yte to
 <code>w</code>ord, but for us it's just a shorter <code>mov ah, 0</code>. In a perhaps similar vein,
 we use the signed multiply <code>imul</code>, because it has more options for how it uses
-the registers than the unsigned <code>mul</code>. The particular form used here allows
+the registers than the unsigned <code>mul</code>. The specific form used here allows
 multiplying by an immediate and doesn't overwrite <code>DX</code> with the upper half of
-the product.<sup class="footnote-reference"><a href="#imul">7</a></sup></p>
+the product.<sup class="footnote-reference"><a href="#imul">8</a></sup></p>
 <p>This particular instruction needs to be encoded manually to force the literal
-width to be 2 bytes wide.<sup class="footnote-reference"><a href="#base-dw">8</a></sup></p>
+width to be 2 bytes wide.<sup class="footnote-reference"><a href="#base-dw">9</a></sup></p>
 <pre data-lang="asm" style="background-color:#272822;color:#c9d1d9;" class="language-asm "><code class="language-asm" data-lang="asm"><span style="color:#85817e;">    ; imul bx, bx, &lt;BASE&gt; but yasm insists on encoding the immediate in just one byte...
 </span><span style="color:#a6e22e;">    </span><span style="color:#66d9ef;">db </span><span style="color:#ae81ff;">0x69</span><span>, </span><span style="color:#ae81ff;">0xdb
 </span><span style="color:#a6e22e;">BASE </span><span style="color:#66d9ef;">equ </span><span style="color:#a6e22e;">$
@@ -1143,7 +1148,7 @@ dead simple implementations, and <code>swap</code> is definitely too useful to s
 <p>I chose to also include <code>&gt;r</code> and <code>r&gt;</code>, which allow using the return stack as
 a second stack for values (but, obviously, only within a single word). This is
 quite powerful. In fact, combined with <code>dup</code>, <code>drop</code> and <code>swap</code>, they allow you
-to implement any stack manipulation word you can imagine.<sup class="footnote-reference"><a href="#stack-complete">9</a></sup></p>
+to implement any stack manipulation word you can imagine.<sup class="footnote-reference"><a href="#stack-complete">10</a></sup></p>
 <pre data-lang="asm" style="background-color:#272822;color:#c9d1d9;" class="language-asm "><code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">defcode TO_R</span><span>, </span><span style="color:#e6db74;">&quot;&gt;r&quot;
 </span><span style="color:#a6e22e;">    </span><span style="color:#f92672;">xchg </span><span style="font-style:italic;color:#fd971f;">ax</span><span>, </span><span style="font-style:italic;color:#fd971f;">bx
 </span><span style="color:#a6e22e;">    </span><span style="color:#f92672;">stosw
@@ -1169,7 +1174,7 @@ that would significantly simplify the bootstrap, while taking few enough bytes
 that it seems remotely within the reach of code golf. This is largely thanks to
 Ilya Kurdyukov's help — without it, I wouldn't have been able to fit <code>s:</code> in.</p>
 <p>I've found an old PC I can use for my experiments. It boots Miniforth just fine,
-so I'll be using it from now on.<sup class="footnote-reference"><a href="#future">10</a></sup></p>
+so I'll be using it from now on.<sup class="footnote-reference"><a href="#future">11</a></sup></p>
 <p><img src="./hardware.jpg" alt="A photo of the corner of a monitor. We see the calculation &quot;6969 4242 100 + + u-dot&quot;, which results in &quot;ACAB&quot;. Then the &quot;1 load&quot; command is issued, to which the system describes &quot;Hello, world!&quot;" /></p>
 <p>If you'd like to see how to bootstrap on top of Miniforth's minimal set of
 primitives, see the <a href="https://compilercrim.es/bootstrap/branches/">next post in this series</a>.</p>
@@ -1185,8 +1190,8 @@ primitives, see the <a href="https://compilercrim.es/bootstrap/branches/">next p
 </div>
 <hr />
 <div class="footnote-definition" id="cycle"><sup class="footnote-definition-label">1</sup>
-<p>A graph theorist would have many strong words to describe this,
-rather than just <em>cycle</em>.</p>
+<p>I would wager that the typical system involves a tangled strongly
+connected component of dependencies, rather than just a simple cycle.</p>
 </div>
 <div class="footnote-definition" id="ascii-x86"><sup class="footnote-definition-label">2</sup>
 <p>And even if that wasn't the case, there are <a href="https://en.wikipedia.org/wiki/EICAR_test_file#Design">many</a>,
@@ -1194,51 +1199,56 @@ rather than just <em>cycle</em>.</p>
 <a href="https://github.com/pts/pts-xcom">examples</a> of x86 code written with the printable subset of ASCII.
 I've even <a href="https://codegolf.stackexchange.com/questions/155018/the-programming-language-quiz-mark-ii-cops/155023#155023">done it myself</a> once a few years ago.</p>
 </div>
-<div class="footnote-definition" id="disagree"><sup class="footnote-definition-label">3</sup>
+<div class="footnote-definition" id="smol-infloop"><sup class="footnote-definition-label">3</sup>
+<p>Exercise for the reader: the jump to <code>input_loop</code> is unconditional.
+How will the code you input from the keyboard ever get executed?</p>
+</div>
+<div class="footnote-definition" id="disagree"><sup class="footnote-definition-label">4</sup>
 <p>If you, dear reader, find this unsatisfactory, I would like to
 invite you on your own journey of bootstrapping. It's really quite fun!</p>
 </div>
-<div class="footnote-definition" id="compress-savings"><sup class="footnote-definition-label">4</sup>
+<div class="footnote-definition" id="compress-savings"><sup class="footnote-definition-label">5</sup>
 <p>The exact savings at the moment are somewhat hard to
 calculate, because some words don't make use of the <code>NEXT</code> being appended.</p>
 </div>
-<div class="footnote-definition" id="pop-ss"><sup class="footnote-definition-label">5</sup>
+<div class="footnote-definition" id="pop-ss"><sup class="footnote-definition-label">6</sup>
 <p>While this passage of the reference only talks about <code>pop ss</code>, an
 analogous statement is made in the documentation for <code>mov</code>.</p>
 </div>
-<div class="footnote-definition" id="pop-esp"><sup class="footnote-definition-label">6</sup>
-<p>This seems to be one of the many mistakes in the SDM — using a <code>pop esp</code> for this wouldn't work. Section 6.8.3 (&quot;Masking Exceptions and Interrupts
+<div class="footnote-definition" id="pop-esp"><sup class="footnote-definition-label">7</sup>
+<p>This seems to be one of the many mistakes in the SDM — using a <code>pop esp</code> for this wouldn't work, *because you just invalidated your stack pointer
+by doing <code>pop ss</code>. Section 6.8.3 (&quot;Masking Exceptions and Interrupts
 When Switching Stacks&quot;) in Volume 3A clarifies that all single-instruction
-ways to load <code>SP</code> work for this. I would've quoted that section instead, if
+ways to load <code>SP</code> mask the interrupts. I would've quoted that section instead, if
 not for the fact that, while it lists many more types of events that are
-suppressed, it actually fails to mention actual interrupts as one of them.
-That section does mention some interesting edge-cases, though.  For example,
-if you're like me, you might be wondering what happens if many instructions in
-a row write to <code>SS</code>. The answer is that only the first one is guaranteed to
-suppress interrupts.</p>
+suppressed, it neglects to mention actual interrupts as one of them...
+They do mention some interesting edge-cases, though.  For example,
+if you're like me, you might be wondering what happens if the processor encounters
+a long stream of repeated <code>pop ss</code> or <code>mov ss</code> instructions. The answer?
+Only the first one is guaranteed to suppress interrupts. Fair enough.</p>
 </div>
-<div class="footnote-definition" id="imul"><sup class="footnote-definition-label">7</sup>
+<div class="footnote-definition" id="imul"><sup class="footnote-definition-label">8</sup>
 <p>I suppose it makes sense that this option is only available for <code>imul</code>,
 since, by modular arithmetic,  the only difference between a signed and
 unsigned multiply is in the upper half of the product, which we are discarding
 here. Immediates could be useful with <code>mul</code> too, though...</p>
 </div>
-<div class="footnote-definition" id="base-dw"><sup class="footnote-definition-label">8</sup>
+<div class="footnote-definition" id="base-dw"><sup class="footnote-definition-label">9</sup>
 <p>You might ask, why not just declare that <code>BASE</code> is a byte-sized
 variable? The answer is that <code>u.</code>, which is the word that prints a number,
 uses <code>div word[BASE]</code>, so that the result is still 16-bit.</p>
 </div>
-<div class="footnote-definition" id="stack-complete"><sup class="footnote-definition-label">9</sup>
+<div class="footnote-definition" id="stack-complete"><sup class="footnote-definition-label">10</sup>
 <p>This does not include words like <code>PICK</code> — you would need
 loops for that. Anything definable as <code>( &lt;list of names&gt; -- &lt;list of names&gt; )</code>
 is fair game, though. Proving this fact is left as <a href="https://abstrusegoose.com/12">an exercise to the
-reader</a>.<sup class="footnote-reference"><a href="#exercise">11</a></sup></p>
+reader</a>.<sup class="footnote-reference"><a href="#exercise">12</a></sup></p>
 </div>
-<div class="footnote-definition" id="future"><sup class="footnote-definition-label">10</sup>
+<div class="footnote-definition" id="future"><sup class="footnote-definition-label">11</sup>
 <p>A note from the future: I've since switched to dual-booting it on my
 laptop.</p>
 </div>
-<div class="footnote-definition" id="exercise"><sup class="footnote-definition-label">11</sup>
+<div class="footnote-definition" id="exercise"><sup class="footnote-definition-label">12</sup>
 <p>Seriously though, try to devise an infallible strategy for turning
 a stack effect into a sequence of words that implement it. It's a nice
 problem.</p>
