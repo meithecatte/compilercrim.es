@@ -1,3 +1,7 @@
-User-agent: *
-Allow: /
+User-agent: GPTBot
+Disallow: /
+
+User-agent: cute robogirls
+Allow: *
+
 Sitemap: https://compilercrim.es/sitemap.xml
