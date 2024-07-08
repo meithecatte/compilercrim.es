@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<head>
+<meta charset="utf-8" />
+<title>Test psychologiczny – wykreślanie liczb</title>
+<link rel="stylesheet" type="text/css" href="style.css" />
+</head>
+<body>
+<div id="instructions">
+<p>Niniejsza strona jest komputerową wersją jednego z testów stosowanych
+na badaniach psychologicznych w Kolejowej Medycynie Pracy. Za jej pomocą
+możesz ćwiczyć prawidłowe i szybkie wykonanie testu.</p>
+
+<p>Test składa się z dwóch tabel wypełnionych liczbami. Celem testu jest
+znalezienie pozycji w większej tabeli wszystkich liczb z mniejszej tabeli.
+Znalezione liczby należy przekreślić w obu tabelach.</p>
+
+<p>W wersji papierowej testu, tabele te znajdują się po przeciwnych stronach
+kartki, dlatego tutaj też zobaczysz tylko jedną naraz. 
+Aby przełączać pomiędzy tabelami, naciśnij <b>TAB</b>.
+Aby wykreślić liczbę, klinkij w nią lewym przyciskiem myszy.
+</p>
+
+<p>Na wypełnienie testu masz 3 minuty. Test zakończy się, gdy czas ten się
+skończy, lub gdy wykreślisz wszystkie liczby w mniejszej tabeli, a następnie
+naciśniesz przycisk "koniec".</p>
+
+<button id="start">START</button>
+</div>
+
+<table id="haystack"></table>
+
+<div id="needles_page">
+<table id="needles"></table>
+<button id="finish">KONIEC</button>
+</div>
+
+<div id="results_page">
+<span id="results"></span>
+<button id="again">JESZCZE RAZ</button>
+</div>
+
+<script type="text/javascript" src="app.js"></script>
+</body>
+</html>

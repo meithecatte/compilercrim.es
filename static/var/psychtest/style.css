@@ -1,0 +1,57 @@
+* {
+    font-size: 16pt;
+    padding: 0;
+    margin: 0;
+}
+
+html, body {
+    min-height: 100vh;
+}
+
+#instructions {
+    width: 1000px;
+    text-align: justify;
+}
+
+p {
+    margin-bottom: 1em;
+}
+
+body {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+
+body > * {
+    margin: 2em;
+}
+
+table {
+    border-spacing: 0px;
+    border: 1px solid black;
+}
+
+td {
+    border: 1px solid black;
+    padding: 0.6em 0.8em;
+
+    cursor: pointer;
+    user-select: none;
+}
+
+td:hover {
+    background-color: #ddd;
+}
+
+.crossout {
+    background: linear-gradient(to left top, transparent 47.75%, currentColor 49.5%, currentColor 50.5%, transparent 52.25%);
+}
+
+button {
+    display: block;
+    margin: 2em auto;
+    padding: 0.3em 0.6em;
+    font-size: 20pt;
+}
