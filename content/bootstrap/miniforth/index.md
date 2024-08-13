@@ -28,7 +28,7 @@ the keyboard, and then jumps to it. Since the keyboard input routines in the
 BIOS implement alt+numpad escape codes, you don't even need to write any base
 conversion code.[^ascii-x86] Moreover, the loop doesn't even need an end
 condition — just write to the buffer backwards until you run into the existing
-code and overwrite the jump target. This approach takes a mere 14 bytes:[^smol-infloop]
+code and overwrite the jump target. This approach takes a mere 14 bytes:
 
 ```lst
 6a00    push word 0
@@ -1375,9 +1375,6 @@ primitives, see the [next post in this series][next].
   [many][printable2]
   [examples][printable3] of x86 code written with the printable subset of ASCII.
   I've even [done it myself][printable-mine] once a few years ago.
-
-[^smol-infloop]: Exercise for the reader: the jump to `input_loop` is unconditional.
-  How will the code you input from the keyboard ever get executed?
 
 [^disagree]: If you, dear reader, find this unsatisfactory, I would like to
   invite you on your own journey of bootstrapping. It's really quite fun!
