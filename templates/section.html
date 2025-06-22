@@ -10,7 +10,11 @@
   {{ section.title }}
 </h1>
 {{ macros::series_metadata(section=section) }}
-{{ section.description | markdown | safe }}
+{% if section.description %}
+    {{ section.description | markdown | safe }}
+{% endif %}
+
+{{ section.content | safe }}
 
 {{ macros::article_list(articles=section.pages | reverse) }}
 

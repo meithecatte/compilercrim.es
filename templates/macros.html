@@ -8,12 +8,6 @@
 {% macro series_metadata(section) %}
 <p class="page-metadata">
 A series of {{ section.pages | length }} articles
-&middot;
-{% if section.extra.ongoing %}
-in progress
-{% else %}
-completed
-{% endif %}
 </p>
 {% endmacro %}
 
