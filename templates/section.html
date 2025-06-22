@@ -10,9 +10,6 @@
   {{ section.title }}
 </h1>
 {{ macros::series_metadata(section=section) }}
-{% if section.description %}
-    {{ section.description | markdown | safe }}
-{% endif %}
 
 {{ section.content | safe }}
 

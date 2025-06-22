@@ -12,6 +12,10 @@ brief = """in which I start from a 512-byte seed and try to bootstrap a
 practical system."""
 +++
 
+What if all software suddenly disappeared? What's the minimum
+you'd need to bootstrap a practical system? I decided to start
+with a one sector (512-byte) seed and find out how far I can get.
+
 > *Current status:* check out the [README of the project][github] on GitHub,
 > which describes some features that I haven't mentioned here on the blog yet.
 >
