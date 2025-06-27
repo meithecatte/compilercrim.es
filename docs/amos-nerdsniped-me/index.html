@@ -21,10 +21,12 @@
         
             <meta property="og:description" content="I remember it like it was yesterday. It was a very calm and pleasant evening,
 when, all of a sudden, amos the fasterthanlime published
-an article entitled &amp;quot;A terminal case of Linux&amp;quot;. With a title that makes you sigh when you get it, he explains his adventure of capturing colored terminal output of a Linux process.
+an article entitled &quot;A terminal case of Linux&quot;. With a title that makes you sigh when you get it, he explains his adventure of capturing colored terminal output of a Linux process.
 After a journey through the bowels of libc, the Land of Terrible Truths, and as
 is in Amos&#x27;s style, many underlying details of the problem, we arrive at a
-program that does what we&#x27;ve set out to do. Well, almost. ">
+program that does what we&#x27;ve set out to do. Well, almost.&amp;hellip;
+
+">
         
         <meta property="og:url" content="https:&#x2F;&#x2F;compilercrim.es&#x2F;amos-nerdsniped-me&#x2F;">
         <meta property="og:image" content="https://compilercrim.es/icon.png">
@@ -47,20 +49,20 @@ program that does what we&#x27;ve set out to do. Well, almost. ">
 
 <p class="page-metadata">
 September 25, 2021
-&middot; 13 minute read
+&middot; 8 minute read
 </p>
 
 
 
 <p>I remember it like it was yesterday.<sup class="footnote-reference"><a href="#yesterday">1</a></sup> It was a very calm and pleasant evening,
 when, all of a sudden, amos the fasterthanlime published
-an article entitled <a href="https://fasterthanli.me/articles/a-terminal-case-of-linux">&quot;A terminal case of Linux&quot;</a>. With a title that makes you sigh when you get it, he explains his adventure of capturing colored terminal output of a Linux process.</p>
+an article entitled <a href="https://fasterthanli.me/articles/a-terminal-case-of-linux">"A terminal case of Linux"</a>. With a title that makes you sigh when you get it, he explains his adventure of capturing colored terminal output of a Linux process.</p>
 <p>After a journey through the bowels of libc, the Land of Terrible Truths, and as
 is in Amos's style, many underlying details of the problem, we arrive at a
 program that does what we've set out to do. Well, almost. <span id="continue-reading"></span></p>
 <p>You see, in a devious act of nerdsnipe, the article stops when there's still one
 problem to solve:</p>
-<p><img src="quote.png" alt="Cool bear: Nice, nice... but what's that ^C at the end? / Amos: Nothing. / Bear: What? / Amos: IT'S NOTHING. It's an exercise left to the reader. / Bear: But doesn't that mean we- /Amos: So the program hangs at the end of main. Big deal. We could just call std::process::exit! That would definitely cut things short." /></p>
+<p><img src="https://compilercrim.es/amos-nerdsniped-me/quote.png" alt="Cool bear: Nice, nice... but what&#39;s that ^C at the end? / Amos: Nothing. / Bear: What? / Amos: IT&#39;S NOTHING. It&#39;s an exercise left to the reader. / Bear: But doesn&#39;t that mean we- /Amos: So the program hangs at the end of main. Big deal. We could just call std::process::exit! That would definitely cut things short." /></p>
 <blockquote>
 <p>🤔 I sure do envy Amos's relationship with Cool Bear. I'd look into
 getting such a sidekick myself, but the dorm I'm about to move into doesn't
@@ -154,7 +156,7 @@ skip the error handling, Amos!</p>
 <p>Ah, I see. This is because I am a masochist...</p>
 <blockquote>
 <p>...and this is the point where Bear would chime in, with some snarky remark like
-&quot;as if <a href="/bootstrap/">we didn't know that already</a>&quot;. See? I'd be good at this.
+"as if <a href="/bootstrap/">we didn't know that already</a>". See? I'd be good at this.
 Where do I apply for a bear-ing license?</p>
 </blockquote>
 <p><em>ahem</em>, because I am a masochist and run <a href="https://nixos.org/">NixOS</a> as my daily
@@ -251,7 +253,7 @@ pinning the git commit you use, but for having some fun, it should be fine.</p>
 </span><span>async </span><span style="font-style:italic;color:#66d9ef;">fn </span><span style="color:#a6e22e;">main</span><span>() -&gt; </span><span style="font-style:italic;color:#66d9ef;">Result</span><span>&lt;(), </span><span style="font-style:italic;color:#66d9ef;">Box</span><span>&lt;dyn Error&gt;&gt; {
 </span><span>    console_subscriber::init(); </span><span style="color:#85817e;">// new!
 </span></code></pre>
-<p>We also have to compile with <code>RUSTFLAGS=&quot;--cfg tokio_unstable&quot; cargo build</code>, to
+<p>We also have to compile with <code>RUSTFLAGS="--cfg tokio_unstable" cargo build</code>, to
 expose the tokio internals from which the data can be collected.</p>
 <pre style="background-color:#272822;color:#c9d1d9;"><code><span>$ RUSTFLAGS=&quot;--cfg tokio_unstable&quot; cargo run
 </span></code></pre>
@@ -299,9 +301,9 @@ output rate is a bit more predictable:</p>
 </span><span>                </span><span style="color:#85817e;">// no more pesky cargo checks taking only finite time
 </span></code></pre>
 <p>The console looks like this now:</p>
-<p><img src="console.png" alt="Screenshot of the tokio console, described below." /></p>
+<p><img src="https://compilercrim.es/amos-nerdsniped-me/console.png" alt="Screenshot of the tokio console, described below." /></p>
 <p>Apart from some tasks internal to the console itself, we see many stopped
-instances of <code>tokio::task::blocking</code>. &quot;stopped&quot; meaning these are only visible
+instances of <code>tokio::task::blocking</code>. "stopped" meaning these are only visible
 because, by default, tasks are kept on the screen for two seconds after they've
 terminated.</p>
 <p>We can see that each of those tasks ran for almost exactly half a second. Looks
@@ -309,7 +311,7 @@ like a new task is spawned each time we call <code>read</code>...</p>
 <p>And if we trigger the hang bug, we indeed see one such blocking task, and it
 stays running. As the controls line at the top of the screen tells us, we can
 use the arrow keys and Enter to view some more details about it:</p>
-<p><img src="console2.png" alt="" /></p>
+<p><img src="https://compilercrim.es/amos-nerdsniped-me/console2.png" alt="" /></p>
 <p>We can see that the task has been busy for about 40 seconds already, and that
 the entrypoint of this task was</p>
 <pre data-lang="rust" style="background-color:#272822;color:#c9d1d9;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#f92672;">&lt;</span><span>tokio::fs::file::File </span><span style="color:#f92672;">as </span><span>tokio::io::async_read::AsyncRead</span><span style="color:#f92672;">&gt;</span><span>::poll_read::{{closure}}
@@ -369,7 +371,7 @@ shutdown</a>.</p>
 <p>Back when I first hit this, I was on a tight deadline, so I just bodged around
 it and forgot. But surely, somebody else with more time on their hands had also
 hit this by now.</p>
-<p>And, sure enough, the second result for &quot;tokio non-blocking file io&quot; is the
+<p>And, sure enough, the second result for "tokio non-blocking file io" is the
 <a href="https://crates.io/crates/tokio-fd"><code>tokio-fd</code> crate</a>.</p>
 <pre style="background-color:#272822;color:#c9d1d9;"><code><span>$ cargo add tokio-fd
 </span><span>    Updating &#39;https://github.com/rust-lang/crates.io-index&#39; index

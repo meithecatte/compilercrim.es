@@ -22,7 +22,9 @@
             <meta property="og:description" content="...though it&#x27;s not the flagship borrow checking that&#x27;s at fault.  What I
 noticed, and would like to share with you today, is that the exhaustiveness
 checking performed by the Rust compiler on match patterns is a superset of the
-SAT problem. ">
+SAT problem.&amp;hellip;
+
+">
         
         <meta property="og:url" content="https:&#x2F;&#x2F;compilercrim.es&#x2F;rust-np&#x2F;">
         <meta property="og:image" content="https://compilercrim.es/icon.png">
@@ -45,7 +47,7 @@ SAT problem. ">
 
 <p class="page-metadata">
 July  7, 2021
-&middot; 11 minute read
+&middot; 10 minute read
 </p>
 
 
@@ -131,7 +133,7 @@ value not covered must have <code>false</code> in at least one of the variables.
 exactly what our <code>!A !B</code> clause says.</p>
 </section><section><h2 id="some-benchmarks">Some benchmarks</h2>
 <p>Upon noticing this, I couldn't <em>not</em> check how rustc compares to other SAT
-solvers. The standard file format for SAT problems is <a href="https://logic.pdmi.ras.ru/%7Ebasolver/dimacs.html">DIMACS CNF</a>, and thanks
+solvers. The standard file format for SAT problems is <a href="https://logic.pdmi.ras.ru/~basolver/dimacs.html">DIMACS CNF</a>, and thanks
 to Jannis Harder's <a href="https://crates.io/crates/flussab-cnf"><code>flussab_cnf</code></a> library, processing it was a breeze.
 I'll spare you the plumbing, but the core of the converter looks like this:</p>
 <pre data-lang="rust" style="background-color:#272822;color:#c9d1d9;" class="language-rust "><code class="language-rust" data-lang="rust"><span style="color:#85817e;">/// 0-based variable index, possibly negated — `false` in the `bool` field means negated
@@ -160,7 +162,7 @@ I'll spare you the plumbing, but the core of the converter looks like this:</p>
 </span></code></pre>
 <p>I've pushed the <a href="https://github.com/meithecatte/rustc-sat">full code</a> to GitHub if you want to run some
 experiments yourself. I chose to try it on the first instance of <code>uf20-91</code>
-from the <a href="https://www.cs.ubc.ca/%7Ehoos/SATLIB/benchm.html">SATLIB benchmark problems</a>. This is a randomly generated
+from the <a href="https://www.cs.ubc.ca/~hoos/SATLIB/benchm.html">SATLIB benchmark problems</a>. This is a randomly generated
 problem with 20 variables and 91 clauses. It is not by any means hard — even
 my simple implementation of the basic <a href="https://en.wikipedia.org/wiki/DPLL_algorithm">DPLL</a> algorithm solves it in less than a
 millisecond.</p>

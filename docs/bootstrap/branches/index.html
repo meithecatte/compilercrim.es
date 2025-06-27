@@ -22,7 +22,9 @@
             <meta property="og:description" content="The set of words available after Miniforth boots is quite bare-bones. One
 reader even claimed that, since there&#x27;s no branches, it is not
 Turing-complete, and therefore not worthy of being called a Forth! Today is the
-day we prove them wrong. ">
+day we prove them wrong.&amp;hellip;
+
+">
         
         <meta property="og:url" content="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;branches&#x2F;">
         <meta property="og:image" content="https://compilercrim.es/icon.png">
@@ -45,7 +47,7 @@ day we prove them wrong. ">
 
 <p class="page-metadata">
 June 22, 2021
-&middot; 36 minute read
+&middot; 29 minute read
 </p>
 
 
@@ -59,17 +61,7 @@ practical system.
   
 <div class="previous-next">
 
-<div class="previous-article">
-    Previous post:<br>
-    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;">Fitting a Forth in 512 bytes</a>
-</div>
 
-
-
-<div class="next-article">
-    Next post:<br>
-    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;asmless&#x2F;">Branches: No assembly required</a>
-</div>
 
 
 <div style="clear: both;"></div>
@@ -155,7 +147,7 @@ compilation pointer, meaning <code>here</code> is simply defined as</p>
 <pre data-lang="fth" style="background-color:#272822;color:#c9d1d9;" class="language-fth "><code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">here </span><span>dp </span><span style="color:#ffd866;">@ </span><span style="color:#f92672;">;
 </span></code></pre>
 <p>When the code inside square brackets executes, our memory looks like this:</p>
-<p><img src="dp.svg" alt="First comes the dictionary header, holding the link field and name. Then, a call to DOCOL, and LIT and 0. HERE points at the very end, after the 0." /></p>
+<p><img src="https://compilercrim.es/bootstrap/branches/dp.svg" alt="First comes the dictionary header, holding the link field and name. Then, a call to DOCOL, and LIT and 0. HERE points at the very end, after the 0." /></p>
 <p>What we wish to do is put <code>dp</code> where the <code>0</code> currently is. Since we ran a <code>swap</code>
 before defining our word, the address of <code>dp</code> is at the top of the stack. After
 <code>dup @ 2 -</code>, we will have a pointer to the cell containing the <code>0</code>, and <code>!</code> will
@@ -179,7 +171,7 @@ to the compilation area:</p>
 </span></code></pre>
 <p>Next, we will write <code>lit,</code>, which appends a literal to the current definition.
 To do this, we need the address of <code>LIT</code>, the assembly routine that handles a
-literal. We store it in the <code>'lit</code> &quot;constant&quot;, with a similar trick to what we
+literal. We store it in the <code>'lit</code> "constant", with a similar trick to what we
 did for <code>dp</code>:</p>
 <pre data-lang="fth" style="background-color:#272822;color:#c9d1d9;" class="language-fth "><code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">&#39;lit </span><span style="color:#ae81ff;">0 </span><span style="color:#f92672;">[ </span><span>here </span><span style="color:#ae81ff;">4 </span><span style="color:#e6db74;">- </span><span style="color:#ffd866;">@ </span><span>here </span><span style="color:#ae81ff;">2 </span><span style="color:#e6db74;">- </span><span style="color:#ffd866;">! </span><span style="color:#f92672;">] ;
 </span><span style="color:#f92672;">: </span><span style="color:#a6e22e;">lit, </span><span>&#39;lit </span><span style="color:#ffd866;">, , </span><span style="color:#f92672;">;
@@ -232,7 +224,7 @@ each of <code>LIT</code>, the actual value, and <code>EXIT</code>.</p>
 a simple process, though, so let's automate it. <code>srcpos</code> will contain the
 current end of the buffer, and <code>checkpoint</code> will point at the part that hasn't
 been ran yet.</p>
-<p><img src="splus.svg" alt="That is, in a typical situation, the source code would start at 1000, end at srcpos, with checkpoint somewhere in the middle." /></p>
+<p><img src="https://compilercrim.es/bootstrap/branches/splus.svg" alt="That is, in a typical situation, the source code would start at 1000, end at srcpos, with checkpoint somewhere in the middle." /></p>
 <pre data-lang="fth" style="background-color:#272822;color:#c9d1d9;" class="language-fth "><code class="language-fth" data-lang="fth"><span style="color:#f92672;">variable </span><span style="color:#a6e22e;">checkpoint
 </span><span style="color:#f92672;">variable </span><span style="color:#a6e22e;">srcpos
 </span></code></pre>
@@ -289,14 +281,14 @@ that come <em>immediately</em> after the opcode:</p>
 <p>Some instructions use a bitfield in their opcode byte. For example, an immediate
 load such as mov cx, 0x1234` encodes the register in the lower 3 bits of the
 opcode:</p>
-<p><img src="x86-movi.svg" alt="The lowest 3 bits of the opcode of a &quot;mov r16, imm16&quot; instruction contain the register number, while the rest is constant." /></p>
+<p><img src="https://compilercrim.es/bootstrap/branches/x86-movi.svg" alt="The lowest 3 bits of the opcode of a &quot;mov r16, imm16&quot; instruction contain the register number, while the rest is constant." /></p>
 <p>The registers map to the following numeric values:</p>
 <pre data-lang="fth" style="background-color:#272822;color:#c9d1d9;" class="language-fth "><code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">ax </span><span style="color:#ae81ff;">0 </span><span style="color:#f92672;">;  : </span><span style="color:#a6e22e;">cx </span><span style="color:#ae81ff;">1 </span><span style="color:#f92672;">;  : </span><span style="color:#a6e22e;">dx </span><span style="color:#ae81ff;">2 </span><span style="color:#f92672;">;  : </span><span style="color:#a6e22e;">bx </span><span style="color:#ae81ff;">3 </span><span style="color:#f92672;">;  : </span><span style="color:#a6e22e;">sp </span><span style="color:#ae81ff;">4 </span><span style="color:#f92672;">;  : </span><span style="color:#a6e22e;">bp </span><span style="color:#ae81ff;">5 </span><span style="color:#f92672;">;  : </span><span style="color:#a6e22e;">si </span><span style="color:#ae81ff;">6 </span><span style="color:#f92672;">;  : </span><span style="color:#a6e22e;">di </span><span style="color:#ae81ff;">7 </span><span style="color:#f92672;">;
 </span></code></pre>
 <p>You read that right, it goes <code>AX CX DX BX</code>. As far as I know, this is not
 because somebody at Intel forgot their ABC's, but because the etymology of these
-register names goes something like &quot;<strong>A</strong>ccumulator, <strong>C</strong>ounter, <strong>D</strong>ata,
-<strong>B</strong>ase&quot;, and the fact that they're the first four letter is just a
+register names goes something like "<strong>A</strong>ccumulator, <strong>C</strong>ounter, <strong>D</strong>ata,
+<strong>B</strong>ase", and the fact that they're the first four letter is just a
 coincidence. Or that's the jist of it, anyway. <a href="https://retrocomputing.stackexchange.com/questions/5121/why-are-first-four-x86-gprs-named-in-such-unintuitive-order">This retrocomputing.SE
 post</a> includes some speculations on how it could be beneficial to the
 hardware design, but no hard facts.</p>
@@ -327,19 +319,19 @@ byte. This is the encoding mechanism responsible for instructions like <code>add
 it means that the destination is a register and the source is either a register
 or the memory. The ModR/M byte, which comes after the opcode, specifies the
 details of the operands:</p>
-<p><img src="x86-modrm.svg" alt="The ModR/M byte comes directly after the opcode. It is a bitfield with three fields. The most-significant bits 7 and 6 form the mod field, Together with the lowest three bits, it specifies the addressing mode for the r/m operand. The three bits in the middle specify the other operand, which is always a register." /></p>
+<p><img src="https://compilercrim.es/bootstrap/branches/x86-modrm.svg" alt="The ModR/M byte comes directly after the opcode. It is a bitfield with three fields. The most-significant bits 7 and 6 form the mod field, Together with the lowest three bits, it specifies the addressing mode for the r/m operand. The three bits in the middle specify the other operand, which is always a register." /></p>
 <p>The three bits in the middle specify the <code>r16</code> part, while the rest specifies
 the <code>r/m16</code> part, according to this table:</p>
 <div style="font-family: monospace; font-size: 85%;">
-<table><thead><tr><th align="right">reg/[regs] field</th><th>mod: 00</th><th>mod: 01</th><th>mod: 10</th><th>mod: 11</th></tr></thead><tbody>
-<tr><td align="right">0</td><td>[BX+SI]</td><td>[BX+SI+d8]</td><td>[BX+SI+d16]</td><td>AL/AX</td></tr>
-<tr><td align="right">1</td><td>[BX+DI]</td><td>[BX+DI+d8]</td><td>[BX+DI+d16]</td><td>CL/CX</td></tr>
-<tr><td align="right">2</td><td>[BP+SI]</td><td>[BP+SI+d8]</td><td>[BP+SI+d16]</td><td>DL/DX</td></tr>
-<tr><td align="right">3</td><td>[BP+DI]</td><td>[BP+DI+d8]</td><td>[BP+DI+d16]</td><td>BL/BX</td></tr>
-<tr><td align="right">4</td><td>[SI]</td><td>[SI+d8]</td><td>[SI+d16]</td><td>AH/SP</td></tr>
-<tr><td align="right">5</td><td>[DI]</td><td>[DI+d8]</td><td>[DI+d16]</td><td>CH/BP</td></tr>
-<tr><td align="right">6</td><td>[d16]</td><td>[BP+d8]</td><td>[BP+d16]</td><td>DH/SI</td></tr>
-<tr><td align="right">7</td><td>[BX]</td><td>[BX+d8]</td><td>[BX+d16]</td><td>BH/DI</td></tr>
+<table><thead><tr><th style="text-align: right">reg/[regs] field</th><th>mod: 00</th><th>mod: 01</th><th>mod: 10</th><th>mod: 11</th></tr></thead><tbody>
+<tr><td style="text-align: right">0</td><td>[BX+SI]</td><td>[BX+SI+d8]</td><td>[BX+SI+d16]</td><td>AL/AX</td></tr>
+<tr><td style="text-align: right">1</td><td>[BX+DI]</td><td>[BX+DI+d8]</td><td>[BX+DI+d16]</td><td>CL/CX</td></tr>
+<tr><td style="text-align: right">2</td><td>[BP+SI]</td><td>[BP+SI+d8]</td><td>[BP+SI+d16]</td><td>DL/DX</td></tr>
+<tr><td style="text-align: right">3</td><td>[BP+DI]</td><td>[BP+DI+d8]</td><td>[BP+DI+d16]</td><td>BL/BX</td></tr>
+<tr><td style="text-align: right">4</td><td>[SI]</td><td>[SI+d8]</td><td>[SI+d16]</td><td>AH/SP</td></tr>
+<tr><td style="text-align: right">5</td><td>[DI]</td><td>[DI+d8]</td><td>[DI+d16]</td><td>CH/BP</td></tr>
+<tr><td style="text-align: right">6</td><td>[d16]</td><td>[BP+d8]</td><td>[BP+d16]</td><td>DH/SI</td></tr>
+<tr><td style="text-align: right">7</td><td>[BX]</td><td>[BX+d8]</td><td>[BX+d16]</td><td>BH/DI</td></tr>
 </tbody></table>
 </div>
 <p>As you can see, if the <em>mod</em> field is set to <code>3</code>, then the lower 3 bits just
@@ -354,7 +346,7 @@ lack of <code>[BP]</code> is why switching the return stack to use <code>DI</cod
 beneficial.</p>
 <p>A peculiar aspect of this encoding is that register-to-register operations can
 be encoded in two different ways. Let's take <code>xor cx, dx</code>, for example:</p>
-<p><img src="x86-twoways.svg" alt="On one hand, you could use the &quot;xor r/m16, r16&quot; opcode, and put DX in the register field and CX in the r/m field. This yields the bytes 31 D1. On the other hand, you could use the &quot;xor r16, r/m16&quot; opcode, and an appropriately rearranged ModR/M byte to encode the same instruction as 33 CA." /></p>
+<p><img src="https://compilercrim.es/bootstrap/branches/x86-twoways.svg" alt="On one hand, you could use the &quot;xor r/m16, r16&quot; opcode, and put DX in the register field and CX in the r/m field. This yields the bytes 31 D1. On the other hand, you could use the &quot;xor r16, r/m16&quot; opcode, and an appropriately rearranged ModR/M byte to encode the same instruction as 33 CA." /></p>
 <p>Anyway, let's implement this. First, the register-to-register variant. I chose
 to name the word for compiling such a ModR/M byte <code>rm-r,</code>, meaning that there is
 a <code>r</code>egister in the field that could also be <code>m</code>emory, followed by another
@@ -473,7 +465,7 @@ badly turned into numbers. The way to do this is <code>dup u.</code> — an empt
 result in a response of <code>E0E</code>, stemming from a benign stack underflow we've just
 caused. One example of a bug this has once caught is a typo, where I had typed
 <code>movb-it,</code> instead of <code>movb-ir,</code>.</p>
-<p><img src="typo.jpg" alt="A screenshot of me fixing said typo with character-wide peeks and pokes." /></p>
+<p><img src="https://compilercrim.es/bootstrap/branches/typo.jpg" alt="A screenshot of me fixing said typo with character-wide peeks and pokes." /></p>
 <p>The first disk access I tried was <code>0 4000 read-block u. 41fe @ u.</code>. This shows the
 <code>AA55</code> magic number at the end of the bootsector. I then wrote my source code to
 blocks 1 and 2, and read them into a separate buffer to make sure it worked. In
@@ -489,14 +481,14 @@ relative to the current instruction pointer. There are different encodings for
 different bit widths of this value, but we'll only need the shorter 8-bit one.</p>
 <p>To be specific, the value is relative to the <em>end</em> of the jump instruction, so
 that it matches the number of skipped bytes in the case of forward jumps:</p>
-<p><img src="x86-jumps.svg" alt="74 02 encodes a conditional jump that will skip the next 2 bytes of instructions. 74 FD, which is -3 in two's complement, would create a loop with one other byte in it, as well as the two bytes of the jump." /></p>
+<p><img src="https://compilercrim.es/bootstrap/branches/x86-jumps.svg" alt="74 02 encodes a conditional jump that will skip the next 2 bytes of instructions. 74 FD, which is -3 in two&#39;s complement, would create a loop with one other byte in it, as well as the two bytes of the jump." /></p>
 <p>To assemble the jump distances, I use two pairs of words — one for forward
 jumps, and one for backward ones:</p>
 <pre data-lang="fth" style="background-color:#272822;color:#c9d1d9;" class="language-fth "><code class="language-fth" data-lang="fth"><span>jnz, j&gt; ... &gt;j </span><span style="color:#85817e;">\ forward jump
 </span><span>j&lt; ... jnz, &lt;j </span><span style="color:#85817e;">\ backward jump
 </span></code></pre>
 <p>The rule is that the arrows show the direction of the jump, and the arrows must
-be &quot;inside&quot; — in other words, if you got the two words next to each other, these
+be "inside" — in other words, if you got the two words next to each other, these
 arrows should fit like a glove. The two words simply communicate through the
 stack. For example, <code>j&lt;</code> will simply remember the current location:</p>
 <pre data-lang="fth" style="background-color:#272822;color:#c9d1d9;" class="language-fth "><code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">j&lt; </span><span>here </span><span style="color:#f92672;">;
@@ -520,7 +512,7 @@ me, so I didn't feel the need to define both names.</p>
 </span></code></pre>
 </section><section><h2 id="branches">Branches</h2>
 <p>When compiled into a definition, branches look like this:</p>
-<p><img src="branches.svg" alt="Diagram demonstrates the compilation strategy for an if-else structure. IF compiles to two cells, where the first one is (0branch), and the second one is the jump target, which points just after the ELSE. Before that jump target, ELSE introduces an unconditional (branch) to the position of THEN." /></p>
+<p><img src="https://compilercrim.es/bootstrap/branches/branches.svg" alt="Diagram demonstrates the compilation strategy for an if-else structure. IF compiles to two cells, where the first one is (0branch), and the second one is the jump target, which points just after the ELSE. Before that jump target, ELSE introduces an unconditional (branch) to the position of THEN." /></p>
 <p>By convention, words that get compiled into a definition but aren't used
 directly have their names wrapped in parentheses, so our branches are called
 <code>(branch)</code>, which is unconditonal, and <code>(0branch)</code>, which pops a value off the
@@ -588,7 +580,7 @@ as the arrows match the ones used by <code>&gt;br</code> and make the code easie
 </span></code></pre>
 <p>Lastly, Forth's unique <code>begin ... while ... repeat</code> loop, where the loop
 condition is in the middle of the loop:</p>
-<p><img src="while-repeat.svg" alt="Diagram illustrates the compilation strategy for BEGIN-WHILE-REPEAT. BEGIN doesn't compile to anything, and merely saves the location. WHILE does a (0branch) to after the loop, and REPEAT does an unconditional (branch) back to the BEGIN point" /></p>
+<p><img src="https://compilercrim.es/bootstrap/branches/while-repeat.svg" alt="Diagram illustrates the compilation strategy for BEGIN-WHILE-REPEAT. BEGIN doesn&#39;t compile to anything, and merely saves the location. WHILE does a (0branch) to after the loop, and REPEAT does an unconditional (branch) back to the BEGIN point" /></p>
 <pre data-lang="fth" style="background-color:#272822;color:#c9d1d9;" class="language-fth "><code class="language-fth" data-lang="fth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">while </span><span style="color:#85817e;">( backjmp -- fwdjmp backjmp )
 </span><span>  </span><span style="color:#f92672;">compile </span><span style="font-style:italic;color:#fd971f;">(0branch) </span><span>br&gt; </span><span style="color:#66d9ef;">swap
 </span><span style="color:#f92672;">; immediate
@@ -861,7 +853,7 @@ wasn't. Try spotting the mistake:</p>
 <details>
 <summary>Show hint</summary>
 <p>The code crashed like this:</p>
-<p><img src="crash.jpg" alt="After executing 5 foo, about 6 lines of output appeared before hanging. The output starts: 5 E0E 1F0E 1707 5BC, and so on, ending with DB69 10 1, lower-left border drawing character, 4, right arrow, 1B 1) 10" /></p>
+<p><img src="https://compilercrim.es/bootstrap/branches/crash.jpg" alt="After executing 5 foo, about 6 lines of output appeared before hanging. The output starts: 5 E0E 1F0E 1707 5BC, and so on, ending with DB69 10 1, lower-left border drawing character, 4, right arrow, 1B 1) 10" /></p>
 </details>
 <details>
 <summary>Reveal solution</summary>
@@ -925,7 +917,7 @@ exact order used is: opcode, ModR/M, address, immediate.</p>
 </div>
 <div class="footnote-definition" id="cmove"><sup class="footnote-definition-label">5</sup>
 <p>This is not the best name, as it is not what a C programmer would call
-a &quot;move&quot;, but it is what the Forth standard uses, so I'll roll with it.</p>
+a "move", but it is what the Forth standard uses, so I'll roll with it.</p>
 </div>
 <div class="footnote-definition" id="bl-constant"><sup class="footnote-definition-label">6</sup>
 <p>It is now dawning on me that I could've defined it with
@@ -949,17 +941,7 @@ are still there, so there isn't much point trying to figure this out.</p>
 
 <div class="previous-next">
 
-<div class="previous-article">
-    Previous post:<br>
-    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;">Fitting a Forth in 512 bytes</a>
-</div>
 
-
-
-<div class="next-article">
-    Next post:<br>
-    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;asmless&#x2F;">Branches: No assembly required</a>
-</div>
 
 
 <div style="clear: both;"></div>

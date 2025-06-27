@@ -2,93 +2,114 @@
 <rss xmlns:atom="http://www.w3.org/2005/Atom" version="2.0">
     <channel>
       <title>compiler crimes :3</title>
-        <link>https://compilercrim.es/</link>
-        <description></description>
-        <generator>Zola</generator>
-        <language>en</language>
-        <atom:link href="https://compilercrim.es/rss.xml" rel="self" type="application/rss+xml"/>
-        <lastBuildDate>Sat, 25 Sep 2021 00:00:00 +0000</lastBuildDate>
-        <item>
-            <title>Terminating the terminal case of Linux</title>
-            <pubDate>Sat, 25 Sep 2021 00:00:00 +0000</pubDate>
-            <link>https://compilercrim.es/amos-nerdsniped-me/</link>
-            <guid>https://compilercrim.es/amos-nerdsniped-me/</guid>
-            <description>&lt;p&gt;I remember it like it was yesterday. It was a very calm and pleasant evening,
+      <link>https://compilercrim.es/</link>
+      <description></description>
+      <generator>Zola</generator>
+      <language>en</language>
+      <atom:link href="https://compilercrim.es/rss.xml" rel="self" type="application/rss+xml"/>
+      <lastBuildDate>Sat, 25 Sep 2021 00:00:00 +0000</lastBuildDate>
+      <item>
+          <title>Terminating the terminal case of Linux</title>
+          <pubDate>Sat, 25 Sep 2021 00:00:00 +0000</pubDate>
+          <author>mei</author>
+          <link>https://compilercrim.es/amos-nerdsniped-me/</link>
+          <guid>https://compilercrim.es/amos-nerdsniped-me/</guid>
+          <description xml:base="https://compilercrim.es/amos-nerdsniped-me/">&lt;p&gt;I remember it like it was yesterday. It was a very calm and pleasant evening,
 when, all of a sudden, amos the fasterthanlime published
-an article entitled &lt;a href=&quot;https:&#x2F;&#x2F;fasterthanli.me&#x2F;articles&#x2F;a-terminal-case-of-linux&quot;&gt;&amp;quot;A terminal case of Linux&amp;quot;&lt;&#x2F;a&gt;. With a title that makes you sigh when you get it, he explains his adventure of capturing colored terminal output of a Linux process.&lt;&#x2F;p&gt;
+an article entitled &lt;a href=&quot;https:&#x2F;&#x2F;fasterthanli.me&#x2F;articles&#x2F;a-terminal-case-of-linux&quot;&gt;&quot;A terminal case of Linux&quot;&lt;&#x2F;a&gt;. With a title that makes you sigh when you get it, he explains his adventure of capturing colored terminal output of a Linux process.&lt;&#x2F;p&gt;
 &lt;p&gt;After a journey through the bowels of libc, the Land of Terrible Truths, and as
 is in Amos&#x27;s style, many underlying details of the problem, we arrive at a
-program that does what we&#x27;ve set out to do. Well, almost. </description>
-        </item>
-        <item>
-            <title>Contextful exceptions with Forth metaprogramming</title>
-            <pubDate>Mon, 20 Sep 2021 12:00:01 +0000</pubDate>
-            <link>https://compilercrim.es/bootstrap/exception-context/</link>
-            <guid>https://compilercrim.es/bootstrap/exception-context/</guid>
-            <description>&lt;p&gt;A typical Forth system provides a simple exception handling mechanism, in which
+program that does what we&#x27;ve set out to do. Well, almost.&amp;hellip;
+&lt;&#x2F;p&gt;
+</description>
+      </item>
+      <item>
+          <title>Contextful exceptions with Forth metaprogramming</title>
+          <pubDate>Mon, 20 Sep 2021 12:00:01 +0000</pubDate>
+          <author>mei</author>
+          <link>https://compilercrim.es/bootstrap/exception-context/</link>
+          <guid>https://compilercrim.es/bootstrap/exception-context/</guid>
+          <description xml:base="https://compilercrim.es/bootstrap/exception-context/">&lt;p&gt;A typical Forth system provides a simple exception handling mechanism, in which
 a single integer, that identifies the exception, is thrown. If we end up
 catching the exception, this scheme works reasonably well. However, if it
 bubbles up to the very top and gets printed to the user, we&#x27;d like to show a bit
-more context. </description>
-        </item>
-        <item>
-            <title>How Forth implements exceptions</title>
-            <pubDate>Mon, 20 Sep 2021 12:00:00 +0000</pubDate>
-            <link>https://compilercrim.es/bootstrap/throw-catch/</link>
-            <guid>https://compilercrim.es/bootstrap/throw-catch/</guid>
-            <description>&lt;p&gt;Considering Forth&#x27;s low-level nature, some might consider it surprising how
+more context.&amp;hellip;
+&lt;&#x2F;p&gt;
+</description>
+      </item>
+      <item>
+          <title>How Forth implements exceptions</title>
+          <pubDate>Mon, 20 Sep 2021 12:00:00 +0000</pubDate>
+          <author>mei</author>
+          <link>https://compilercrim.es/bootstrap/throw-catch/</link>
+          <guid>https://compilercrim.es/bootstrap/throw-catch/</guid>
+          <description xml:base="https://compilercrim.es/bootstrap/throw-catch/">&lt;p&gt;Considering Forth&#x27;s low-level nature, some might consider it surprising how
 well-suited it is to handling exceptions. But indeed, ANS Forth does specify a
 simple exception handling mechanism. As Forth doesn&#x27;t have a typesystem capable
 of supporting a mechanism like Rust&#x27;s &lt;code&gt;Result&lt;&#x2F;code&gt;, exceptions are the preferred
 error handling strategy. Let&#x27;s take a closer look at how they&#x27;re used, and how
-they&#x27;re implemented.  </description>
-        </item>
-        <item>
-            <title>Compiling Rust is NP-hard</title>
-            <pubDate>Wed, 07 Jul 2021 00:00:00 +0000</pubDate>
-            <link>https://compilercrim.es/rust-np/</link>
-            <guid>https://compilercrim.es/rust-np/</guid>
-            <description>&lt;p&gt;...though it&#x27;s not the flagship borrow checking that&#x27;s at fault.  What I
+they&#x27;re implemented.&amp;hellip;
+&lt;&#x2F;p&gt;
+</description>
+      </item>
+      <item>
+          <title>Compiling Rust is NP-hard</title>
+          <pubDate>Wed, 07 Jul 2021 00:00:00 +0000</pubDate>
+          <author>mei</author>
+          <link>https://compilercrim.es/rust-np/</link>
+          <guid>https://compilercrim.es/rust-np/</guid>
+          <description xml:base="https://compilercrim.es/rust-np/">&lt;p&gt;...though it&#x27;s not the flagship borrow checking that&#x27;s at fault.  What I
 noticed, and would like to share with you today, is that the exhaustiveness
 checking performed by the Rust compiler on &lt;code&gt;match&lt;&#x2F;code&gt; patterns is a superset of the
-&lt;a href=&quot;https:&#x2F;&#x2F;en.wikipedia.org&#x2F;wiki&#x2F;Boolean_satisfiability_problem&quot;&gt;SAT&lt;&#x2F;a&gt; problem. </description>
-        </item>
-        <item>
-            <title>Branches: No assembly required</title>
-            <pubDate>Tue, 29 Jun 2021 00:00:00 +0000</pubDate>
-            <link>https://compilercrim.es/bootstrap/asmless/</link>
-            <guid>https://compilercrim.es/bootstrap/asmless/</guid>
-            <description>&lt;p&gt;&lt;a href=&quot;https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;branches&#x2F;&quot;&gt;Last time,&lt;&#x2F;a&gt; we started from the barebones &lt;a href=&quot;https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;&quot;&gt;Miniforth kernel&lt;&#x2F;a&gt;, and
+&lt;a href=&quot;https:&#x2F;&#x2F;en.wikipedia.org&#x2F;wiki&#x2F;Boolean_satisfiability_problem&quot;&gt;SAT&lt;&#x2F;a&gt; problem.&amp;hellip;
+&lt;&#x2F;p&gt;
+</description>
+      </item>
+      <item>
+          <title>Branches: No assembly required</title>
+          <pubDate>Tue, 29 Jun 2021 00:00:00 +0000</pubDate>
+          <author>mei</author>
+          <link>https://compilercrim.es/bootstrap/asmless/</link>
+          <guid>https://compilercrim.es/bootstrap/asmless/</guid>
+          <description xml:base="https://compilercrim.es/bootstrap/asmless/">&lt;p&gt;&lt;a href=&quot;https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;branches&#x2F;&quot;&gt;Last time,&lt;&#x2F;a&gt; we started from the barebones &lt;a href=&quot;https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;&quot;&gt;Miniforth kernel&lt;&#x2F;a&gt;, and
 implemented branches by writing additional primitive words in assembly. For
 pragmatic reasons, that is the road I will be pursuing further, but I noticed
 that it is also possible to implement branches in pure Forth. I believe that
 this approach is quite interesting, so let&#x27;s take a detour and get a closer
-look. </description>
-        </item>
-        <item>
-            <title>No branches? No problem — a Forth assembler</title>
-            <pubDate>Tue, 22 Jun 2021 00:00:00 +0000</pubDate>
-            <link>https://compilercrim.es/bootstrap/branches/</link>
-            <guid>https://compilercrim.es/bootstrap/branches/</guid>
-            <description>&lt;p&gt;The set of words available after Miniforth boots is quite bare-bones. One
+look.&amp;hellip;
+&lt;&#x2F;p&gt;
+</description>
+      </item>
+      <item>
+          <title>No branches? No problem — a Forth assembler</title>
+          <pubDate>Tue, 22 Jun 2021 00:00:00 +0000</pubDate>
+          <author>mei</author>
+          <link>https://compilercrim.es/bootstrap/branches/</link>
+          <guid>https://compilercrim.es/bootstrap/branches/</guid>
+          <description xml:base="https://compilercrim.es/bootstrap/branches/">&lt;p&gt;The set of words available after Miniforth boots is quite bare-bones. One
 reader even &lt;a href=&quot;https:&#x2F;&#x2F;www.reddit.com&#x2F;r&#x2F;Forth&#x2F;comments&#x2F;nxgg20&#x2F;fitting_a_forth_in_512_bytes&#x2F;h1eq4ok&quot;&gt;claimed&lt;&#x2F;a&gt; that, since there&#x27;s no branches, it is not
 Turing-complete, and therefore not worthy of being called a Forth! Today is the
-day we prove them wrong. </description>
-        </item>
-        <item>
-            <title>Fitting a Forth in 512 bytes</title>
-            <pubDate>Thu, 10 Jun 2021 00:00:00 +0000</pubDate>
-            <link>https://compilercrim.es/bootstrap/miniforth/</link>
-            <guid>https://compilercrim.es/bootstrap/miniforth/</guid>
-            <description>&lt;p&gt;Software is full of circular dependencies if you look deep enough. Compilers
+day we prove them wrong.&amp;hellip;
+&lt;&#x2F;p&gt;
+</description>
+      </item>
+      <item>
+          <title>Fitting a Forth in 512 bytes</title>
+          <pubDate>Thu, 10 Jun 2021 00:00:00 +0000</pubDate>
+          <author>mei</author>
+          <link>https://compilercrim.es/bootstrap/miniforth/</link>
+          <guid>https://compilercrim.es/bootstrap/miniforth/</guid>
+          <description xml:base="https://compilercrim.es/bootstrap/miniforth/">&lt;p&gt;Software is full of circular dependencies if you look deep enough. Compilers
 written in the language they compile are the most obvious example, but not the
 only one. To compile a kernel, you need a running kernel. Linkers, build
 systems, shells.  Even text editors, if you want to write the code instead of
 just downloading it. How do you break this cycle? Since the &lt;a href=&quot;http:&#x2F;&#x2F;bootstrappable.org&#x2F;&quot;&gt;bootstrapping
 problem&lt;&#x2F;a&gt; has first come to my attention, I&#x27;ve been drawn to
 this unique area of software engineering.  Not out of fear that someone would
-try to implement a &lt;a href=&quot;http:&#x2F;&#x2F;users.ece.cmu.edu&#x2F;%7Eganger&#x2F;712.fall02&#x2F;papers&#x2F;p761-thompson.pdf&quot;&gt;trusting trust&lt;&#x2F;a&gt; attack, but simply as an interesting
-challenge.  </description>
-        </item>
+try to implement a &lt;a href=&quot;http:&#x2F;&#x2F;users.ece.cmu.edu&#x2F;~ganger&#x2F;712.fall02&#x2F;papers&#x2F;p761-thompson.pdf&quot;&gt;trusting trust&lt;&#x2F;a&gt; attack, but simply as an interesting
+challenge.&amp;hellip;
+&lt;&#x2F;p&gt;
+</description>
+      </item>
     </channel>
 </rss>

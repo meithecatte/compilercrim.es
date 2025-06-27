@@ -23,7 +23,9 @@
 a single integer, that identifies the exception, is thrown. If we end up
 catching the exception, this scheme works reasonably well. However, if it
 bubbles up to the very top and gets printed to the user, we&#x27;d like to show a bit
-more context. ">
+more context.&amp;hellip;
+
+">
         
         <meta property="og:url" content="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;exception-context&#x2F;">
         <meta property="og:image" content="https://compilercrim.es/icon.png">
@@ -46,7 +48,7 @@ more context. ">
 
 <p class="page-metadata">
 September 20, 2021
-&middot; 13 minute read
+&middot; 12 minute read
 </p>
 
 
@@ -59,11 +61,6 @@ practical system.
   
   
 <div class="previous-next">
-
-<div class="previous-article">
-    Previous post:<br>
-    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;throw-catch&#x2F;">How Forth implements exceptions</a>
-</div>
 
 
 
@@ -126,7 +123,7 @@ design has two main parts:</p>
 description, which is something other systems do. As such, we <em>could</em> adapt
 Gforth's solution, creating a linked list much like the dictionary itself,
 mapping exception numbers to printing routines:</p>
-<p><img src="gforth-like.svg" alt="A linked list with entries consisting of a link field, exception number and the code executed for a given exception." /></p>
+<p><img src="https://compilercrim.es/bootstrap/exception-context/gforth-like.svg" alt="A linked list with entries consisting of a link field, exception number and the code executed for a given exception." /></p>
 <p>An explicit mapping like that could indeed be the best way of locating the
 printing word, if one was looking for compatibility with existing programs
 throwing integers willy-nilly. However, that is not a goal for Miniforth,
@@ -149,7 +146,7 @@ nothing stopping you from comparing these pointers like opaque tokens.</p>
 <p>Of course, throwing the execution token like that will explode violently when
 someone throws a simple integer. If compatibility was desired, the two schemes
 could be merged somehow. The solution I like the most here is to reserve a
-single numeric identifier in the traditional system for all &quot;fancy&quot; exceptions,
+single numeric identifier in the traditional system for all "fancy" exceptions,
 and then store the actual execution token in a <code>variable</code>. In this case a
 wrapper around <code>throw</code> would be necessary, but we can use this opportunity to
 merge the <code>[']</code> into it too:</p>
@@ -254,7 +251,7 @@ code.<sup class="footnote-reference"><a href="#skipping">2</a></sup></p>
 <code>end-exception</code> <em>walks through the dictionary</em> to process all the variables,
 after they've been defined.</p>
 <p>While traversing the dictionary, we can point at an entry in two places:</p>
-<p><img src="nt-and-xt.svg" alt="Diagram illustrates what is about to be described." /></p>
+<p><img src="https://compilercrim.es/bootstrap/exception-context/nt-and-xt.svg" alt="Diagram illustrates what is about to be described." /></p>
 <p>The <em>name token</em> (<code>nt</code> for short) points to the very beginning of the header.
 This is the value stored in <code>latest</code> and the link fields, and it lets you know
 as much as the name of the word itself.<sup class="footnote-reference"><a href="#name-token">3</a></sup> On the other hand, we have an
@@ -288,7 +285,7 @@ name with <code>&gt;name</code>, and compiles the action of printing this name.<
 </span></code></pre>
 <p>Here's a diagram that visualizes the points in the dictionary where the various
 pointers we got so far point to:</p>
-<p><img src="end-exception-latest.svg" alt="The three values read from latest so far point to: the last word defined before the exception, the last field of the exception, and the printing word." /></p>
+<p><img src="https://compilercrim.es/bootstrap/exception-context/end-exception-latest.svg" alt="The three values read from latest so far point to: the last word defined before the exception, the last field of the exception, and the printing word." /></p>
 <p>The next step is to iterate over the dictionary and handle all the fields. As
 you can see from the diagram above, we need to stop iterating once the two
 pointers become equal, testing <em>before</em> handling each field.</p>
@@ -310,7 +307,7 @@ extra field in their header that points to a word such as <code>: print-uint @ u
 <p>At first, it might seem like there is no room to extend the header like this,
 though. We have the link field, then immediately comes the name, and when <em>it</em>
 ends, there's the code. However, we can put it <em>to the left</em> of the link field:</p>
-<p><img src="printing-field.svg" alt="The print xt is directly to the left of the location the nt points to." /></p>
+<p><img src="https://compilercrim.es/bootstrap/exception-context/printing-field.svg" alt="The print xt is directly to the left of the location the nt points to." /></p>
 <p>As a side-effect of this layout, we don't actually need to write the entire
 header ourselves. After our additional field is written, we can just invoke
 <code>variable</code> or a similar defining word and have it complete the rest:</p>
@@ -374,11 +371,6 @@ will still point to the same word.</p>
 
 
 <div class="previous-next">
-
-<div class="previous-article">
-    Previous post:<br>
-    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;throw-catch&#x2F;">How Forth implements exceptions</a>
-</div>
 
 
 

@@ -27,7 +27,9 @@ just downloading it. How do you break this cycle? Since the bootstrapping
 problem has first come to my attention, I&#x27;ve been drawn to
 this unique area of software engineering.  Not out of fear that someone would
 try to implement a trusting trust attack, but simply as an interesting
-challenge.  ">
+challenge.&amp;hellip;
+
+">
         
         <meta property="og:url" content="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;">
         <meta property="og:image" content="https://compilercrim.es/icon.png">
@@ -50,7 +52,7 @@ challenge.  ">
 
 <p class="page-metadata">
 June 10, 2021
-&middot; 39 minute read
+&middot; 31 minute read
 </p>
 
 
@@ -65,11 +67,6 @@ practical system.
 <div class="previous-next">
 
 
-
-<div class="next-article">
-    Next post:<br>
-    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;branches&#x2F;">No branches? No problem — a Forth assembler</a>
-</div>
 
 
 <div style="clear: both;"></div>
@@ -86,7 +83,7 @@ systems, shells.  Even text editors, if you want to write the code instead of
 just downloading it. How do you break this cycle?<sup class="footnote-reference"><a href="#cycle">1</a></sup> Since the <a href="http://bootstrappable.org/">bootstrapping
 problem</a> has first come to my attention, I've been drawn to
 this unique area of software engineering.  Not out of fear that someone would
-try to implement a <a href="http://users.ece.cmu.edu/%7Eganger/712.fall02/papers/p761-thompson.pdf">trusting trust</a> attack, but simply as an interesting
+try to implement a <a href="http://users.ece.cmu.edu/~ganger/712.fall02/papers/p761-thompson.pdf">trusting trust</a> attack, but simply as an interesting
 challenge.  <span id="continue-reading"></span></p>
 <p>11 years ago, <a href="https://www.reddit.com/r/programming/comments/9x15g/programming_thought_experiment_stuck_in_a_room/"><em>vanjos72</em> described on Reddit</a> what he
 calls a thought experiment: what if you were locked in a room with an IBM PC,
@@ -294,7 +291,7 @@ This is the role of the <em>dictionary</em>. I use a structure similar to many o
 small-scale Forths — a singly linked list of word headers, directly prepended
 before the code of each word. Out of tradition, the head of the list is kept
 in a variable called <code>LATEST</code>.</p>
-<p><img src="dictionary.svg" alt="The first two bytes of each header are the link field, which points at the beginning of the previously defined word. At the end of this list, there is a NULL to indicate the first word that was defined, and therefore the last one in the list. After each link field is one byte signifying the length of the name. This is then followed by the actual name, and the machine code implementation is directly afterwards." /></p>
+<p><img src="https://compilercrim.es/bootstrap/miniforth/dictionary.svg" alt="The first two bytes of each header are the link field, which points at the beginning of the previously defined word. At the end of this list, there is a NULL to indicate the first word that was defined, and therefore the last one in the list. After each link field is one byte signifying the length of the name. This is then followed by the actual name, and the machine code implementation is directly afterwards." /></p>
 <p>The most significant bits of the name length field also store some flags:</p>
 <pre data-lang="asm" style="background-color:#272822;color:#c9d1d9;" class="language-asm "><code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">F_IMMEDIATE </span><span style="color:#66d9ef;">equ </span><span style="color:#ae81ff;">0x80
 </span><span style="color:#a6e22e;">F_HIDDEN    </span><span style="color:#66d9ef;">equ </span><span style="color:#ae81ff;">0x40
@@ -363,7 +360,7 @@ instruction, and a <code>mov</code> into a throwaway register instead. This <a h
 spectacularily</a> because of my inability to actually pick
 a register that can be safely overwritten.</p>
 <p>Ilya Kurdyukov then demonstrated <a href="https://twitter.com/ilyakurdyukov/status/1401736488681979906">that the same bytecount can be achieved
-without this kind of &quot;magic&quot;</a>. An analogous modification allowed
+without this kind of "magic"</a>. An analogous modification allowed
 me to remove the other occurence of this trick too. The essence is that instead
 of trying to skip over the <code>stosb</code>, we execute it unconditionally before the
 codepaths branch, and then essentially undo it with <code>dec di</code> if necessary:</p>
@@ -612,7 +609,7 @@ use by user code:</p>
 </span></code></pre>
 </section><section><h2 id="the-outer-interpreter">The outer interpreter</h2>
 <p>At this point, we reach the <em>outer interpreter</em> - the part of a Forth system
-that processes user input. The name &quot;<em>outer</em> interpreter&quot; distinguishes it from
+that processes user input. The name "<em>outer</em> interpreter" distinguishes it from
 the <em>inner</em> interpreter, which is the component that coordinates the execution
 within a defined word, and consists of <code>NEXT</code>, <code>DOCOL</code>, <code>EXIT</code>, and <code>LIT</code>.</p>
 <p>Normally, a Forth would expose the building blocks of its outer interpreter as
@@ -674,7 +671,7 @@ it naturally gets written to before it is read.</p>
 </span><span style="color:#a6e22e;">    jcxz short ReadLine
 </span></code></pre>
 <p>The BIOS interrupt for getting a character from the keyboard does not print the
-key — we have to do that ourselves. This is done with the &quot;TELETYPE OUTPUT&quot;
+key — we have to do that ourselves. This is done with the "TELETYPE OUTPUT"
 function, which already handles special characters like backspace or newline.</p>
 <pre data-lang="asm" style="background-color:#272822;color:#c9d1d9;" class="language-asm "><code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">PutChar:
 </span><span style="color:#a6e22e;">    </span><span style="color:#f92672;">xor </span><span style="font-style:italic;color:#fd971f;">bx</span><span>, </span><span style="font-style:italic;color:#fd971f;">bx
@@ -958,7 +955,7 @@ interpretation mode:</p>
 <p>The way these words jump to another word at the end is quite convenient.
 Remember how the <code>NEXT</code>s are written out as part of the <code>defcode</code> of the next
 word? One of the words needs to be last in memory, and then it won't have any
-&quot;next word&quot; after it. <code>:</code> and <code>;</code> are perfect candidates for this, since they
+"next word" after it. <code>:</code> and <code>;</code> are perfect candidates for this, since they
 don't need a <code>NEXT</code> at all.</p>
 </section><section><h2 id="loading-code-from-disk">Loading code from disk</h2>
 <p>Since we don't want to type in disk routines on every boot, we need to include
@@ -983,7 +980,7 @@ like this:</p>
 </span></code></pre>
 <p>We use a hybrid strategy to create this packet. The first part is kept as data
 in the bootsector, but the rest is written at runtime, even if it doesn't
-change. The &quot;template&quot; needs to be in a place where we can write after it, so
+change. The "template" needs to be in a place where we can write after it, so
 the perfect place is just before the compressed data:</p>
 <pre data-lang="asm" style="background-color:#272822;color:#c9d1d9;" class="language-asm "><code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">DiskPacket:
 </span><span style="color:#a6e22e;">    </span><span style="color:#66d9ef;">db </span><span style="color:#ae81ff;">0x10</span><span>, </span><span style="color:#ae81ff;">0
@@ -1051,7 +1048,7 @@ which breaks our template.</p>
 <p><code>u.</code> prints an unsigned number, followed by a space. Since splitting the number
 into digits with division yields the least-significant digit first, we push the
 digits onto the stack, and then pop and print in a separate loop. The space is
-printed by pushing a fake &quot;digit&quot; that will get converted into a space. This
+printed by pushing a fake "digit" that will get converted into a space. This
 also lets us detect when we popped all the digits — the printing loop stops when
 it just printed a space.</p>
 <pre data-lang="asm" style="background-color:#272822;color:#c9d1d9;" class="language-asm "><code class="language-asm" data-lang="asm"><span style="color:#a6e22e;">defcode UDOT</span><span>, </span><span style="color:#e6db74;">&quot;u.&quot;
@@ -1175,7 +1172,7 @@ that it seems remotely within the reach of code golf. This is largely thanks to
 Ilya Kurdyukov's help — without it, I wouldn't have been able to fit <code>s:</code> in.</p>
 <p>I've found an old PC I can use for my experiments. It boots Miniforth just fine,
 so I'll be using it from now on.<sup class="footnote-reference"><a href="#future">10</a></sup></p>
-<p><img src="./hardware.jpg" alt="A photo of the corner of a monitor. We see the calculation &quot;6969 4242 100 + + u-dot&quot;, which results in &quot;ACAB&quot;. Then the &quot;1 load&quot; command is issued, to which the system describes &quot;Hello, world!&quot;" /></p>
+<p><img src="https://compilercrim.es/bootstrap/miniforth/./hardware.jpg" alt="A photo of the corner of a monitor. We see the calculation &quot;6969 4242 100 + + u-dot&quot;, which results in &quot;ACAB&quot;. Then the &quot;1 load&quot; command is issued, to which the system describes &quot;Hello, world!&quot;" /></p>
 <p>If you'd like to see how to bootstrap on top of Miniforth's minimal set of
 primitives, see the <a href="https://compilercrim.es/bootstrap/branches/">next post in this series</a>.</p>
 <div id="get-notified">
@@ -1212,9 +1209,9 @@ calculate, because some words don't make use of the <code>NEXT</code> being appe
 analogous statement is made in the documentation for <code>mov</code>.</p>
 </div>
 <div class="footnote-definition" id="pop-esp"><sup class="footnote-definition-label">6</sup>
-<p>This seems to be one of the many mistakes in the SDM — using a <code>pop esp</code> for this wouldn't work, *because you just invalidated your stack pointer
-by doing <code>pop ss</code>. Section 6.8.3 (&quot;Masking Exceptions and Interrupts
-When Switching Stacks&quot;) in Volume 3A clarifies that all single-instruction
+<p>This seems to be one of the many mistakes in the SDM — using a <code>pop   esp</code> for this wouldn't work, *because you just invalidated your stack pointer
+by doing <code>pop ss</code>. Section 6.8.3 ("Masking Exceptions and Interrupts
+When Switching Stacks") in Volume 3A clarifies that all single-instruction
 ways to load <code>SP</code> mask the interrupts. I would've quoted that section instead, if
 not for the fact that, while it lists many more types of events that are
 suppressed, it neglects to mention actual interrupts as one of them...
@@ -1256,11 +1253,6 @@ problem.</p>
 <div class="previous-next">
 
 
-
-<div class="next-article">
-    Next post:<br>
-    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;branches&#x2F;">No branches? No problem — a Forth assembler</a>
-</div>
 
 
 <div style="clear: both;"></div>

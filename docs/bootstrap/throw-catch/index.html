@@ -24,7 +24,9 @@ well-suited it is to handling exceptions. But indeed, ANS Forth does specify a
 simple exception handling mechanism. As Forth doesn&#x27;t have a typesystem capable
 of supporting a mechanism like Rust&#x27;s Result, exceptions are the preferred
 error handling strategy. Let&#x27;s take a closer look at how they&#x27;re used, and how
-they&#x27;re implemented.  ">
+they&#x27;re implemented.&amp;hellip;
+
+">
         
         <meta property="og:url" content="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;throw-catch&#x2F;">
         <meta property="og:image" content="https://compilercrim.es/icon.png">
@@ -47,7 +49,7 @@ they&#x27;re implemented.  ">
 
 <p class="page-metadata">
 September 20, 2021
-&middot; 12 minute read
+&middot; 11 minute read
 </p>
 
 
@@ -61,17 +63,7 @@ practical system.
   
 <div class="previous-next">
 
-<div class="previous-article">
-    Previous post:<br>
-    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;asmless&#x2F;">Branches: No assembly required</a>
-</div>
 
-
-
-<div class="next-article">
-    Next post:<br>
-    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;exception-context&#x2F;">Contextful exceptions with Forth metaprogramming</a>
-</div>
 
 
 <div style="clear: both;"></div>
@@ -87,7 +79,7 @@ simple exception handling mechanism. As Forth doesn't have a typesystem capable
 of supporting a mechanism like Rust's <code>Result</code>, exceptions are the preferred
 error handling strategy. Let's take a closer look at how they're used, and how
 they're implemented.  <span id="continue-reading"></span></p>
-<p><img src="quote.png" alt="A Pokémon Red textbox saying &quot;Aww! It appeared to be caught!&quot;" /></p>
+<p><img src="https://compilercrim.es/bootstrap/throw-catch/quote.png" alt="A Pokémon Red textbox saying &quot;Aww! It appeared to be caught!&quot;" /></p>
 <section><h2 id="a-user-s-perspective">A user's perspective</h2>
 <p>The exception mechanism consists of two user-facing words: <code>catch</code> and <code>throw</code>.
 Unlike other control flow words, which act as additional syntax, <code>catch</code> merely
@@ -131,13 +123,13 @@ by zero. Let's wrap it with a quick check that throws an exception instead.</p>
 There aren't any conventions as to how this should be done, except for some
 reserved values:</p>
 <ul>
-<li><code>0</code> is used by <code>catch</code> to signify &quot;no exception&quot;</li>
+<li><code>0</code> is used by <code>catch</code> to signify "no exception"</li>
 <li>values in the range <code>{-255...-1}</code> are reserved for errors defined by the
 standard</li>
 <li>values in the range <code>{-4095...-256}</code> are reserved for errors defined by the
 Forth implementation</li>
 </ul>
-<p>Since the standard assigns an identifier for &quot;division by zero&quot;, we might as
+<p>Since the standard assigns an identifier for "division by zero", we might as
 well use it.</p>
 <pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span>-10 </span><span style="color:#f92672;">constant </span><span style="color:#a6e22e;">exn:div0
 </span></code></pre>
@@ -176,10 +168,10 @@ the exception number is zero, and if it is, doesn't actually throw it — <code>
 <p>There are a few aspects as to why this is the case. Firstly, actually throwing a
 zero would be confusing, as <code>catch</code> uses zero to signify that no exception was
 caught. But hold on, it's not exactly in character for Forth to check for this.
-There's plenty of other ways to fuck up already. They could've said &quot;it'll eat
-a sock if you try to do that&quot; and celebrated the performance win.</p>
-<p>And even if you do check, why make it a no-op? Shouldn't you throw a &quot;tried to
-throw a zero&quot; exception instead, to make sure the mistake is noticed?</p>
+There's plenty of other ways to fuck up already. They could've said "it'll eat
+a sock if you try to do that" and celebrated the performance win.</p>
+<p>And even if you do check, why make it a no-op? Shouldn't you throw a "tried to
+throw a zero" exception instead, to make sure the mistake is noticed?</p>
 <p>The answer, simply enough, is that it's not necessarily a mistake. There are
 some useful idioms that center around <code>0 throw</code> being a no-op.</p>
 <p>One concerns a more succint way for checking a condition:</p>
@@ -222,10 +214,10 @@ return stack. It would be a great shame if such a value happened to equal the
 special marker address that's being scanned for...<sup class="footnote-reference"><a href="#sec">4</a></sup></p>
 <p>To support nested invocations of <code>catch</code>, we'll need to save the previous value
 of <code>catch-rp</code> on the stack. While we're at it, this is also a good place to save
-the parameter stack pointer. This effectively creates a linked list of &quot;exception
-handling frames&quot;, allocated on the return stack:</p>
-<p><img src="catch-rstack1.svg" alt="The catch-rp variable points into the return stack, just above its own saved value." /></p>
-<p>Note that the &quot;return to <code>catch</code>&quot; entry is <em>above</em> the data pushed by <code>catch</code>.
+the parameter stack pointer. This effectively creates a linked list of "exception
+handling frames", allocated on the return stack:</p>
+<p><img src="https://compilercrim.es/bootstrap/throw-catch/catch-rstack1.svg" alt="The catch-rp variable points into the return stack, just above its own saved value." /></p>
+<p>Note that the "return to <code>catch</code>" entry is <em>above</em> the data pushed by <code>catch</code>.
 This is because the former only gets pushed once <code>catch</code> calls a non-assembly
 word — in this case, the <code>execute</code> that ultimately consumes the execution token.</p>
 </section><section><h3 id="some-assembly-required">Some assembly required</h3>
@@ -242,7 +234,7 @@ of the stack pointer itself goes through the data stack. I ended up choosing the
 following rule: <code>sp@</code> pushes the pointer to the element that was at the top
 before <code>sp@</code> was executed. In particular, this means <code>sp@ @</code> does the same thing
 as <code>dup</code>:</p>
-<p><img src="spat.svg" alt="The saved stack pointer points to the value just above it on the stack" /></p>
+<p><img src="https://compilercrim.es/bootstrap/throw-catch/spat.svg" alt="The saved stack pointer points to the value just above it on the stack" /></p>
 <p>This diagram bends the reality a little, as <a href="/bootstrap/miniforth/#tos-bx">the top of the stack is kept in
 <code>bx</code>, and not in memory</a>, as an optimization. Thus, we first need to
 store <code>bx</code> into memory:</p>
@@ -274,7 +266,7 @@ and slower. Still, it's interesting enough to mention, even if we don't actually
 use it in the end.</p>
 </section><section><h3 id="putting-it-all-together">Putting it all together</h3>
 <p>Let's take another look at how the return stack should look:</p>
-<p><img src="catch-rstack2.svg" alt="The saved sp is pushed first, then saved catch-rp, and then the return stack pointer is sampled and saved to catch-rp." /></p>
+<p><img src="https://compilercrim.es/bootstrap/throw-catch/catch-rstack2.svg" alt="The saved sp is pushed first, then saved catch-rp, and then the return stack pointer is sampled and saved to catch-rp." /></p>
 <p>Let's construct that, then:</p>
 <pre data-lang="forth" style="background-color:#272822;color:#c9d1d9;" class="language-forth "><code class="language-forth" data-lang="forth"><span style="color:#f92672;">: </span><span style="color:#a6e22e;">catch </span><span style="color:#85817e;">( i*x xt -- j*x 0 | i*x n )
 </span><span>  sp@ </span><span style="font-style:italic;color:#36a9df;">&gt;r  </span><span>catch-rp </span><span style="color:#ffd866;">@ </span><span style="font-style:italic;color:#36a9df;">&gt;r
@@ -324,7 +316,7 @@ exception bubbles up to the top-level. See you there!</p>
 </div>
 <hr />
 <div class="footnote-definition" id="xt"><sup class="footnote-definition-label">1</sup>
-<p>Forth-speak for &quot;function pointer&quot;.</p>
+<p>Forth-speak for "function pointer".</p>
 </div>
 <div class="footnote-definition" id="jones"><sup class="footnote-definition-label">2</sup>
 <p>This is not to say that <code>jonesforth</code> as a whole is bad. The foundation
@@ -350,17 +342,7 @@ at with C, though...</p>
 
 <div class="previous-next">
 
-<div class="previous-article">
-    Previous post:<br>
-    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;asmless&#x2F;">Branches: No assembly required</a>
-</div>
 
-
-
-<div class="next-article">
-    Next post:<br>
-    <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;exception-context&#x2F;">Contextful exceptions with Forth metaprogramming</a>
-</div>
 
 
 <div style="clear: both;"></div>

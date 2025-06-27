@@ -72,7 +72,7 @@ one big soup where all the internals live in the same namespace.</p>
   
 <p class="page-metadata">
 June 10, 2021
-&middot; 39 minute read
+&middot; 31 minute read
 </p>
 
   <p>Software is full of circular dependencies if you look deep enough. Compilers
@@ -82,8 +82,10 @@ systems, shells.  Even text editors, if you want to write the code instead of
 just downloading it. How do you break this cycle? Since the <a href="http://bootstrappable.org/">bootstrapping
 problem</a> has first come to my attention, I've been drawn to
 this unique area of software engineering.  Not out of fear that someone would
-try to implement a <a href="http://users.ece.cmu.edu/%7Eganger/712.fall02/papers/p761-thompson.pdf">trusting trust</a> attack, but simply as an interesting
-challenge.  
+try to implement a <a href="http://users.ece.cmu.edu/~ganger/712.fall02/papers/p761-thompson.pdf">trusting trust</a> attack, but simply as an interesting
+challenge.&hellip;
+</p>
+
   <a class="read-more button" href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;miniforth&#x2F;#continue-reading">Read more</a>
   </div>
   
@@ -92,13 +94,15 @@ challenge.
   
 <p class="page-metadata">
 June 22, 2021
-&middot; 36 minute read
+&middot; 29 minute read
 </p>
 
   <p>The set of words available after Miniforth boots is quite bare-bones. One
 reader even <a href="https://www.reddit.com/r/Forth/comments/nxgg20/fitting_a_forth_in_512_bytes/h1eq4ok">claimed</a> that, since there's no branches, it is not
 Turing-complete, and therefore not worthy of being called a Forth! Today is the
-day we prove them wrong. 
+day we prove them wrong.&hellip;
+</p>
+
   <a class="read-more button" href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;branches&#x2F;#continue-reading">Read more</a>
   </div>
   
@@ -107,7 +111,7 @@ day we prove them wrong.
   
 <p class="page-metadata">
 June 29, 2021
-&middot; 7 minute read
+&middot; 6 minute read
 </p>
 
   <p><a href="https://compilercrim.es/bootstrap/branches/">Last time,</a> we started from the barebones <a href="https://compilercrim.es/bootstrap/miniforth/">Miniforth kernel</a>, and
@@ -115,7 +119,9 @@ implemented branches by writing additional primitive words in assembly. For
 pragmatic reasons, that is the road I will be pursuing further, but I noticed
 that it is also possible to implement branches in pure Forth. I believe that
 this approach is quite interesting, so let's take a detour and get a closer
-look. 
+look.&hellip;
+</p>
+
   <a class="read-more button" href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;asmless&#x2F;#continue-reading">Read more</a>
   </div>
   
@@ -124,7 +130,7 @@ look.
   
 <p class="page-metadata">
 September 20, 2021
-&middot; 12 minute read
+&middot; 11 minute read
 </p>
 
   <p>Considering Forth's low-level nature, some might consider it surprising how
@@ -132,7 +138,9 @@ well-suited it is to handling exceptions. But indeed, ANS Forth does specify a
 simple exception handling mechanism. As Forth doesn't have a typesystem capable
 of supporting a mechanism like Rust's <code>Result</code>, exceptions are the preferred
 error handling strategy. Let's take a closer look at how they're used, and how
-they're implemented.  
+they're implemented.&hellip;
+</p>
+
   <a class="read-more button" href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;throw-catch&#x2F;#continue-reading">Read more</a>
   </div>
   
@@ -141,14 +149,16 @@ they're implemented.
   
 <p class="page-metadata">
 September 20, 2021
-&middot; 13 minute read
+&middot; 12 minute read
 </p>
 
   <p>A typical Forth system provides a simple exception handling mechanism, in which
 a single integer, that identifies the exception, is thrown. If we end up
 catching the exception, this scheme works reasonably well. However, if it
 bubbles up to the very top and gets printed to the user, we'd like to show a bit
-more context. 
+more context.&hellip;
+</p>
+
   <a class="read-more button" href="https:&#x2F;&#x2F;compilercrim.es&#x2F;bootstrap&#x2F;exception-context&#x2F;#continue-reading">Read more</a>
   </div>
   
