@@ -1,3 +1,7 @@
+{% macro cachebust(path) %}
+{{ get_url(path=path) }}?{{ get_hash(path=path, sha_type=256) }}
+{% endmacro cachebust %}
+
 {% macro post_metadata(page) %}
 <p class="page-metadata">
 {{ page.date | date(format="%B %e, %Y") }}
