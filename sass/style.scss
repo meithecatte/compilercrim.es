@@ -51,22 +51,29 @@ main {
     align-items: flex-start;
 }
 
-header, footer {
-    padding: 0.3rem 0;
-    font-size: 1.5rem;
-}
-
 header {
     height: 3rem;
-}
+    padding: 0.3rem 0.5rem;
+    font-size: min(5.8vw, 1.5rem);
 
-footer {
-    height: 2.8rem;
-}
-
-header {
     border-bottom: 1px solid var(--line-color);
     margin-bottom: 1rem;
+
+    display: flex;
+    align-items: center;
+
+    a {
+        height: 2rem;
+        display: flex;
+        align-items: center;
+        color: inherit;
+    }
+
+    img {
+        height: 2rem;
+        border-radius: 4px;
+        margin-right: 0.5rem;
+    }
 }
 
 header a, .footnote-reference a, h1 a {
@@ -75,20 +82,6 @@ header a, .footnote-reference a, h1 a {
 
 .footnote-reference + .footnote-reference::before {
     content: ",";
-}
-
-footer {
-    position: absolute;
-    width: 100%;
-    bottom: 0;
-    border-top: 1px solid var(--line-color);
-    margin-top: 1rem;
-}
-
-.main-column, .main-column a {
-    display: flex;
-    align-items: center;
-    color: inherit;
 }
 
 .social-links {
@@ -101,12 +94,6 @@ footer {
     margin-left: 0.5rem;
     width: 2rem;
     height: 2rem;
-}
-
-#icon {
-    height: 2rem;
-    border-radius: 4px;
-    margin: auto 0.5rem auto 0.1rem;
 }
 
 .series-info {
