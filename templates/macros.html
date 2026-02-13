@@ -2,39 +2,78 @@
 {{ get_url(path=path) }}?{{ get_hash(path=path, sha_type=256) }}
 {% endmacro cachebust %}
 
+{% macro show_date(page) %}
+{{ page.date | date(format="%B %e, %Y") -}}
+{% endmacro show_date %}
+
 {% macro post_metadata(page) %}
 <p class="page-metadata">
-{{ page.date | date(format="%B %e, %Y") }}
-&middot; {{ page.reading_time }} minute read
+{{ macros::show_date(page=page) }} &middot; {{ page.reading_time }} minute read
 </p>
 {% endmacro post_metadata %}
 
 {% macro series_metadata(section) %}
 <p class="page-metadata">
-A series of {{ section.pages | length }} articles
+A series of {{ section.pages | length }} articles &middot; last updated
+{% set last_article = section.pages | sort(attribute="date") | last %}
+{{ macros::show_date(page=last_article) }}
 </p>
 {% endmacro %}
 
-{% macro article_list(articles) %}
-  {% for page in articles %}
-  <div class="article-preview">
-  <h1 class="title"><a href="{{ page.permalink }}">{{ page.title }}</a></h1>
-  {{ macros::post_metadata(page=page) }}
-  {{ page.summary | safe }}
-  <a class="read-more button" href="{{ page.permalink }}#continue-reading">Read more</a>
-  </div>
-  {% endfor %}
+{% macro show_post(page) %}
+<div class="article-preview">
+    <h1 class="title"><a href="{{ page.permalink }}">{{ page.title }}</a></h1>
+    {{ macros::post_metadata(page=page) }}
+    {% if page.description %}
+        {{ page.description }}
+    {% else %}
+        {{ page.summary | safe }}
+    {% endif %}
+    <a class="read-more button" href="{{ page.permalink }}#continue-reading">Read more</a>
+</div>
 {% endmacro %}
 
-{% macro series_list(series) %}
-  {% for ser in series %}
-  {% set section = get_section(path=ser, metadata_only=false) %}
+{% macro show_series(section) %}
   <div class="article-preview">
   <h1 class="title"><a href="{{ section.permalink }}">{{ section.title }}</a></h1>
   {{ macros::series_metadata(section=section) }}
   {{ section.description | markdown | safe }}
   <a class="read-more button" href="{{ section.permalink }}">Go to series overview</a>
   </div>
+{% endmacro %}
+
+{% macro combined_list(series, articles) %}
+    {% set combined = [] %}
+    {% for ser in series %}
+        {% set section = get_section(path=ser, metadata_only=false) %}
+        {% set last_article = section.pages | sort(attribute="date") | last %}
+
+        {% set data = [last_article.date, "section", section] %}
+        {% set_global combined = combined | concat(with=[data]) %}
+    {% endfor %}
+    {% for page in articles %}
+        {% set data = [page.date, "page", page] %}
+        {% set_global combined = combined | concat(with=[data]) %}
+    {% endfor %}
+    {% for entry in combined | sort(attribute="0") | reverse %}
+        {% if entry[1] == "section" %}
+            {{ macros::show_series(section=entry[2]) }}
+        {% else %}
+            {{ macros::show_post(page=entry[2]) }}
+        {% endif %}
+    {% endfor %}
+{% endmacro %}
+
+{% macro article_list(articles) %}
+  {% for page in articles %}
+  {{ macros::show_post(page=page) }}
+  {% endfor %}
+{% endmacro %}
+
+{% macro series_list(series) %}
+  {% for ser in series %}
+  {% set section = get_section(path=ser, metadata_only=false) %}
+  {{ macros::show_series(section=section) }}
   {% endfor %}
 {% endmacro %}
 

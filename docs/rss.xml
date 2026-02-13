@@ -7,7 +7,19 @@
       <generator>Zola</generator>
       <language>en</language>
       <atom:link href="https://compilercrim.es/rss.xml" rel="self" type="application/rss+xml"/>
-      <lastBuildDate>Sat, 25 Sep 2021 00:00:00 +0000</lastBuildDate>
+      <lastBuildDate>Fri, 13 Feb 2026 00:00:00 +0000</lastBuildDate>
+      <item>
+          <title>Bruteforcing the Bitwarden master password I forgor 💀</title>
+          <pubDate>Fri, 13 Feb 2026 00:00:00 +0000</pubDate>
+          <author>mei</author>
+          <link>https://compilercrim.es/forgor/</link>
+          <guid>https://compilercrim.es/forgor/</guid>
+          <description xml:base="https://compilercrim.es/forgor/">&lt;p&gt;The human mind is a fascinating thing. It&#x27;s a miracle it works at all,
+let alone how well it does. The corollary is that sometimes it doesn&#x27;t,
+I suppose.&amp;hellip;
+&lt;&#x2F;p&gt;
+</description>
+      </item>
       <item>
           <title>Terminating the terminal case of Linux</title>
           <pubDate>Sat, 25 Sep 2021 00:00:00 +0000</pubDate>

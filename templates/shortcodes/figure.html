@@ -1,0 +1,6 @@
+<div class="figure">
+    {{ body | markdown | safe }}
+    {% if caption %}
+    <div class="caption">{{ caption | markdown | safe}}</div>
+    {% endif %}
+</div>

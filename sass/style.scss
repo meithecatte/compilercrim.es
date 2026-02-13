@@ -3,7 +3,7 @@ $toc-width: 15rem;
 $phone-width-threshold: 30rem;
 
 * {
-    --line-color: #ebedef;
+    --line-color: #bbb;
     --shaded: #f8f8f8;
     --inactive-color: #808e90;
 }
@@ -101,6 +101,49 @@ header a, .footnote-reference a, h1 a {
     padding: 1.2rem;
 }
 
+#footer {
+  line-height: 0;
+
+  a {
+    display: inline-block;
+  }
+  .webring-container {
+    background: #0b0d0e;
+    width: fit-content;
+    padding: 2px;
+    margin: -2px;
+    display: inline-block;
+  }
+
+  img {
+    image-rendering: pixelated;
+    margin: 0;
+    max-width: none;
+  }
+}
+
+.figure {
+    max-width: max(10rem, min(15rem, 35%));
+    margin: 0 auto;
+    @media (min-width: 40rem) {
+      margin: 0 1rem;
+      float: right;
+    }
+
+    .caption {
+        text-align: center;
+    }
+
+    p + .caption {
+        margin-top: -0.5rem;
+    }
+
+    img {
+        margin: 0 1rem !important;
+        max-width: calc(100% - 2rem) !important;
+    }
+}
+
 .article-preview {
     background: var(--shaded);
     padding: 1.2rem;
@@ -109,7 +152,7 @@ header a, .footnote-reference a, h1 a {
     margin-bottom: 1rem;
 
     .title {
-        font-size: 1.6rem;
+        font-size: 1.4rem;
         a {
             color: inherit;
         }

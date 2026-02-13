@@ -6,6 +6,11 @@
 {% endblock meta %}
 
 {% block content %}
+{{ section.content | safe }}
+
+{{ macros::combined_list(series=section.subsections, articles=section.pages) }}
+{#
 {{ macros::series_list(series=section.subsections) }}
 {{ macros::article_list(articles=section.pages) }}
+#}
 {% endblock content %}

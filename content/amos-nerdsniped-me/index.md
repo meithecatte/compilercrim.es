@@ -1,6 +1,7 @@
 +++
 title = "Terminating the terminal case of Linux"
 date = "2021-09-25"
+description = "A response of sorts to Amos's \"A terminal case of Linux\", in which I explain why a short async Rust program would fail to terminate sometimes."
 +++
 
 I remember it like it was yesterday.[^yesterday] It was a very calm and pleasant evening,
@@ -15,10 +16,6 @@ You see, in a devious act of nerdsnipe, the article stops when there's still one
 problem to solve:
 
 ![Cool bear: Nice, nice... but what's that ^C at the end? / Amos: Nothing. / Bear: What? / Amos: IT'S NOTHING. It's an exercise left to the reader. / Bear: But doesn't that mean we- /Amos: So the program hangs at the end of main. Big deal. We could just call std::process::exit! That would definitely cut things short.](quote.png)
-
-> :thinking: I sure do envy Amos's relationship with Cool Bear. I'd look into
-> getting such a sidekick myself, but the dorm I'm about to move into doesn't
-> allow keeping pets, and definitely not ones sentient enough to throw a party.
 
 Well, [I've been guilty of setting such exercises for my readers
 too][exercise-forth], so today, we'll be solving one of those instead.

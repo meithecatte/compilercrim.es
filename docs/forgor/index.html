@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+    
+        
+    
+    
+        
+    
+    <head>
+        <link rel="stylesheet" href="
+https://compilercrim.es/style.css?wmUGGP88BPXdF896QSOvJcyzOTG64MhXmT9VzTcgK5k=
+"/>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
+        <title>Bruteforcing the Bitwarden master password I forgor 💀</title>
+        <link rel="icon" href="https://compilercrim.es/icon.png"/>
+        <link rel="canonical" href="https:&#x2F;&#x2F;compilercrim.es&#x2F;forgor&#x2F;"/>
+        <link rel="alternate" type="application/rss+xml" title="compiler crimes :3" href="/rss.xml">
+        
+<meta property="og:type" content="article">
+
+        <meta property="og:title" content="Bruteforcing the Bitwarden master password I forgor 💀">
+        
+            <meta property="og:description" content="The human mind is a fascinating thing. It&#x27;s a miracle it works at all,
+let alone how well it does. The corollary is that sometimes it doesn&#x27;t,
+I suppose.&amp;hellip;
+
+">
+        
+        <meta property="og:url" content="https:&#x2F;&#x2F;compilercrim.es&#x2F;forgor&#x2F;">
+        <meta property="og:image" content="https://compilercrim.es/icon.png">
+    </head>
+    <body class="theme-default">
+        <header>
+            <a href="/">
+                <img id="icon" src="/icon.png">
+                <span class="head-backdrop">the blog of compiler crimes&nbsp;:3</span>
+            </a>
+        </header>
+        <main>
+            <article>
+                
+<h1 class="title">
+  Bruteforcing the Bitwarden master password I forgor 💀
+</h1>
+
+<p class="page-metadata">
+
+February 13, 2026 &middot; 9 minute read
+</p>
+
+
+
+<p>The human mind is a fascinating thing. It's a miracle it works at all,
+let alone how well it does. The corollary is that sometimes it doesn't,
+I suppose. <span id="continue-reading"></span></p>
+<p>I've been using Bitwarden for a few years now.<sup class="footnote-reference"><a href="#frens">1</a></sup> My life had vastly changed
+a few times over, and yet the master password I've been using has stayed
+the same. I've almost stopped thinking about it, letting muscle memory
+handle it for me.</p>
+<p>One day, quite tired, I tried to unlock it like always, and the muscle memory
+trigger failed me. I just typed in an entirely different password. Just like that,
+the act of unlocking my password manager became an action that's to be handled
+by the conscious brain now. And I found that I can't fully remember the passphrase
+in question. Much like magnetic core memory or DRAM, neural memory reads are
+— apparently — destructive, and when they happen in out-of-spec conditions,
+your data can — apparently — kinda accidentally disappear.<sup class="footnote-reference"><a href="#robo">2</a></sup></p>
+<p>It wasn't all too bad. I quickly managed to reconstruct most of the passphrase,
+but one word had somehow escaped me. I was pretty sure of the initial letter
+and the vague semantic meaning, but I couldn't recall the word itself.</p>
+<p>I wasn't too nervous. Since I was still <em>logged in</em> on all my devices, and the
+password vault was merely <em>locked</em>, I could, at least in theory, easily do a local
+bruteforce to bridge the gap.</p>
+<p>The details were only a matter of some elbow grease and overcoming the procrastination.
+At first I tried looking for people who've done a similar thing, but unfortunately
+couldn't find any.<sup class="footnote-reference"><a href="#search">3</a></sup> So, in case this is useful for someone else later,
+I decided to write up the process.</p>
+<section><h2 id="the-devil-s-in-the-details">The devil's in the details</h2>
+<p>Knowing that I generated the password with <a href="https://github.com/redacted/XKCD-password-generator">xkcdpass</a>,<sup class="footnote-reference"><a href="#xkcdpass">4</a></sup> I quickly found that
+by default, the <a href="https://www.eff.org/deeplinks/2016/07/new-wordlists-random-passphrases"><code>eff-long</code> wordlist</a> must've been used, meaning 7776 options
+for what the password could be. If I wanted to be fancy, I could try using
+<a href="https://en.wikipedia.org/wiki/Word2vec">word2vec</a> to sort the wordlist and incorporate the vague knowledge I still had
+about the missing word, but that's very much not worth the effort when up
+against mere 13 bits of entropy — even when key stretching is in your way.</p>
+<p>The next step was to figure out where the Bitwarden client stores the data, and
+how the relevant cryptography works. In my case, I was using the Firefox
+browser extension — if you find yourself in a similar situation, but your setup
+is different, then you're gonna have to be a bit more creative.</p>
+<p>Since browser extensions are written in the typical combo of web technologies,
+I deduced that there must be a way to open the browser dev tools in the context
+of the extension.</p>
+<p>However, looking for "open inspect element in context of web extension" is
+kinda difficult. Search engines just seem to assume you're looking for some
+extension for your browser that will "improve" your inspect element experience
+in some way.<sup class="footnote-reference"><a href="#ext-search">5</a></sup></p>
+<p>But I managed to stumble through it and find it anyway. The relevant option is in <code>about:debugging</code>:<sup class="footnote-reference"><a href="#remote-debug">6</a></sup></p>
+<p><img src="https://compilercrim.es/forgor/extension-debugging.png" alt="Choose &quot;This Firefox&quot; on the left, then click &quot;Inspect&quot; next to the relevant extension" /></p>
+<p>This lets you find all the necessary data:</p>
+<p><a href="https://compilercrim.es/forgor/bitwarden-data.png"><img src="https://compilercrim.es/forgor/bitwarden-data.png" alt="A heavily redacted screenshot of the Bitwarden client&#39;s internal storage" /></a></p>
+<ul>
+<li>the e-mail for the account, which is being used as the salt</li>
+<li>the <code>kdfConfig</code>, which specifies what algorithm is being used to hash the password and its parameters</li>
+<li>the <code>masterPassword_masterKeyHash</code>, which allows verifying if you have the right password</li>
+</ul>
+<p>I created a file, <code>data.py</code>, in which I collected the pieces:</p>
+<pre data-lang="python" style="background-color:#272822;color:#c9d1d9;" class="language-python "><code class="language-python" data-lang="python"><span>masterKeyHash </span><span style="color:#f92672;">= </span><span style="color:#e6db74;">&quot;o&lt;redacted&gt;=&quot;
+</span><span>email </span><span style="color:#f92672;">= </span><span style="color:#e6db74;">&quot;bitwarden@compilercrim.es&quot;
+</span><span>kdfType </span><span style="color:#f92672;">= </span><span style="color:#ae81ff;">0
+</span><span>iterations </span><span style="color:#f92672;">= </span><span style="color:#ae81ff;">600000
+</span><span>known </span><span style="color:#f92672;">= </span><span style="color:#e6db74;">&quot;known parts of the </span><span style="color:#ae81ff;">%s</span><span style="color:#e6db74;"> passphrase&quot;
+</span></code></pre>
+<p>Next came spelunking through <a href="https://github.com/bitwarden/clients">the code</a> to find out how exactly the underlying
+cryptography works. The relevant code entrypoint is <a href="https://github.com/bitwarden/clients/blob/0619ef507fb6224ecbdc2813192766300752e68a/libs/common/src/auth/services/user-verification/user-verification.service.ts#L178"><code>verifyUserByMasterPassword</code>
+in <code>user-verification.service.ts</code></a>. The computation has two parts:</p>
+<ul>
+<li>first, the password goes through <a href="https://en.wikipedia.org/wiki/Key_stretching">key stretching</a> to derive the <code>masterKey</code>.
+This is handled by <a href="https://github.com/bitwarden/clients/blob/0619ef507fb6224ecbdc2813192766300752e68a/libs/key-management/src/key.service.ts#L287"><code>makeMasterKey</code></a>. The underlying <a href="https://github.com/bitwarden/clients/blob/acd3ab05f6b2335b5dd284b0da8f079fb9a3b87c/libs/common/src/platform/services/key-generation.service.ts#L42"><code>deriveKeyFromPassword</code></a>
+can use either PBKDF2 or Argon2id, depending on the <code>kdfConfig</code>.</li>
+<li>the <code>masterKey</code> is then quickly hashed a further 2 iterations of <code>pbkdf2</code>,
+using the original password as a salt, and the result is compared with the stored
+<code>masterPassword_masterKeyHash</code> to decide whether the password is actually correct.</li>
+</ul>
+<p>All in all, this looks like a reasonably typical approach. The key stretching helps
+slow down brute-force attacks, and after the master key is calculated, we derive
+a hash to check if the password is correct, without having to do weird things like
+trying to decrypt random stuff just to see if the resulting plaintext looks vaguely okay.</p>
+<p>But, two iterations of <code>pbkdf2</code> is quite a weird hash to use, don't you think? Why two?</p>
+</section><section><h2 id="when-the-cryptographic-spider-sense-is-tingling">When the cryptographic spider sense is tingling</h2>
+<p>If you've taken a look at the code yourself, you'll have noticed that <a href="https://github.com/bitwarden/clients/blob/0619ef507fb6224ecbdc2813192766300752e68a/libs/key-management/src/key.service.ts#L304"><code>hashMasterKey</code></a>
+chooses between one and two iterations depending on the circumstances:</p>
+<ul>
+<li>two iterations are used to derive the <code>masterPassword_masterKeyHash</code> which gets used
+to check the password locally;</li>
+<li>on the other hand, one iteration is used to derive a hash that's used to authenticate
+with the Bitwarden server.</li>
+</ul>
+<p>The goal here is to achieve <a href="https://en.wikipedia.org/wiki/Domain_separation">domain separation</a> — you wouldn't want to be able to use
+the locally-stored hash to authenticate with the server. On the other hand, going the other
+way probably isn't useful, so something like this should be fine, right?</p>
+<p>Well, as far as domain separation goes, this is quite a crude way of achieving it. The <code>iterations</code>
+parameter of PBKDF2 has not been designed for this, and the security of this approach depends on
+the internals of PBKDF2.</p>
+<p>For example, if you have the one-iteration and two-iteration hashes, does that let you check a password
+guess without having to run the expensive key-stretching?</p>
+<blockquote>
+<p>But you might say, "when would that even matter? in what situation do you have both hashes, but
+not the password itself?"</p>
+</blockquote>
+<p>Well, there <em>could</em> be a threat model where this matters. Consider the following scenario:</p>
+<ul>
+<li>a state actor wants your passwords</li>
+<li>they gain access to the Bitwarden server and capture the server-side hash when you authenticate
+(e.g. to sync the data with the server)</li>
+<li>then, they raid your home and grab your machines</li>
+<li>the vault happened to be locked, but the machines themselves were powered on, and so
+they get the local hash as well.</li>
+</ul>
+<p>Does this let them perform the brute-force 600k times faster? Having stared at the
+definition of PBKDF2 for a while, I determined that effectively, we get the following
+relationship between the data:</p>
+<pre data-lang="python" style="background-color:#272822;color:#c9d1d9;" class="language-python "><code class="language-python" data-lang="python"><span>HMAC(masterKey, serverHash) </span><span style="color:#f92672;">^ </span><span>serverHash </span><span style="color:#f92672;">== </span><span>localHash
+</span></code></pre>
+<p>So, if you have a guess for what the <code>masterKey</code> could be, you can check it quickly.
+But that's pretty useless — you pretty much have no hope of guessing the <code>masterKey</code>,
+other than by brute-forcing the password itself.</p>
+<p>What saved the day here is that Bitwarden chose to compute the derived hashes
+by invoking <code>PBKDF2(password: masterKey, salt: userPassword, iterations)</code>. Had they chosen
+to write it as <code>PBKDF2(password: userPassword, salt: masterKey, iterations)</code>, we'd have
+a cute little cryptographic backdoor... of an impact that, admittedly, depends on your
+threat model.</p>
+<blockquote>
+<p>TL;DR: Please don't use the <code>iterations</code> parameter of your KDF to achieve domain separation.
+That's basically the cryptographic equivalent of playing with fire, and you only get to do that
+if you're setting a CTF challenge.</p>
+<p>Don't stress out your pet cryptographers.</p>
+</blockquote>
+</section><section><h2 id="back-to-the-realm-of-the-living">Back to the realm of the living</h2>
+<p>Having managed to climb out of the rabbit hole that once again swallowed me whole
+the moment I briefly let my guard down, I whipped up a quick Python script
+to actually do the thing I wanted to do in the first place, and brute force the
+part of the password I had forgotten:</p>
+<pre data-lang="python" style="background-color:#272822;color:#c9d1d9;" class="language-python "><code class="language-python" data-lang="python"><span style="color:#f92672;">from </span><span>data </span><span style="color:#f92672;">import </span><span style="color:#ae81ff;">*
+</span><span style="color:#f92672;">from </span><span>base64 </span><span style="color:#f92672;">import </span><span style="color:#ae81ff;">*
+</span><span style="color:#f92672;">from </span><span>hashlib </span><span style="color:#f92672;">import </span><span>pbkdf2_hmac
+</span><span style="color:#f92672;">from </span><span>xkcdpass </span><span style="color:#f92672;">import </span><span>xkcd_password
+</span><span>
+</span><span>wordfile </span><span style="color:#f92672;">= </span><span>xkcd_password.locate_wordfile()
+</span><span style="color:#f92672;">with </span><span style="color:#66d9ef;">open</span><span>(wordfile) </span><span style="color:#f92672;">as </span><span>f:
+</span><span>    wordlist </span><span style="color:#f92672;">= </span><span style="font-style:italic;color:#66d9ef;">list</span><span>(</span><span style="color:#66d9ef;">map</span><span>(</span><span style="font-style:italic;color:#66d9ef;">str</span><span>.strip, f))
+</span><span>
+</span><span style="color:#f92672;">assert </span><span>kdfType </span><span style="color:#f92672;">== </span><span style="color:#ae81ff;">0 </span><span style="color:#85817e;"># PBKDF2_SHA256
+</span><span>
+</span><span>salt </span><span style="color:#f92672;">= </span><span>email.encode()
+</span><span>keyhash </span><span style="color:#f92672;">= </span><span>b64decode(masterKeyHash)
+</span><span>
+</span><span style="color:#f92672;">for </span><span>i, guess </span><span style="color:#f92672;">in </span><span style="color:#66d9ef;">enumerate</span><span>(wordlist):
+</span><span>    </span><span style="color:#f92672;">if </span><span>i </span><span style="color:#f92672;">% </span><span style="color:#ae81ff;">10 </span><span style="color:#f92672;">== </span><span style="color:#ae81ff;">0</span><span>: </span><span style="color:#66d9ef;">print</span><span>(</span><span style="color:#e6db74;">&#39;#&#39;</span><span>, i)
+</span><span>    password </span><span style="color:#f92672;">= </span><span>(known </span><span style="color:#f92672;">% </span><span>guess).encode()
+</span><span>
+</span><span>    masterKey </span><span style="color:#f92672;">= </span><span>pbkdf2_hmac(</span><span style="color:#e6db74;">&#39;sha256&#39;</span><span>, password, salt, iterations)
+</span><span>    masterKeyHash </span><span style="color:#f92672;">= </span><span>pbkdf2_hmac(</span><span style="color:#e6db74;">&#39;sha256&#39;</span><span>, masterKey, password, </span><span style="color:#ae81ff;">2</span><span>)
+</span><span>
+</span><span>    </span><span style="color:#f92672;">if </span><span>masterKeyHash </span><span style="color:#f92672;">== </span><span>keyhash:
+</span><span>        </span><span style="color:#66d9ef;">print</span><span>(guess)
+</span><span>        </span><span style="color:#f92672;">break
+</span></code></pre>
+<p>I mentally prepared myself for it to fail the first couple times, since that's always how it is
+when you're dealing with cryptography. Debugging that is always <em>fun</em>.</p>
+<p>This time though, it worked perfectly, first try.</p>
+<p>I looked at the output, which told me what the missing word was.</p>
+<p>"Oh, of course. How did I ever forget <em>that</em> in the first place?"</p>
+<hr />
+<div class="footnote-definition" id="frens"><sup class="footnote-definition-label">1</sup>
+<p>through Vaultwarden hosted by my <a href="https://sdomi.pl">wonderful friends</a>, of course</p>
+</div>
+<div class="footnote-definition" id="robo"><sup class="footnote-definition-label">2</sup>
+<p>i'm really not beating the <a href="https://philo.gay/stories/maintenance.html">robogirl allegations</a>, am i?</p>
+</div>
+<div class="footnote-definition" id="search"><sup class="footnote-definition-label">3</sup>
+<p>not sure if it's because no one had actually done this before,
+or if it's another example of search being dead, having been consumed by
+adtech companies and the AI bubble.</p>
+</div>
+<div class="footnote-definition" id="xkcdpass"><sup class="footnote-definition-label">4</sup>
+<p>hey, it's in the Arch repos, so it's probably not completely
+random untested software, right??</p>
+</div>
+<div class="footnote-definition" id="ext-search"><sup class="footnote-definition-label">5</sup>
+<p>Have you ever wanted to save the changes you make to a website
+with "inspect element", so that they are still there when you load the page
+again? Not really? Well, as it turns out, with a random addon rated a
+staggering 2.5 stars, you can! Download now!!</p>
+</div>
+<div class="footnote-definition" id="remote-debug"><sup class="footnote-definition-label">6</sup>
+<p>this is also where the remote debugging feature is: open
+a website on your phone, and use the Firefox developer tools on your <em>desktop</em>
+to poke at it. how cool is that? :3</p>
+</div>
+</section>
+
+
+
+<noscript>
+    This is where the comments would load if you enabled JavaScript.
+</noscript>
+<script src="https://utteranc.es/client.js"
+        repo="meithecatte/compilercrim.es"
+        issue-term="pathname"
+        theme="preferred-color-scheme"
+        crossorigin="anonymous"
+        async>
+</script>
+
+
+                <center id="footer">
+                    <a href="https://diyhrt.wiki"><img src="/e2.gif" width="88" height="31" /></a>
+                    <div class="webring-container">
+                        <a href="//ring.acab.dev/prev/13e80a04a7" style="text-decoration: none"><img
+                                src="//ring.acab.dev/img/webring_88_31_01.png" 
+                                alt="The first third of a 88x31 with a glider and arrow going to
+                                the left"
+                            /></a>
+                        <a href="//ring.acab.dev" style="text-decoration: none"><img
+                                src="//ring.acab.dev/img/webring_88_31_02.png"
+                                alt="The middle third of a 88x31 with the text Hacker Webring on
+                                it. In the background of the text is a ring with an offset shadow."
+                            /></a>
+                        <a href="//ring.acab.dev/next/13e80a04a7" style="text-decoration: none"><img
+                                src="//ring.acab.dev/img/webring_88_31_03.png"
+                                alt="The last third of a 88x31 with a glider and arrow going to the
+                                right"
+                            /></a>
+                    </div>
+                </center>
+            </article>
+            
+
+<nav>
+    <h4>On this page:</h4>
+    <ul>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;forgor&#x2F;#the-devil-s-in-the-details">The devil&#x27;s in the details</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;forgor&#x2F;#when-the-cryptographic-spider-sense-is-tingling">When the cryptographic spider sense is tingling</a>
+            
+        </li>
+        
+        <li>
+            <a href="https:&#x2F;&#x2F;compilercrim.es&#x2F;forgor&#x2F;#back-to-the-realm-of-the-living">Back to the realm of the living</a>
+            
+        </li>
+        
+    </ul>
+</nav>
+
+
+        </main>
+    </body>
+    <script type="text/javascript" src="/enhance.js" async></script>
+    <script data-goatcounter="https://niedzejkob.goatcounter.com/count" async src="https://compilercrim.es/count.js"></script>
+</html>

@@ -8,7 +8,7 @@
     
     <head>
         <link rel="stylesheet" href="
-https://compilercrim.es/style.css?8k0YJ2yOK99E4pa8Y+&#x2F;JafWMDrCBI8cE4YG7apmYJL8=
+https://compilercrim.es/style.css?wmUGGP88BPXdF896QSOvJcyzOTG64MhXmT9VzTcgK5k=
 "/>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
@@ -37,7 +37,7 @@ program that does what we&#x27;ve set out to do. Well, almost.&amp;hellip;
         <header>
             <a href="/">
                 <img id="icon" src="/icon.png">
-                <span class="head-backdrop">the blog of compiler crime&nbsp;:3</span>
+                <span class="head-backdrop">the blog of compiler crimes&nbsp;:3</span>
             </a>
         </header>
         <main>
@@ -48,8 +48,8 @@ program that does what we&#x27;ve set out to do. Well, almost.&amp;hellip;
 </h1>
 
 <p class="page-metadata">
-September 25, 2021
-&middot; 8 minute read
+
+September 25, 2021 &middot; 8 minute read
 </p>
 
 
@@ -63,11 +63,6 @@ program that does what we've set out to do. Well, almost. <span id="continue-rea
 <p>You see, in a devious act of nerdsnipe, the article stops when there's still one
 problem to solve:</p>
 <p><img src="https://compilercrim.es/amos-nerdsniped-me/quote.png" alt="Cool bear: Nice, nice... but what&#39;s that ^C at the end? / Amos: Nothing. / Bear: What? / Amos: IT&#39;S NOTHING. It&#39;s an exercise left to the reader. / Bear: But doesn&#39;t that mean we- /Amos: So the program hangs at the end of main. Big deal. We could just call std::process::exit! That would definitely cut things short." /></p>
-<blockquote>
-<p>🤔 I sure do envy Amos's relationship with Cool Bear. I'd look into
-getting such a sidekick myself, but the dorm I'm about to move into doesn't
-allow keeping pets, and definitely not ones sentient enough to throw a party.</p>
-</blockquote>
 <p>Well, <a href="/bootstrap/miniforth/#ref:stack-complete">I've been guilty of setting such exercises for my readers
 too</a>, so today, we'll be solving one of those instead.</p>
 <pre style="background-color:#272822;color:#c9d1d9;"><code><span>[.../compilercrim.es/content/amos-nerdsniped-me]$ cargo new terminus
@@ -503,18 +498,25 @@ got rid of that unsafe block around <code>File::from_raw_fd</code>.</p>
 </script>
 
 
-                <center>
-                    <p>
-                        Fedi: <a href="https://donotsta.re/mei">@mei@donotsta.re</a>
-                        &bull;
-                        GitHub: <a href="https://github.com/meithecatte">@meithecatte</a>
-                        &bull;
-                        E-mail: catch-all on this domain
-                    </p>
-
-                    <a href="https://diyhrt.wiki">
-                        <img src="/e2.gif" width="88" height="31" />
-                    </a>
+                <center id="footer">
+                    <a href="https://diyhrt.wiki"><img src="/e2.gif" width="88" height="31" /></a>
+                    <div class="webring-container">
+                        <a href="//ring.acab.dev/prev/13e80a04a7" style="text-decoration: none"><img
+                                src="//ring.acab.dev/img/webring_88_31_01.png" 
+                                alt="The first third of a 88x31 with a glider and arrow going to
+                                the left"
+                            /></a>
+                        <a href="//ring.acab.dev" style="text-decoration: none"><img
+                                src="//ring.acab.dev/img/webring_88_31_02.png"
+                                alt="The middle third of a 88x31 with the text Hacker Webring on
+                                it. In the background of the text is a ring with an offset shadow."
+                            /></a>
+                        <a href="//ring.acab.dev/next/13e80a04a7" style="text-decoration: none"><img
+                                src="//ring.acab.dev/img/webring_88_31_03.png"
+                                alt="The last third of a 88x31 with a glider and arrow going to the
+                                right"
+                            /></a>
+                    </div>
                 </center>
             </article>
             
