@@ -31,11 +31,11 @@ bruteforce to bridge the gap.
 The details were only a matter of some elbow grease and overcoming the procrastination.
 At first I tried looking for people who've done a similar thing, but unfortunately
 couldn't find any.[^search] So, in case this is useful for someone else later,
-I decided to write up the process.
+I decided to document the process.
 
 ## The devil's in the details
 
-Knowing that I generated the password with [xkcdpass],[^xkcdpass] I quickly found that
+Knowing that I generated the password with [xkcdpass],[^xkcdpass] I found that
 by default, the [`eff-long` wordlist][eff-long] must've been used, meaning 7776 options
 for what the password could be. If I wanted to be fancy, I could try using
 [word2vec] to sort the wordlist and incorporate the vague knowledge I still had
@@ -195,6 +195,14 @@ This time though, it worked perfectly, first try.
 I looked at the output, which told me what the missing word was.
 
 "Oh, of course. How did I ever forget *that* in the first place?"
+
+---
+
+*Proof-read by [dmi][sdomi]. Thanks! :3*
+
+---
+
+{{ get_notified() }}
 
 ---
 
