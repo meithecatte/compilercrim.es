@@ -401,6 +401,11 @@ details > :not(summary) {
 
 .head-backdrop {
     letter-spacing: 0.025rem;
+    font-family: monospace;
+    text-shadow: 1px 1px cyan, -1px -1px magenta;
+    @media (prefers-color-scheme: dark) {
+        text-shadow: 1px 1px blue, -1px -1px red;
+    }
     //text-decoration: underline;
 }
 
