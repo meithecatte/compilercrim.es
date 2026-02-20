@@ -23,6 +23,12 @@ html {
     min-height: 100vh;
     box-sizing: border-box;
     font-size: 15pt;
+    @media (max-width: 900pt) {
+      font-size: 14pt;
+    }
+    @media (max-width: 360pt) {
+      font-size: 12pt;
+    }
 }
 
 body {
