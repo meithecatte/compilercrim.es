@@ -8,7 +8,7 @@
     
     <head>
         <link rel="stylesheet" href="
-https://compilercrim.es/style.css?SK&#x2F;vleNASd5zxThOiNBwkfCwWNCmByenbEbKiKxlTZU=
+https://compilercrim.es/style.css?veWkG1+MEWbeZr35xfedpHkGLhJh&#x2F;IpcGmq55IR4Dog=
 "/>
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1">
@@ -32,12 +32,14 @@ https://compilercrim.es/style.css?SK&#x2F;vleNASd5zxThOiNBwkfCwWNCmByenbEbKiKxlT
             </a>
         </header>
         <main>
+            <div id="article-box">
             <article>
                 
-<p>Hi there! I'm <strong>mei</strong>, or <strong>Maja Kądziołka</strong> if you're all formal and uptight. I'm a queer weirdo
-who's into computers; currently an undergraduate student at the University
-of Warsaw. Also, <a href="https://compilercrim.es/#publications">I guess I get to call myself a researcher now?</a>
-Feels weird.</p>
+<p>Hi there! Depending on where you look, I go by <strong>mei</strong> or <strong>Maja Kądziołka</strong>.
+I'm a queer weirdo who's into computers; currently an undergraduate student
+at the University of Warsaw.
+Following my contribution to the <a href="https://compilercrim.es/#publications">BB(5) collaboration</a>,
+I'm looking for a place for myself in academia.</p>
 <div class="figure">
     <p><img src="me_irl.jpg" alt="it&#39;s a creature! legend has it it has autism" /></p>
 
@@ -46,27 +48,41 @@ Feels weird.</p>
 </div>
     
 </div>
-<p>While I find vast swathes of computer science interesting, lately my focus is
-mainly on things that involve symbolic manipulation in one way or another:
-compiler engineering, proof assistants, automatic theorem provers, static program analysis,
-and so on.</p>
+<p>My research interests include:</p>
+<ul>
+<li>automata theory, with a recent focus on Vector Addition Systems
+and related models,</li>
+<li>metatheory of dependent types, with a focus on unresolved theoretical
+questions underlying
+existing implementations, as well as on features which would enable
+usability improvements in proof assistants,</li>
+<li>formalization of undecidability and computational complexity results
+within interactive theorem provers,</li>
+<li>computational combinatorics,</li>
+<li>constructive mathematics,</li>
+<li>automated static analysis of machine code, with applications
+in reverse-engineering tooling, and</li>
+<li>theoretical foundations of the Rust programming language.</li>
+</ul>
 <p>I've been known to have a soft spot in my heart for <a href="https://egraphs.org/">e-graphs</a> — legend has it
 I'm always on the look out for reasons to use one.</p>
-<p>Between classes at the university, I tend to either contribute to various open-source projects,
-such as the Rust compiler, or spend my time formalizing stuff in a proof assistant, mostly to
-learn mathematics better.</p>
-<p>In the long term, I have two main goals:</p>
+<p>In the long term, I have the following primary goals:</p>
 <ul>
 <li>help push forwards the correctness guarantees we can make at
-the bedrock layers of computing, by building formally verified compilers, proof assistant kernels,
+the bedrock layers of computing, by building formally verified compilers,
+proof assistant kernels,
 operating systems, hypervisors, language runtimes, and hardware;</li>
-<li>improve the usability of proof assistants, to allow for their adoption by a wider group of professionals,
-make existing users more productive, as well as to allow creating particularly accessible learning materials
-for mathematics and computer science.</li>
+<li>improve the usability of proof assistants,
+to allow for their adoption by a wider group of professionals,
+make existing users more productive,
+as well as to make them a feasible medium for learning materials
+in mathematics and computer science.</li>
 </ul>
 <section><h2 id="publications">Publications</h2>
 <ul>
-<li>bbchallange Collaboration et al. <strong><a href="https://arxiv.org/abs/2509.12337">Determination of the fifth Busy Beaver value</a></strong>, to appear in STOC '26: Proceedings of the 58th Annual ACM Symposium on Theory of Computing</li>
+<li>The bbchallange Collaboration.
+<strong><a href="https://arxiv.org/abs/2509.12337">Determination of the fifth Busy Beaver value</a></strong>, STOC 2026.
+[<a href="https://arxiv.org/pdf/2509.12337">pre-print pdf</a>] [<a href="/pubs/bb5-stoc26.pdf">conference pdf</a>]</li>
 </ul>
 </section><section><h2 id="contact">Contact</h2>
 <ul>
@@ -185,28 +201,30 @@ checking performed by the Rust compiler on <code>match</code> patterns is a supe
 
 
 
-
-                <center id="footer">
-                    <a href="https://diyhrt.wiki"><img src="/e2.gif" width="88" height="31" /></a>
+            </article>
+            <footer>
+                    <a href="https://diyhrt.wiki"><img src="/e2.gif" width="88" height="31" alt="powered by estrogen" /></a>
                     <div class="webring-container">
                         <a href="//ring.acab.dev/prev/13e80a04a7" style="text-decoration: none"><img
                                 src="//ring.acab.dev/img/webring_88_31_01.png" 
-                                alt="The first third of a 88x31 with a glider and arrow going to
-                                the left"
+                                alt="Hacker webring: previous page"
                             /></a>
                         <a href="//ring.acab.dev" style="text-decoration: none"><img
                                 src="//ring.acab.dev/img/webring_88_31_02.png"
-                                alt="The middle third of a 88x31 with the text Hacker Webring on
-                                it. In the background of the text is a ring with an offset shadow."
+                                alt="Hacker webring homepage"
                             /></a>
                         <a href="//ring.acab.dev/next/13e80a04a7" style="text-decoration: none"><img
                                 src="//ring.acab.dev/img/webring_88_31_03.png"
-                                alt="The last third of a 88x31 with a glider and arrow going to the
-                                right"
+                                alt="Hacker webring: next page"
                             /></a>
                     </div>
-                </center>
-            </article>
+                    <div id="footer-flags">
+                    <img src="/pride.svg" alt="Progress pride flag" width="80">
+                    <img src="/ukraine.svg" alt="Slava Ukraini!" width="80">
+                    <img src="/palestine.svg" alt="Solidarity with Palestine." width="80">
+                    </div>
+            </footer>
+            </div>
              
         </main>
     </body>

@@ -2,43 +2,57 @@
 sort_by = "date"
 +++
 
-Hi there! I'm **mei**, or **Maja Kądziołka** if you're all formal and uptight. I'm a queer weirdo
-who's into computers; currently an undergraduate student at the University
-of Warsaw. Also, [I guess I get to call myself a researcher now?](#publications)
-Feels weird.
+Hi there! Depending on where you look, I go by **mei** or **Maja Kądziołka**.
+I'm a queer weirdo who's into computers; currently an undergraduate student
+at the University of Warsaw.
+Following my contribution to the [BB(5) collaboration](#publications),
+I'm looking for a place for myself in academia.
 
 {% figure(caption="**Figure 1:** me irl (artist's rendition)") %}
 ![it's a creature! legend has it it has autism](me_irl.jpg)
 {% end %}
 
-While I find vast swathes of computer science interesting, lately my focus is
-mainly on things that involve symbolic manipulation in one way or another:
-compiler engineering, proof assistants, automatic theorem provers, static program analysis,
-and so on.
+My research interests include:
+- automata theory, with a recent focus on Vector Addition Systems
+  and related models,
+- metatheory of dependent types, with a focus on unresolved theoretical
+  questions underlying
+  existing implementations, as well as on features which would enable
+  usability improvements in proof assistants,
+- formalization of undecidability and computational complexity results
+  within interactive theorem provers,
+- computational combinatorics,
+- constructive mathematics,
+- automated static analysis of machine code, with applications
+  in reverse-engineering tooling, and
+- theoretical foundations of the Rust programming language.
 
 I've been known to have a soft spot in my heart for [e-graphs] — legend has it
 I'm always on the look out for reasons to use one.
 
-Between classes at the university, I tend to either contribute to various open-source projects,
-such as the Rust compiler, or spend my time formalizing stuff in a proof assistant, mostly to
-learn mathematics better.
-
-In the long term, I have two main goals:
+In the long term, I have the following primary goals:
 
 - help push forwards the correctness guarantees we can make at
-  the bedrock layers of computing, by building formally verified compilers, proof assistant kernels,
+  the bedrock layers of computing, by building formally verified compilers,
+  proof assistant kernels,
   operating systems, hypervisors, language runtimes, and hardware;
-- improve the usability of proof assistants, to allow for their adoption by a wider group of professionals,
-  make existing users more productive, as well as to allow creating particularly accessible learning materials
-  for mathematics and computer science.
+- improve the usability of proof assistants,
+  to allow for their adoption by a wider group of professionals,
+  make existing users more productive,
+  as well as to make them a feasible medium for learning materials
+  in mathematics and computer science.
 
 [e-graphs]: https://egraphs.org/
 
 ## Publications
 
-- bbchallange Collaboration et al. **[Determination of the fifth Busy Beaver value][bb5-preprint]**, to appear in STOC '26: Proceedings of the 58th Annual ACM Symposium on Theory of Computing
+- The bbchallange Collaboration.
+  **[Determination of the fifth Busy Beaver value][bb5-preprint]**, STOC 2026.
+  [[pre-print pdf][bb5-preprint-pdf]] [[conference pdf][bb5-stoc26]]
 
 [bb5-preprint]: https://arxiv.org/abs/2509.12337
+[bb5-preprint-pdf]: https://arxiv.org/pdf/2509.12337
+[bb5-stoc26]: /pubs/bb5-stoc26.pdf
 
 ## Contact
 
@@ -47,6 +61,6 @@ In the long term, I have two main goals:
 - fedi: [@mei@donotsta.re](https://donotsta.re/mei)
 - Signal: [mei.1312][signal-link]
 
-## Blog
-
 [signal-link]: https://signal.me/#eu/NBV6EZkuU31Xkl9OWnX-8qxltMUrFQpjrz9MTCG9cs9nyWiAu9JF0aYR8Yrm6edR
+
+## Blog
